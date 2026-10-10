@@ -28,7 +28,15 @@ import (
 )
 
 func init() {
-	registerTrialSeeder(trialSeeder{Name: "sportclub-mgcc", Order: 41, Final: func(_ context.Context, t *Trial) error { trialSportClubMGCC(t); return nil }})
+	registerTrialSeeder(trialSeeder{Name: "sportclub-mgcc", Order: 41, Final: func(ctx context.Context, t *Trial) error {
+		trialSportClubMGCC(t)
+		// court booking demo (docs/requirement-booking-sportclub-mgcc.md §13.9)
+		trialSportContent(t)
+		trialSportMembers(ctx, t)
+		trialSportHistory(ctx, t)
+		trialSportDemoDay(ctx, t)
+		return nil
+	}})
 }
 
 // trialSportEntryItem is the pricing item of the one Sport Club entry ticket.
@@ -96,7 +104,7 @@ func trialSportClubMGCC(t *Trial) {
 			return // a rule is versioned: kept as seeded
 		}
 		b["effectiveFrom"], b["taxCodes"], b["pricingMode"] = eff, []string{"PPN"}, "plus_plus"
-		admin.Post("/api/v1/commercial/pricing-rules", b)
+		admin.Try("POST", "/api/v1/commercial/pricing-rules", b) // a rule seeded before is versioned: kept
 		rules[b.S("code")] = b
 	}
 	court := func(code, item, dayCode, bandCode, price string) {

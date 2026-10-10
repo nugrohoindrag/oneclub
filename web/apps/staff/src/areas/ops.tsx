@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useRef, useState } from 'react';
-import { Link, Navigate, Outlet, useLocation, useRoutes } from 'react-router';
+import { Link, Navigate, Outlet, useLocation, useNavigate, useRoutes } from 'react-router';
 import { useGet, type Page } from '@oneclub/api-client';
 import { useTranslation } from '@oneclub/i18n';
 import { enqueue, useOnline } from '@oneclub/offline';
@@ -18,6 +18,7 @@ import { CaddyHistoryPage } from '../ops/caddy';
 import { TeeHousesPage } from '../ops/teehouse';
 import { P2_OPS_ROUTES, P2Tiles } from '../ops/p2';
 import { P3_OPS_ROUTES, P3Tiles } from '../ops/p3';
+import { SPORT_OPS_ROUTES } from '../sport/routes';
 import { ConnectivityChip, OUTLET_KEY, SyncPage, read, write } from '../offline';
 import '../pos/pos.css';
 
@@ -50,12 +51,53 @@ function currentArea(items: NavItem[], pathname: string, previous?: string) {
  * connection chip and the user menu, and the pages of the current area sit
  * in tabs above the content (Technical Doc §6.5).
  */
+/** The front desk area chosen on this device (docs/requirement-booking-sportclub-mgcc.md FR-47, FR-49). */
+const AREA_KEY = 'oneclub.ops.area';
+const AREAS: Record<string, [string, string, string]> = {
+  golf: ['Golf', 'golf_course', 'Reservations / Tee Sheet, Check-in, Caddy & Cart, Starter, Bill / Check-out, Driving Range'],
+  sportclub: ['Sport Club', 'sports_tennis', 'Satu front desk untuk Tennis, Futsal, Basket & Volley, Basket Indoor dan tiket kolam/gym'],
+};
+function readArea() {
+  try { return localStorage.getItem(AREA_KEY) ?? ''; } catch { return ''; }
+}
+
+/** Area picker after login or from "Ganti Area": Golf or Sport Club, only the areas allowed to the user. */
+function AreaPicker({ areas, onPick }: { areas: string[]; onPick: (a: string) => void }) {
+  return (
+    <div className="oc-stack" style={{ maxWidth: 720, margin: '24px auto' }}>
+      <h1 style={{ margin: 0 }}>Pilih area kerja</h1>
+      <p className="oc-muted" style={{ margin: 0 }}>Menu mengikuti area. Area lain (POS, Stay Front Desk, dll.) tetap tersedia sesuai izin.</p>
+      <div className="oc-grid">
+        {areas.map((a) => (
+          <button key={a} type="button" className="oc-card" style={{ minHeight: 140, textAlign: 'left', cursor: 'pointer' }} onClick={() => onPick(a)}>
+            <div className="oc-card-head"><span className="oc-icon-circle"><Icon name={AREAS[a]?.[1] ?? 'apps'} size={24} /></span><h3>{AREAS[a]?.[0] ?? a}</h3></div>
+            <div className="oc-small oc-muted">{AREAS[a]?.[2]}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function OpsLayout() {
   const { t } = useTranslation();
   const online = useOnline();
   const b = useBootstrap();
   const { pathname } = useLocation();
-  const items = useNavigation('ops').data?.items ?? [];
+  const nav = useNavigation('ops');
+  const navigate = useNavigate();
+  const areas = nav.data?.areas ?? [];
+  const [chosen, setChosen] = useState(readArea);
+  const [picking, setPicking] = useState(false);
+  const area0 = areas.length === 1 ? areas[0] : areas.includes(chosen) ? chosen : '';
+  const pick = (a: string) => {
+    try { localStorage.setItem(AREA_KEY, a); } catch { /* private window: per session */ }
+    setChosen(a);
+    setPicking(false);
+    navigate(a === 'sportclub' ? '/ops/sport' : '/ops');
+  };
+  // the menu adapts to the area: Sport Club shows no Caddy Master / Starter, golf no court board (FR-50)
+  const items = (nav.data?.items ?? []).filter((i) => !i.area || !area0 || i.area === area0);
   const last = useRef<string | undefined>(undefined);
   const area = currentArea(items, pathname, last.current);
   last.current = area?.key;
@@ -75,6 +117,11 @@ function OpsLayout() {
       <main className="pos-main">
         <header className="pos-ops-top">
           <Brand />
+          {areas.length > 1 && (
+            <button type="button" className="pos-chip" onClick={() => setPicking(true)} title="Ganti Area">
+              <Icon name={AREAS[area0]?.[1] ?? 'swap_horiz'} size={18} /> {area0 ? AREAS[area0]?.[0] : 'Pilih area'} · Ganti Area
+            </button>
+          )}
           <span className="pos-spacer" />
           <ConnectivityChip />
           <HeaderActions property={false} />
@@ -85,7 +132,7 @@ function OpsLayout() {
           </nav>
         )}
         {!online && <div className="pos-banner" data-tone="warn" role="status"><Icon name="cloud_off" size={20} />{t('common.offline')}</div>}
-        <div className="pos-body"><Outlet /></div>
+        <div className="pos-body">{areas.length > 1 && (picking || !area0) ? <AreaPicker areas={areas} onPick={pick} /> : <Outlet />}</div>
       </main>
     </div>
   );
@@ -178,6 +225,7 @@ const routes = [
       { path: 'golf-staff/maintenance', element: <MaintenancePage /> },
       ...P2_OPS_ROUTES,
       ...P3_OPS_ROUTES,
+      ...SPORT_OPS_ROUTES,
       { path: 'notifications', element: <NotificationsPage /> },
       { path: 'profile', element: <ProfilePage showPin /> },
       { path: 'home', element: <Navigate to="/ops" /> },

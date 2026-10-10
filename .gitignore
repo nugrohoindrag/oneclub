@@ -26,3 +26,9 @@ web/playwright-report/
 web/packages/ui/dist-showcase/
 web/apps/web/next-env.d.ts
 
+
+# Screenshot referensi (AYO, Horison, pembanding OneClub) hanya disimpan lokal
+docs/referensi/**/*.png
+docs/referensi/**/*.jpg
+docs/referensi/**/*.jpeg
+docs/referensi/**/*.webp

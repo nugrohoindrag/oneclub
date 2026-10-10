@@ -10,13 +10,13 @@ import { LANGS } from './lib';
 export const STATIC_ROUTES = [
   '', 'golf', 'golf/course-guide', 'golf/hole-by-hole', 'golf/handicap', 'golf/facilities', 'golf/reciprocal-clubs', 'sport-club', 'bungalow',
   'vip-suite', 'meeting', 'wedding-banquet', 'events', 'tournaments', 'membership', 'packages', 'promotions', 'hall-of-fame', 'news', 'gallery',
-  'contact', 'location',
+  'contact', 'location', 'book/sport-club', 'book/sport-club/check',
 ];
 
 /** Private pages (personal links with a token, previews): never crawled. */
 export const PRIVATE_PATHS = [
   'payment/', 'quotation/', 'supplier/', 'unsubscribe/', 'invoice/', 'booking/', 'preview/', 'events/ticket/', 'tournaments/registration/',
-  'book-golf/manage',
+  'book-golf/manage', 'book/sport-club/pay/', 'book/sport-club/booking/', 'sport-club/ticket/',
 ];
 
 /** The origin of the website: ONECLUB_WEBSITE_URL, else as requested (behind the proxy: X-Forwarded-*). */

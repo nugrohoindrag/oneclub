@@ -20,13 +20,30 @@ export interface NavItem {
   phase?: string;
   /** Heading of a group of items (role menus); not a link. */
   section?: boolean;
+  /** Member App: the membership program of the item (golf, sport_club). */
+  program?: string;
+  /** Ops: the front desk area of the item (golf, sportclub). */
+  area?: string;
   children?: NavItem[];
+}
+
+/** The menu of a shell with the member's programs and the employee's areas. */
+export interface NavMenu { shell: string; items: NavItem[]; programs?: string[]; program?: string; areas?: string[] }
+
+/** The Member App program of this domain (golf member app or the Sport Club member app, set at start-up). */
+let memberProgram = '';
+export function setMemberProgram(p: string) {
+  memberProgram = p;
+}
+export function getMemberProgram() {
+  return memberProgram;
 }
 
 /** Server-built navigation for a shell (FR-SH-02). */
 export function useNavigation(shell: Shell) {
   const { propertyId, me } = useAuth();
-  return useGet<{ shell: string; items: NavItem[] }>(me ? `/api/v1/platform/navigation?shell=${shell}&p=${propertyId}` : null);
+  const program = shell === 'member' && memberProgram ? `&program=${memberProgram}` : '';
+  return useGet<NavMenu>(me ? `/api/v1/platform/navigation?shell=${shell}&p=${propertyId}${program}` : null);
 }
 
 /** Logo linking to the home of the current area (`/` outside the Staff App). */

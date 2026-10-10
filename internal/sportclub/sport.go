@@ -113,6 +113,12 @@ type EntryInput struct {
 	VisitDate      string        `json:"visitDate,omitempty" doc:"YYYY-MM-DD; default today"`
 	Channel        string        `json:"channel,omitempty" enum:"ops,back_office,member_app,website"`
 	Payment        *PaymentInput `json:"payment,omitempty"`
+	// SkipHostPresence: a ticket bought ahead by the member in the Member App
+	// (Ajak Tamu, FR-117); the member's presence is checked at the scan.
+	SkipHostPresence bool `json:"-"`
+	// BillToHost: the ticket is charged to the host member (member charge
+	// of a Guest With Member ticket, FR-114); the guest stays on the ticket.
+	BillToHost bool `json:"-"`
 }
 
 // Entry is an entry ticket.
@@ -236,7 +242,7 @@ func (m *Module) CreateEntry(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 		if !ok {
 			return EntryResult{}, errs.Conflict("host_not_member", "the host is not an active member")
 		}
-		if pol.GuestOfMemberMustBePresent {
+		if pol.GuestOfMemberMustBePresent && !in.SkipHostPresence {
 			var present bool
 			if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM sportclub.access_events WHERE customer_id = $1 AND result = 'granted'
 				AND direction = 'in' AND occurred_at >= $2)`, *in.HostCustomerID, visit).Scan(&present); err != nil {
@@ -356,7 +362,15 @@ func (m *Module) CreateEntry(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 			return EntryResult{}, err
 		}
 		amount, snapshot = pr.Total(), pr.SnapshotID
-		fo, err := m.Billing.OpenLineFolio(ctx, tx, billing.LineFolioInput{FolioInput: billing.FolioInput{Property: property, CustomerID: customerID, HolderName: customerName, SourceType: "sport_entry"}, BusinessLine: billing.LineSport})
+		billTo, billName := customerID, customerName
+		if in.BillToHost && in.HostCustomerID != nil {
+			host, err := crm.GetCustomer(ctx, tx, *in.HostCustomerID)
+			if err != nil {
+				return EntryResult{}, err
+			}
+			billTo, billName = in.HostCustomerID, host.Name
+		}
+		fo, err := m.Billing.OpenLineFolio(ctx, tx, billing.LineFolioInput{FolioInput: billing.FolioInput{Property: property, CustomerID: billTo, HolderName: billName, SourceType: "sport_entry"}, BusinessLine: billing.LineSport})
 		if err != nil {
 			return EntryResult{}, err
 		}
@@ -576,6 +590,8 @@ func (m *Module) ValidateAccess(ctx context.Context, tx pgx.Tx, property uuid.UU
 			deny("this ticket has already been used")
 		case e.Status != "issued" && e.Status != "used":
 			deny("ticket is " + e.Status)
+		case e.EntryType == "guest_of_member" && e.HostCustomerID != nil && pol.GuestOfMemberMustBePresent && in.Direction == "in" && !hostPresent(ctx, tx, *e.HostCustomerID, today):
+			deny("Guest Policy: the member who invited this guest must check in first")
 		default:
 			grant()
 			if e.Status == "issued" && in.Direction == "in" {
@@ -715,6 +731,14 @@ func (m *Module) ValidateAccess(ctx context.Context, tx pgx.Tx, property uuid.UU
 	return res, nil
 }
 
+// hostPresent reports whether a member entered today (Guest of Member).
+func hostPresent(ctx context.Context, tx pgx.Tx, host uuid.UUID, today time.Time) bool {
+	var ok bool
+	_ = tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM sportclub.access_events WHERE customer_id = $1 AND result = 'granted' AND direction = 'in'
+		AND occurred_at >= $2)`, host, today).Scan(&ok)
+	return ok
+}
+
 func sameDay(a, b time.Time) bool {
 	return a.Year() == b.Year() && a.Month() == b.Month() && a.Day() == b.Day()
 }
@@ -831,145 +855,6 @@ func (m *Module) ReturnLocker(ctx context.Context, tx pgx.Tx, aid uuid.UUID) (Lo
 	}
 	return a, audit.Record(ctx, tx, audit.Entry{Module: "sportclub", Action: audit.ActionStatusChange, EntityType: "sportclub.locker_assignment",
 		EntityID: aid.String(), EntityLabel: "Locker " + a.LockerCode, PropertyID: &property, After: a})
-}
-
-// ── court booking (FR-SPT-02/03) ──────────────────────────────────────────
-
-type CourtBookingInput struct {
-	CourtID     uuid.UUID     `json:"courtId"`
-	Start       time.Time     `json:"start"`
-	End         time.Time     `json:"end"`
-	CustomerID  *uuid.UUID    `json:"customerId,omitempty"`
-	Guest       *GuestInput   `json:"guest,omitempty"`
-	Segment     string        `json:"segment,omitempty" doc:"Default: member when the customer has an active membership, else walk_in"`
-	Channel     string        `json:"channel,omitempty" enum:"ops,back_office,member_app,website"`
-	PackageCode string        `json:"packageCode,omitempty" doc:"Session Package (4x/8x court voucher) to redeem instead of paying"`
-	Hold        bool          `json:"hold,omitempty" doc:"Create as Draft (online checkout)"`
-	Notes       string        `json:"notes,omitempty"`
-	Payment     *PaymentInput `json:"payment,omitempty"`
-	// Lines books several courts and hours in one booking and one payment
-	// (the website cart, demo feedback 10 Oct 2026 #41); courtId/start/end
-	// are then ignored.
-	Lines []CourtLine `json:"lines,omitempty"`
-}
-
-// CourtLine is one court and time of a booking.
-type CourtLine struct {
-	CourtID uuid.UUID `json:"courtId"`
-	Start   time.Time `json:"start"`
-	End     time.Time `json:"end"`
-}
-
-// CourtBookingResult is the booking with its folio.
-type CourtBookingResult struct {
-	Reservation reservation.Reservation `json:"reservation"`
-	Folio       *billing.FolioDetail    `json:"folio"`
-	Total       string                  `json:"total"`
-}
-
-// BookCourt books a court slot (exclusive) with the right rate or package.
-func (m *Module) BookCourt(ctx context.Context, tx pgx.Tx, property uuid.UUID, in CourtBookingInput, key string) (CourtBookingResult, error) {
-	lines := in.Lines
-	if len(lines) == 0 {
-		lines = []CourtLine{{CourtID: in.CourtID, Start: in.Start, End: in.End}}
-	}
-	if len(lines) > 24 {
-		return CourtBookingResult{}, errs.Validation("too_many_lines", "at most 24 courts / hours in one booking")
-	}
-	if in.PackageCode != "" && len(lines) > 1 {
-		return CourtBookingResult{}, errs.Validation("package_one_line", "a court package pays one court and time at a time")
-	}
-	var item string
-	var reqs []reservation.LineRequest
-	for i, l := range lines {
-		var resID *uuid.UUID
-		var courtName, it, facilityID string
-		if err := tx.QueryRow(ctx, `SELECT c.resource_id, c.name, coalesce(c.price_item, f.price_item, f.code), c.facility_id::text FROM sportclub.courts c
-			JOIN sportclub.facilities f ON f.id = c.facility_id WHERE c.id = $1 AND c.property_id = $2 AND c.status = 'active'`, l.CourtID, property).
-			Scan(&resID, &courtName, &it, &facilityID); err != nil {
-			if dbtx.IsNoRows(err) {
-				return CourtBookingResult{}, errNotFound("court")
-			}
-			return CourtBookingResult{}, err
-		}
-		if resID == nil {
-			return CourtBookingResult{}, errs.Conflict("court_not_bookable", courtName+" has no bookable resource")
-		}
-		if !l.End.After(l.Start) {
-			return CourtBookingResult{}, errs.Validation("invalid_period", fmt.Sprintf("line %d: the end must be after the start", i+1))
-		}
-		if i == 0 {
-			item = it
-		}
-		reqs = append(reqs, reservation.LineRequest{ResourceID: *resID, Start: l.Start, End: l.End, Description: courtName,
-			Attributes: map[string]any{"courtId": l.CourtID.String(), "facilityId": facilityID}})
-	}
-	if in.Channel == "" {
-		in.Channel = "back_office"
-	}
-	cid, name, err := resolveCustomer(ctx, tx, property, in.CustomerID, in.Guest)
-	if err != nil {
-		return CourtBookingResult{}, err
-	}
-	segment := in.Segment
-	if segment == "" {
-		segment = "walk_in"
-		if cid != nil {
-			if s, err := membership.Segment(ctx, tx, property, *cid, "sportclub"); err != nil {
-				return CourtBookingResult{}, err
-			} else if s != "" {
-				segment = s
-			}
-		}
-	}
-	r, err := m.Res.Book(ctx, tx, property, reservation.BookRequest{BusinessLine: "sportclub", Channel: in.Channel, CustomerID: cid, GuestName: name,
-		Hold: in.Hold, Confirm: !in.Hold, SourceType: "sportclub.court_booking", Notes: in.Notes, Lines: reqs})
-	if err != nil {
-		return CourtBookingResult{}, err
-	}
-	out := CourtBookingResult{Total: "0"}
-	if in.PackageCode != "" {
-		vk := ""
-		if key != "" {
-			vk = "court-" + key
-		}
-		if _, err := m.Vouchers.Redeem(ctx, tx, commercial.RedeemRequest{PropertyID: property, Code: in.PackageCode, Quantity: decimal.NewFromInt(1),
-			ServiceType: "sport_court", ItemRef: item, CustomerID: cid, SourceType: "reservation.reservation", SourceID: &r.ID, IdempotencyKey: vk}); err != nil {
-			return out, err
-		}
-		if err := m.Res.SetAttribute(ctx, tx, r.ID, "packageCode", strings.ToUpper(in.PackageCode)); err != nil {
-			return out, err
-		}
-	} else {
-		var total decimal.Decimal
-		r, total, err = m.Res.ChargeLines(ctx, tx, r, segment, 0)
-		if err != nil {
-			return out, err
-		}
-		out.Total = total.String()
-		if in.Payment != nil && r.FolioID != nil {
-			if err := m.settle(ctx, tx, *r.FolioID, in.Payment, key); err != nil {
-				return out, err
-			}
-			if r.Status == reservation.StatusDraft {
-				if r, err = m.Res.Confirm(ctx, tx, r.ID, false); err != nil {
-					return out, err
-				}
-			}
-		}
-		if r.FolioID != nil {
-			d, err := billing.GetFolio(ctx, tx, *r.FolioID)
-			if err != nil {
-				return out, err
-			}
-			out.Folio = &d
-		}
-	}
-	if err := m.Res.SetSource(ctx, tx, r.ID, r.ID); err != nil {
-		return out, err
-	}
-	out.Reservation, err = m.Res.Get(ctx, tx, r.ID, false)
-	return out, err
 }
 
 // Occupancy is the live occupancy of capacity facilities (FR-SPT-08).

@@ -1,0 +1,99 @@
+/* Sport Club court booking: front desk (POS blue look) and admin (staff app). */
+
+.sc-channel { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--oc-muted, #64748b); }
+
+/* slot grid */
+.sc-grid-court { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--oc-border, #e2e8f0); border-radius: 12px; }
+.sc-grid-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.sc-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+.sc-slots-compact { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+.sc-slot {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 56px; padding: 8px 10px; font: inherit; font-size: 13px; text-align: left;
+  border: 1px solid var(--oc-border, #e2e8f0); border-radius: 10px; background: var(--oc-surface, #fff); color: inherit; cursor: pointer;
+}
+.sc-slot:hover:not(:disabled) { border-color: var(--dash-blue, #2563eb); }
+.sc-slot[data-status='chosen'] { background: var(--dash-blue, #2563eb); border-color: var(--dash-blue, #2563eb); color: #fff; }
+.sc-slot[data-status='booked'], .sc-slot[data-status='blocked'], .sc-slot[data-status='past'] {
+  background: var(--oc-surface-2, #f1f5f9); color: var(--oc-muted, #94a3b8); cursor: not-allowed;
+}
+@media (max-width: 640px) { .sc-slots { grid-template-columns: repeat(2, 1fr); } }
+
+/* desk */
+.sc-desk { min-width: 0; }
+.sc-new { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 1000px) { .sc-new { grid-template-columns: 1fr; } }
+.sc-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.sc-tile {
+  display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 12px 14px; border-radius: 14px; text-decoration: none; color: inherit;
+  background: var(--oc-surface, #fff); border: 1px solid var(--oc-border, #e2e8f0);
+}
+.sc-tile span { font-size: 12px; color: var(--oc-muted, #64748b); }
+.sc-tile strong { font-size: 22px; }
+.sc-tile small { font-size: 11px; color: var(--oc-muted, #64748b); overflow-wrap: anywhere; }
+.sc-tile[data-tone='warn'] { border-color: #f59e0b; }
+.sc-tile[data-tone='bad'] { border-color: #dc2626; }
+.sc-alerts { display: flex; flex-wrap: wrap; gap: 8px; }
+.sc-alert {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; border: 0; font: inherit; font-size: 13px; cursor: pointer;
+  background: #fff4dc; color: #8a5a00;
+}
+.sc-alert[data-kind='issue'], .sc-alert[data-kind='late'] { background: #fde8e8; color: #9b1c1c; }
+.sc-alert[data-kind='reminder'] { background: #e0f2fe; color: #075985; }
+
+/* the board: one column per court, one row per hour */
+.sc-board-wrap { overflow: auto; max-width: 100%; border: 1px solid var(--oc-border, #e2e8f0); border-radius: 12px; background: var(--oc-surface, #fff); }
+.sc-board { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; font-size: 13px; }
+.sc-board th, .sc-board td { border-bottom: 1px solid var(--oc-border, #e2e8f0); border-right: 1px solid var(--oc-border, #e2e8f0); }
+.sc-board thead th { position: sticky; top: 0; z-index: 2; min-width: 130px; padding: 8px; background: var(--oc-surface-2, #f8fafc); text-align: left; }
+.sc-board thead th small, .sc-cell small { display: block; font-weight: 400; font-size: 11px; color: var(--oc-muted, #64748b); }
+.sc-board tbody th { position: sticky; left: 0; z-index: 1; width: 56px; padding: 0 8px; background: var(--oc-surface-2, #f8fafc); font-weight: 600; }
+.sc-board tr[data-now] th { color: var(--dash-blue, #2563eb); }
+.sc-cell { height: 44px; padding: 2px; vertical-align: top; }
+.sc-cell > button {
+  display: flex; flex-direction: column; align-items: flex-start; width: 100%; height: 100%; padding: 6px 8px; font: inherit; text-align: left;
+  border: 0; border-radius: 8px; cursor: pointer; background: transparent; color: inherit;
+}
+.sc-cell[data-state='free'] > button { justify-content: center; align-items: center; color: var(--oc-muted, #94a3b8); font-size: 18px; }
+.sc-cell[data-state='free'] > button:hover { background: var(--oc-surface-2, #f1f5f9); }
+.sc-cell[data-state='past'] { background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(148, 163, 184, 0.08) 6px 12px); }
+.sc-cell[data-state='blocked'] { background: #e2e8f0; padding: 6px 8px; }
+.sc-cell[data-state='scheduled'] > button { background: #dbeafe; border-left: 4px solid #2563eb; }
+.sc-cell[data-state='awaiting_payment'] > button { background: #fef3c7; border-left: 4px solid #f59e0b; }
+.sc-cell[data-state='late'] > button { background: #fee2e2; border-left: 4px solid #dc2626; }
+.sc-cell[data-state='playing'] > button { background: #dcfce7; border-left: 4px solid #16a34a; }
+.sc-cell[data-state='finished'] > button { background: #f1f5f9; border-left: 4px solid #64748b; }
+.sc-cell[data-state='no_show'] > button { background: #fde2e2; border-left: 4px solid #7f1d1d; text-decoration: line-through; }
+.sc-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--oc-muted, #64748b); }
+.sc-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
+@media (prefers-color-scheme: dark) {
+  .sc-cell[data-state='scheduled'] > button { background: rgba(37, 99, 235, 0.25); }
+  .sc-cell[data-state='awaiting_payment'] > button { background: rgba(245, 158, 11, 0.25); }
+  .sc-cell[data-state='late'] > button { background: rgba(220, 38, 38, 0.25); }
+  .sc-cell[data-state='playing'] > button { background: rgba(22, 163, 74, 0.25); }
+  .sc-cell[data-state='blocked'] { background: rgba(148, 163, 184, 0.25); }
+}
+
+/* drawer */
+.sc-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.sc-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.sc-table td, .sc-table th { padding: 6px 4px; border-bottom: 1px solid var(--oc-border, #e2e8f0); text-align: left; vertical-align: top; }
+.sc-table tr[data-conflict] td { background: #fde8e8; }
+.sc-kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; font-size: 14px; }
+.sc-kv > span { color: var(--oc-muted, #64748b); }
+
+/* court staff on the phone */
+.sc-staff { max-width: 640px; }
+.sc-staff-court { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; border: 1px solid var(--oc-border, #e2e8f0); background: var(--oc-surface, #fff); }
+.sc-staff-court[data-issue] { border-color: #dc2626; }
+
+/* admin */
+.sc-heat { border-collapse: collapse; font-size: 11px; }
+.sc-heat td, .sc-heat th { width: 28px; height: 24px; text-align: center; padding: 0; }
+.sc-heat td { border: 1px solid var(--oc-surface, #fff); border-radius: 4px; }
+.sc-rate-table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.sc-rate-table th, .sc-rate-table td { padding: 6px 8px; border: 1px solid var(--oc-border, #e2e8f0); }
+.sc-rate-table th { background: var(--oc-surface-2, #f8fafc); text-align: left; }
+.sc-cal { border-collapse: collapse; width: 100%; font-size: 12px; table-layout: fixed; }
+.sc-cal th, .sc-cal td { border: 1px solid var(--oc-border, #e2e8f0); padding: 4px; vertical-align: top; }
+.sc-cal th { background: var(--oc-surface-2, #f8fafc); }
+.sc-cal .sc-ev { display: block; margin-bottom: 2px; padding: 2px 4px; border-radius: 4px; font-size: 11px; cursor: pointer; border: 0; width: 100%; text-align: left; color: inherit; }

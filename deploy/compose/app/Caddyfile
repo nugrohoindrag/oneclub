@@ -129,12 +129,35 @@
 	}
 }
 
+# Member App: one build on two domains, the Golf and the Sport Club member
+# apps (requirement-booking-sportclub-mgcc FR-108..112). Argument: the
+# membership program; the app reads it and the other app's domain from
+# /surface.json.
+(member-app) {
+	handle /surface.json {
+		header Content-Type application/json
+		header Cache-Control no-cache
+		respond `{"surface":"member","program":"{args[0]}","domains":{"golf":"https://{$DOMAIN_MEMBER}","sport_club":"https://{$DOMAIN_MEMBER_SPORT:sportmember.localhost}"}}` 200
+	}
+	handle {
+		root * /srv/member
+		import spa
+	}
+}
+
 {$DOMAIN_MEMBER} {
 	import security ()
 	import api
 	handle {
-		root * /srv/member
-		import spa
+		import member-app golf
+	}
+}
+
+{$DOMAIN_MEMBER_SPORT:sportmember.localhost} {
+	import security ()
+	import api
+	handle {
+		import member-app sport_club
 	}
 }
 
@@ -167,8 +190,7 @@ https:// {
 		}
 		@member header X-Surface member
 		handle @member {
-			root * /srv/member
-			import spa
+			import member-app golf
 		}
 		handle {
 			reverse_proxy web:3000

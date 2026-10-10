@@ -1135,18 +1135,20 @@ func (e *Engine) SetLinePrice(ctx context.Context, tx pgx.Tx, lineID uuid.UUID, 
 func ExpireHolds(ctx context.Context, db *dbtx.DB) (int64, error) {
 	var n int64
 	err := db.WithTx(dbtx.System(ctx), func(tx pgx.Tx) error {
+		// the application clock decides, like the hold it set (Sport Club FR-133)
+		now := clock.Now()
 		if _, err := tx.Exec(ctx, `WITH freed AS (
-				UPDATE reservation.capacity_allocations SET status = 'released' WHERE status = 'held' AND expires_at <= now()
+				UPDATE reservation.capacity_allocations SET status = 'released' WHERE status = 'held' AND expires_at <= $1
 				RETURNING slot_id, quantity)
 			UPDATE reservation.capacity_slots s SET booked = s.booked - f.q
-			FROM (SELECT slot_id, sum(quantity) AS q FROM freed GROUP BY slot_id) f WHERE s.id = f.slot_id`); err != nil {
+			FROM (SELECT slot_id, sum(quantity) AS q FROM freed GROUP BY slot_id) f WHERE s.id = f.slot_id`, now); err != nil {
 			return err
 		}
-		if _, err := tx.Exec(ctx, `UPDATE reservation.allocations SET status = 'released' WHERE status = 'held' AND expires_at <= now()`); err != nil {
+		if _, err := tx.Exec(ctx, `UPDATE reservation.allocations SET status = 'released' WHERE status = 'held' AND expires_at <= $1`, now); err != nil {
 			return err
 		}
-		rows, err := tx.Query(ctx, `UPDATE reservation.reservations SET status = 'expired' WHERE status = 'draft' AND hold_expires_at <= now()
-			RETURNING id, property_id, channel`)
+		rows, err := tx.Query(ctx, `UPDATE reservation.reservations SET status = 'expired' WHERE status = 'draft' AND hold_expires_at <= $1
+			RETURNING id, property_id, channel`, now)
 		if err != nil {
 			return err
 		}

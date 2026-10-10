@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getProperty } from '../../app/lib-p2';
+import { getProperty, pub } from '../../app/lib-p2';
 import { ContactForms, WeatherScript } from './client';
 import { MgccPage } from './site';
 
@@ -8,7 +8,7 @@ import { MgccPage } from './site';
 type Props = { params: Promise<{ lang: string }> };
 
 /** "Book …" block in the live site's Book Your Tee Time style, leading to the OneClub booking pages. */
-function BookBlock({ title, text, href, label }: { title: string; text: string; href: string; label: string }) {
+function BookBlock({ title, text, href, label, links = [] }: { title: string; text: string; href: string; label: string; links?: [string, string][] }) {
   return (
     <section className="book">
       <div className="container">
@@ -16,7 +16,12 @@ function BookBlock({ title, text, href, label }: { title: string; text: string; 
           <div className="column is-6 has-text-centered">
             <div className="section-title"><h3 className="has-text-white">{title}</h3></div>
             <p className="mb-5">{text}</p>
-            <a className="btn btn-primary" href={href}>{label}</a>
+            {links.length > 0 && (
+              <div className="buttons is-centered mb-4">
+                {links.map(([l, h]) => <a key={h} className="btn btn-primary" href={h}>{l}</a>)}
+              </div>
+            )}
+            <a className={links.length ? 'btn' : 'btn btn-primary'} href={href}>{label}</a>
           </div>
         </div>
       </div>
@@ -35,18 +40,30 @@ const BOOK: Record<string, (lang: string) => { title: string; text: string; path
     ? { title: 'Pesan Venue Acara', text: 'Pesan meeting room untuk rapat dan acara, atau kirim permintaan pernikahan & banquet.', path: '/book/meeting-room', label: 'Pesan Venue' }
     : { title: 'Book Your Venue', text: 'Book a meeting room for your meeting or event, or send a wedding & banquet inquiry.', path: '/book/meeting-room', label: 'Book Venue' },
   'sport-club': (l) => l === 'id'
-    ? { title: 'Pesan Fasilitas Sport Club', text: 'Pesan lapangan tenis, squash, badminton dan kelas olahraga.', path: '/book/sport-club', label: 'Pesan Sekarang' }
-    : { title: 'Book Sport Club Facilities', text: 'Book tennis, squash and badminton courts and sport classes.', path: '/book/sport-club', label: 'Book Now' },
+    ? { title: 'Sewa Lapangan Sport Club', text: 'Pesan lapangan tenis, futsal, basket & voli dan basket indoor: pilih jam yang kosong, lalu bayar online.', path: '/book/sport-club', label: 'Semua cabor & kelas' }
+    : { title: 'Book a Sport Club Court', text: 'Book tennis, futsal, basket & volley and indoor basketball courts: pick a free hour and pay online.', path: '/book/sport-club', label: 'All sports & classes' },
 };
+
+/** "Pesan" per sport bookable online (requirement-booking-sportclub-mgcc FR-01): the sport pages of the booking. */
+async function sportLinks(lang: string): Promise<[string, string][]> {
+  const p = await getProperty();
+  if (!p) return [];
+  const page = await pub<{ facilities: { code: string; name: string; usageMode: string; sortOrder: number; courts: number; content?: { slug?: string; nameEn?: string } }[] }>(
+    `/api/v1/public/sport-club?propertyId=${p.id}`);
+  return (page?.facilities ?? []).filter((f) => f.usageMode === 'slot_booking' && f.courts > 0).sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((f) => [`${lang === 'id' ? 'Pesan' : 'Book'} ${lang === 'en' && f.content?.nameEn ? f.content.nameEn : f.name}`,
+      `/${lang}/book/sport-club/${f.content?.slug || f.code.toLowerCase()}`]);
+}
 
 /** A captured page of the live site as a route component. */
 export function livePage(name: string) {
   return async function Page({ params }: Props) {
     const { lang } = await params;
     const book = BOOK[name]?.(lang);
+    const links = name === 'sport-club' ? await sportLinks(lang) : [];
     const page = (
       <MgccPage lang={lang} name={name}>
-        {book && <BookBlock title={book.title} text={book.text} href={`/${lang}${book.path}`} label={book.label} />}
+        {book && <BookBlock title={book.title} text={book.text} href={`/${lang}${book.path}`} label={book.label} links={links} />}
       </MgccPage>
     );
     if (name === 'home') return <>{page}<WeatherScript /></>;

@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
 	"oneclub/internal/billing"
@@ -19,6 +20,7 @@ import (
 	"oneclub/internal/platform/catalog"
 	"oneclub/internal/platform/notify"
 	"oneclub/internal/platform/outbox"
+	"oneclub/internal/platform/realtime"
 	"oneclub/internal/platform/resource"
 	"oneclub/internal/reservation"
 )
@@ -40,6 +42,11 @@ var Facilities = &resource.Def{
 		{Name: "openingHours", Column: "opening_hours", Label: "Opening Hours per Day Type", Kind: resource.JSON, Default: "{}"},
 		{Name: "priceItem", Column: "price_item", Label: "Pricing Item", Kind: resource.String, Max: 60, Upper: true},
 		{Name: "resourceId", Column: "resource_id", Label: "Bookable Resource", Kind: resource.UUID, ReadOnly: true},
+		// court booking (docs/requirement-booking-sportclub-mgcc.md FR-77): order, online booking, website content, duration rules
+		{Name: "sortOrder", Column: "sort_order", Label: "Order on the website", Kind: resource.Int, Default: int64(0)},
+		{Name: "onlineBooking", Column: "online_booking", Label: "Bookable online (website, Member App)", Kind: resource.Bool, Default: true},
+		{Name: "content", Column: "content", Label: "Website content (name EN, slug, photos, description, rules, amenities, FAQ)", Kind: resource.JSON, Default: "{}"},
+		{Name: "bookingRules", Column: "booking_rules", Label: "Booking rules (minHours, maxHours, eveningFrom)", Kind: resource.JSON, Default: "{}"},
 		resource.Status("active", "inactive"), resource.Attributes()},
 }
 
@@ -53,6 +60,9 @@ var Courts = &resource.Def{
 		{Name: "indoor", Column: "indoor", Label: "Indoor", Kind: resource.Bool, Default: false},
 		{Name: "priceItem", Column: "price_item", Label: "Pricing Item (default: facility)", Kind: resource.String, Max: 60, Upper: true},
 		{Name: "resourceId", Column: "resource_id", Label: "Bookable Resource", Kind: resource.UUID, ReadOnly: true},
+		{Name: "sortOrder", Column: "sort_order", Label: "Order", Kind: resource.Int, Default: int64(0)},
+		{Name: "onlineBooking", Column: "online_booking", Label: "Bookable online", Kind: resource.Bool, Default: true},
+		{Name: "photoUrl", Column: "photo_url", Label: "Photo URL", Kind: resource.String, Max: 500},
 		resource.Status("active", "inactive")},
 }
 
@@ -128,6 +138,10 @@ type Module struct {
 	Events    *outbox.Bus
 	Approvals *approval.Engine
 	Notify    notify.Sender
+	Hub       *realtime.Hub
+	// Leads hands a membership prospect to Sales (CRM lead, FR-89); wired by
+	// the composition root. Returns the lead reference.
+	Leads func(ctx context.Context, tx pgx.Tx, property, customerID uuid.UUID, name, phone, email, note string) (string, error)
 }
 
 func str(v any) string {
@@ -289,7 +303,13 @@ func Contribution() catalog.Contribution {
 	perms := resource.Permissions(defs...)
 	perms = append(perms, catalog.P("sportclub", "entry", "view", "create", "cancel")...)
 	perms = append(perms, catalog.P("sportclub", "access", "view", "validate")...)
-	perms = append(perms, catalog.P("sportclub", "booking", "view", "create")...)
+	perms = append(perms, catalog.P("sportclub", "booking", "view", "create", "operate", "override")...)
+	perms = append(perms, catalog.P("sportclub", "court_report", "view", "create")...)
+	perms = append(perms, catalog.P("sportclub", "incident", "view", "create", "manage")...)
+	perms = append(perms, catalog.P("sportclub", "block", "manage")...)
+	perms = append(perms, catalog.P("sportclub", "recurring", "manage")...)
+	perms = append(perms, catalog.P("sportclub", "dashboard", "view")...)
+	perms = append(perms, catalog.P("sportclub", "setting", "manage")...)
 	perms = append(perms, catalog.P("sportclub", "locker_assignment", "view", "manage")...)
 	perms = append(perms, catalog.P("sportclub", "class", "view", "enroll", "attendance", "manage")...)
 	perms = append(perms, catalog.P("sportclub", "instructor_fee", "view", "manage", "pay")...)
@@ -297,20 +317,29 @@ func Contribution() catalog.Contribution {
 		"sportclub.class_schedule.view", "sportclub.entry.view", "sportclub.entry.create", "sportclub.access.view", "sportclub.access.validate",
 		"sportclub.booking.view", "sportclub.booking.create", "sportclub.locker_assignment.view", "sportclub.locker_assignment.manage",
 		"sportclub.class.view", "sportclub.class.enroll"}
+	// court booking (docs/requirement-booking-sportclub-mgcc.md §13.1): the receptionist runs the desk, the court staff reports the
+	// courts, the manager is the supervisor (move, void, discount, unblock — FR-121) and sets the rules
+	ops = append(ops, "sportclub.booking.operate", "sportclub.court_report.view", "sportclub.court_report.create", "sportclub.incident.view",
+		"sportclub.incident.create", "sportclub.recurring.manage")
 	manager := append(append(resource.AllActions(defs...), ops...), "sportclub.entry.cancel", "sportclub.class.attendance", "sportclub.class.manage",
-		"sportclub.instructor_fee.view", "sportclub.instructor_fee.manage")
+		"sportclub.instructor_fee.view", "sportclub.instructor_fee.manage", "sportclub.booking.override", "sportclub.block.manage", "sportclub.incident.manage",
+		"sportclub.dashboard.view", "sportclub.setting.manage")
+	courtStaff := []string{"sportclub.facility.view", "sportclub.court.view", "sportclub.booking.view", "sportclub.court_report.view", "sportclub.court_report.create",
+		"sportclub.incident.create", "sportclub.incident.view"}
+	view := []string{"sportclub.dashboard.view", "sportclub.booking.view", "sportclub.incident.view"}
 	return catalog.Contribution{
 		Permissions: perms,
 		RolePermissions: map[string][]string{
 			"property_admin":          manager,
 			"sport_club_manager":      manager,
 			"sport_club_receptionist": append(append([]string{}, ops...), "sportclub.entry.cancel"),
+			"sport_court_staff":       courtStaff,
 			"instructor_coach":        {"sportclub.class.view", "sportclub.class.attendance", "sportclub.class_program.view", "sportclub.facility.view"},
 			"lifeguard":               {"sportclub.facility.view", "sportclub.access.view"},
-			"general_manager":         {"sportclub.facility.view", "sportclub.court.view", "sportclub.entry.view", "sportclub.access.view", "sportclub.booking.view", "sportclub.class.view", "sportclub.instructor_fee.view"},
-			"club_manager":            {"sportclub.facility.view", "sportclub.court.view", "sportclub.entry.view", "sportclub.access.view", "sportclub.booking.view", "sportclub.class.view"},
-			"finance_manager":         {"sportclub.instructor_fee.view", "sportclub.instructor_fee.manage", "sportclub.instructor_fee.pay", "sportclub.entry.view"},
-			"accountant":              {"sportclub.instructor_fee.view", "sportclub.instructor_fee.pay"},
+			"general_manager":         append([]string{"sportclub.facility.view", "sportclub.court.view", "sportclub.entry.view", "sportclub.access.view", "sportclub.class.view", "sportclub.instructor_fee.view"}, view...),
+			"club_manager":            append([]string{"sportclub.facility.view", "sportclub.court.view", "sportclub.entry.view", "sportclub.access.view", "sportclub.class.view"}, view...),
+			"finance_manager":         append([]string{"sportclub.instructor_fee.view", "sportclub.instructor_fee.manage", "sportclub.instructor_fee.pay", "sportclub.entry.view"}, view...),
+			"accountant":              {"sportclub.instructor_fee.view", "sportclub.instructor_fee.pay", "sportclub.booking.view", "sportclub.dashboard.view"},
 			"front_desk":              {"sportclub.facility.view", "sportclub.access.validate", "sportclub.access.view", "sportclub.entry.create", "sportclub.entry.view"},
 			"reservation_staff":       {"sportclub.facility.view", "sportclub.court.view", "sportclub.booking.view", "sportclub.booking.create", "sportclub.class.view", "sportclub.class.enroll"},
 		},

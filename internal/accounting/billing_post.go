@@ -51,11 +51,12 @@ type folioLineRow struct {
 	TaxLines         []byte     `db:"tax_lines"`
 	ReferenceType    *string    `db:"reference_type"`
 	Description      string     `db:"description"`
+	CostCenter       *string    `db:"cost_center"`
 }
 
 const lineCols = `l.id, l.folio_id, l.folio_number, l.business_date, l.business_line, l.revenue_component, l.charge_type, l.liability,
 	l.net_amount::text AS net, l.service_amount::text AS service, l.tax_amount::text AS tax, l.total::text AS total, l.components, l.tax_lines,
-	l.reference_type, l.description`
+	l.reference_type, l.description, l.cost_center`
 
 type comp struct {
 	Code      string `json:"code"`
@@ -82,7 +83,11 @@ func lineItems(l folioLineRow, sign int64, alloc []comp) []Item {
 			"chargeType": l.ChargeType, "liability": boolStr(liability)}
 	}
 	dims := func(component string) Dims {
-		return Dims{BusinessLine: l.BusinessLine, RevenueComponent: l.RevenueComponent, Component: component}
+		d := Dims{BusinessLine: l.BusinessLine, RevenueComponent: l.RevenueComponent, Component: component}
+		if l.CostCenter != nil {
+			d.CostCenter = *l.CostCenter
+		}
+		return d
 	}
 	desc := l.FolioNumber + " · " + l.Description
 	src := l.ID.String()

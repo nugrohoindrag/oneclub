@@ -15,7 +15,6 @@ import (
 	"oneclub/internal/kernel/route"
 	"oneclub/internal/platform/handle"
 	"oneclub/internal/platform/resource"
-	"oneclub/internal/reservation"
 )
 
 type ReasonInput struct {
@@ -37,6 +36,7 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	m.hooks()
 	m.registerMe(reg)
 	m.registerPublic(reg)
+	m.registerCourts(reg)
 	// Facilities is registered by the P0 wiring (internal/app).
 	for _, d := range []*resource.Def{Courts, Lockers, Instructors, ClassPrograms, ClassSchedules} {
 		eng.Register(reg, d)
@@ -49,36 +49,6 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 		}
 		reg.Add(rt)
 	}
-	// Bookings (court)
-	add(route.Route{Method: http.MethodPost, Path: "/api/v1/sportclub/bookings", Summary: "Court Booking (slot & time band; package or payment)",
-		Permission: "sportclub.booking.create", Request: CourtBookingInput{}, Response: CourtBookingResult{}, Idempotent: true,
-		Handler: handle.Write(db, http.StatusCreated, func(ctx context.Context, tx pgx.Tx, r *http.Request, in CourtBookingInput) (CourtBookingResult, error) {
-			return m.BookCourt(ctx, tx, handle.Property(ctx), in, r.Header.Get("Idempotency-Key"))
-		})})
-	add(route.Route{Method: http.MethodGet, Path: "/api/v1/sportclub/bookings", Summary: "Sport Club bookings", Permission: "sportclub.booking.view",
-		Response: reservation.Reservation{}, List: true, Query: []route.Param{{Name: "date", Description: "YYYY-MM-DD"}, {Name: "filter[status]"}},
-		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (httpx.Page[reservation.Reservation], error) {
-			lp := httpx.ParseList(r)
-			now := localNow(ctx, tx)
-			d, err := handle.QueryDate(r, "date", time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC))
-			if err != nil {
-				return httpx.Page[reservation.Reservation]{}, err
-			}
-			from := time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, now.Location())
-			ids, err := m.Res.IDsInRange(ctx, tx, handle.Property(ctx), "sportclub", "sportclub.court_booking", lp.Filters["status"], from, from.AddDate(0, 0, 1), lp.Limit)
-			if err != nil {
-				return httpx.Page[reservation.Reservation]{}, err
-			}
-			out := []reservation.Reservation{}
-			for _, id := range ids {
-				res, err := m.Res.Get(ctx, tx, id, false)
-				if err != nil {
-					return httpx.Page[reservation.Reservation]{}, err
-				}
-				out = append(out, res)
-			}
-			return handle.Page(out, nil)
-		})})
 	// Entries
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/sportclub/entries", Summary: "Sell / issue Entry Ticket (walk-in, guest of member, child, family, member, voucher, staying guest)",
 		Permission: "sportclub.entry.create", Request: EntryInput{}, Response: EntryResult{}, Idempotent: true,

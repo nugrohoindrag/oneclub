@@ -28587,7 +28587,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** My court bookings (upcoming and history, QR, e-ticket) */
+        get: operations["getMemberSportClubCourtBookings"];
         put?: never;
         /** Book Facility (court / slot) */
         post: operations["postMemberSportClubCourtBookings"];
@@ -28608,6 +28609,74 @@ export interface paths {
         get: operations["getMemberSportClubEntries"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/sport-club/guest-tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Guest With Member ticket for my guest (share link) */
+        post: operations["postMemberSportClubGuestTickets"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/sport-club/package-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Court and class packages I can buy (member rates) */
+        get: operations["getMemberSportClubPackageTypes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/sport-club/packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My court and class packages with the quota left */
+        get: operations["getMemberSportClubPackages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/sport-club/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Price of courts and hours for the Member App (service fee of the method) */
+        post: operations["postMemberSportClubQuote"];
         delete?: never;
         options?: never;
         head?: never;
@@ -28640,6 +28709,23 @@ export interface paths {
         };
         /** My Sessions (booked and attended) */
         get: operations["getMemberSportClubSessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/sport-club/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sport Club home: next court booking, next class, packages, membership */
+        get: operations["getMemberSportClubSummary"];
         put?: never;
         post?: never;
         delete?: never;
@@ -33299,6 +33385,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/court-bookings/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Booking confirmation / Cek Booking (public token) */
+        get: operations["getPublicCourtBookingsByToken"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/court-bookings/{token}/calendar.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Add to calendar (.ics) */
+        get: operations["getPublicCourtBookingsByTokenCalendarIcs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/court-bookings/{token}/e-ticket.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** E-ticket (PDF) */
+        get: operations["getPublicCourtBookingsByTokenETicketPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/court-bookings/{token}/qr.png": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** QR check-in of the booking (PNG) */
+        get: operations["getPublicCourtBookingsByTokenQrPng"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/court-bookings/{token}:abandon": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Release a held booking after a failed payment (slots free again) */
+        post: operations["postPublicCourtBookingsByTokenAbandon"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/court-bookings:lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cek Booking: code + phone or e-mail → the booking page */
+        post: operations["postPublicCourtBookingsLookup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/demo-access": {
         parameters: {
             query?: never;
@@ -34159,6 +34347,74 @@ export interface paths {
         };
         /** Sport Club page: facilities, courts, classes */
         get: operations["getPublicSportClub"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/sport-club/grid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Website slot grid of a sport (status and price per hour, before tax) */
+        get: operations["getPublicSportClubGrid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/sport-club/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Website quote of a cart: rent, promotion, tax, service fee per method */
+        post: operations["postPublicSportClubQuote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/sport-club/rate-card": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Court rates and packages (like the brochure) */
+        get: operations["getPublicSportClubRateCard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/sport-club/tickets/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Entry ticket shared with a guest (QR) */
+        get: operations["getPublicSportClubTicketsByToken"];
         put?: never;
         post?: never;
         delete?: never;
@@ -35305,6 +35561,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sportclub/blocks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Blocked court slots of a period */
+        get: operations["getSportclubBlocks"];
+        put?: never;
+        /** Block courts (maintenance, tournament, event); bookings in the way are listed */
+        post: operations["postSportclubBlocks"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/blocks/{id}:remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove a block (supervisor) */
+        post: operations["postSportclubBlocksByIdRemove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/board": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Court board of a day: courts, bookings per line, blocks, summary, staff on duty, alerts */
+        get: operations["getSportclubBoard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/board/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Real-time court board events (SSE) */
+        get: operations["getSportclubBoardStream"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sportclub/bookings": {
         parameters: {
             query?: never;
@@ -35312,11 +35637,215 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Sport Club bookings */
+        /** Court bookings (status per line, payment status, channel) */
         get: operations["getSportclubBookings"];
         put?: never;
-        /** Court Booking (slot & time band; package or payment) */
+        /** Court Booking at the desk: several courts and hours, package, desk payment */
         post: operations["postSportclubBookings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/bookings/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Court booking with bill and history */
+        get: operations["getSportclubBookingsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/bookings/{id}:check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check in the lines of a booking (check-in open, paid) */
+        post: operations["postSportclubBookingsByIdCheckIn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/bookings/{id}:complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End of play (Selesai Main): the bill must be settled */
+        post: operations["postSportclubBookingsByIdComplete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/bookings/{id}:discount": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Manual discount (supervisor) */
+        post: operations["postSportclubBookingsByIdDiscount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/bookings/{id}:extend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Overtime: add the next hour(s) of the court */
+        post: operations["postSportclubBookingsByIdExtend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/bookings/{id}:extras": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Charge rentals and drinks to the bill */
+        post: operations["postSportclubBookingsByIdExtras"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/bookings/{id}:move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move a line to another court / hour (supervisor; a higher price is charged) */
+        post: operations["postSportclubBookingsByIdMove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/bookings/{id}:no-show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark lines started without check-in as No-show (no refund) */
+        post: operations["postSportclubBookingsByIdNoShow"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/bookings/{id}:pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Take a payment at the desk (split per player: several payments) */
+        post: operations["postSportclubBookingsByIdPay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/bookings/{id}:void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Void a booking keyed in by mistake (supervisor, no refund) */
+        post: operations["postSportclubBookingsByIdVoid"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/charge-targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Court bookings in play whose bill a café order can be charged to */
+        get: operations["getSportclubChargeTargets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/check-in:scan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Scan a booking QR or type its code: check-in or the reason of the refusal */
+        post: operations["postSportclubCheckInScan"];
         delete?: never;
         options?: never;
         head?: never;
@@ -35499,6 +36028,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sportclub/court-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Court Booking policy in force */
+        get: operations["getSportclubCourtPolicy"];
+        /** Save the Court Booking policy (new version in force now) */
+        put: operations["putSportclubCourtPolicy"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/court-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Utilisation, heatmap, revenue, channel, no-show, top customers */
+        get: operations["getSportclubCourtReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/court-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Court ready, or a problem (temporary block, front desk alerted) */
+        post: operations["postSportclubCourtReports"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/court-reports/{id}:resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close a court problem (its block is removed) */
+        post: operations["postSportclubCourtReportsByIdResolve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/court-staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Court staff screen: the next two hours per court and open problems */
+        get: operations["getSportclubCourtStaff"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sportclub/courts": {
         parameters: {
             query?: never;
@@ -35654,6 +36269,58 @@ export interface paths {
         get: operations["getSportclubFacilitiesExport"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/grid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Slot grid of a sport (status and price per hour) */
+        get: operations["getSportclubGrid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sport Club incidents */
+        get: operations["getSportclubIncidents"];
+        put?: never;
+        /** Record an incident (injury, damage, complaint) */
+        post: operations["postSportclubIncidents"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/incidents/{id}:close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close an incident with the action taken */
+        post: operations["postSportclubIncidentsByIdClose"];
         delete?: never;
         options?: never;
         head?: never;
@@ -35888,6 +36555,194 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sportclub/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sport Club Overview: KPI of the period, next bookings, alerts */
+        get: operations["getSportclubOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active court and class packages per customer with the quota left */
+        get: operations["getSportclubPackages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Price of courts and hours (the quote of every screen) */
+        post: operations["postSportclubQuote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/rate-card": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Court rates and packages (like the brochure) */
+        get: operations["getSportclubRateCard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/recurring": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recurring bookings (communities, schools, companies) */
+        get: operations["getSportclubRecurring"];
+        put?: never;
+        /** Create a recurring booking (one booking per meeting) */
+        post: operations["postSportclubRecurring"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/recurring/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recurring booking with its meetings */
+        get: operations["getSportclubRecurringById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/recurring/{id}:extend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Recurring booking: extend */
+        post: operations["postSportclubRecurringByIdExtend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/recurring/{id}:pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Recurring booking: pause */
+        post: operations["postSportclubRecurringByIdPause"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/recurring/{id}:resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Recurring booking: resume */
+        post: operations["postSportclubRecurringByIdResume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/recurring/{id}:stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Recurring booking: stop */
+        post: operations["postSportclubRecurringByIdStop"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/recurring:preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Meetings of a recurring booking with the clashes, before saving */
+        post: operations["postSportclubRecurringPreview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sportclub/session-bookings": {
         parameters: {
             query?: never;
@@ -35899,6 +36754,23 @@ export interface paths {
         put?: never;
         /** Book a seat in a class session (quota checked) */
         post: operations["postSportclubSessionBookings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sportclub/staff-on-duty": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sport Club staff on duty (HRIS roster) */
+        get: operations["getSportclubStaffOnDuty"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -39875,6 +40747,22 @@ export interface components {
             typeCode: string;
             typeName: string;
         };
+        ActivePackage: {
+            category: string;
+            code: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            customerName?: string | null;
+            /** Format: date-time */
+            expiresAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            original: string;
+            pricePaid: string;
+            remaining: string;
+            status: string;
+            typeName: string;
+        };
         Activity: {
             /** Format: uuid */
             assignedTo?: string | null;
@@ -43107,11 +43995,44 @@ export interface components {
             /** Format: date-time */
             startsAt: string;
         };
+        BlockResult: {
+            blocks: string[];
+            /** @description Bookings in the period: move them first (the block is refused while they stay) */
+            conflicts: components["schemas"]["CourtBooking"][];
+            periods: number;
+        };
         Board: {
             counts: {
                 [key: string]: number;
             };
             golfCarts: components["schemas"]["BoardCart"][];
+        };
+        BoardAlert: {
+            /** Format: uuid */
+            bookingId?: string | null;
+            /** Format: uuid */
+            courtId?: string | null;
+            /** @enum {string} */
+            kind: "issue" | "late" | "unpaid_soon" | "reminder" | "outside_hours";
+            message: string;
+        };
+        BoardBlock: {
+            code: string;
+            /** Format: uuid */
+            courtId: string;
+            /** Format: date-time */
+            end: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Problem reported by the court staff
+             */
+            issueId?: string | null;
+            notes?: string | null;
+            reason: string;
+            /** Format: date-time */
+            start: string;
         };
         BoardCart: {
             batteryPercent?: number | null;
@@ -43128,6 +44049,20 @@ export interface components {
             positionAt?: string | null;
             readiness: string;
             serviceDue: boolean;
+        };
+        BoardSummary: {
+            /** @description Held online, or not paid at the desk */
+            awaitingPayment: number;
+            /** @description Bookings with a line today (not expired / void) */
+            bookings: number;
+            courts: number;
+            /** @description Courts with a line in play now */
+            inUse: number;
+            /** @description Lines started without check-in */
+            late: number;
+            /** @description Rent and extras of today's lines before tax (per day of play) */
+            revenue: string;
+            revenueBySport: components["schemas"]["SportRevenue"][];
         };
         BonusAction: {
             reason?: string;
@@ -45579,6 +46514,12 @@ export interface components {
         CloseShiftInput: {
             countedCash: string;
             note?: string;
+        };
+        ClubInfo: {
+            address?: string | null;
+            city?: string | null;
+            name: string;
+            phone?: string | null;
         };
         CmsAlternate: {
             href: string;
@@ -48877,6 +49818,10 @@ export interface components {
             indoor?: boolean | null;
             /** @description Name */
             name: string;
+            /** @description Bookable online */
+            onlineBooking?: boolean | null;
+            /** @description Photo URL */
+            photoUrl?: string | null;
             /** @description Pricing Item (default: facility) */
             priceItem?: string | null;
             /** Format: uuid */
@@ -48887,6 +49832,11 @@ export interface components {
              */
             resourceId?: string | null;
             /**
+             * Format: int64
+             * @description Order
+             */
+            sortOrder?: number | null;
+            /**
              * @description Status
              * @enum {string|null}
              */
@@ -48896,32 +49846,159 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
-        CourtBookingInput: {
+        CourtBooking: {
+            balance: string;
             /** @enum {string} */
-            channel?: "ops" | "back_office" | "member_app" | "website";
-            /** Format: uuid */
-            courtId: string;
+            channel: "website" | "member_app" | "walk_in" | "phone" | "recurring";
+            /** @description Folio charges with tax and service fee */
+            charges: string;
+            /** Format: date-time */
+            checkedInAt?: string | null;
+            code: string;
+            corporateName?: string | null;
+            /** Format: date-time */
+            createdAt: string;
             /** Format: uuid */
             customerId?: string | null;
+            customerName?: string | null;
+            email?: string | null;
             /** Format: date-time */
-            end: string;
+            end?: string | null;
+            /** Format: uuid */
+            folioId?: string | null;
+            guestName?: string | null;
+            /** Format: date-time */
+            holdExpiresAt?: string | null;
+            /** @description Time left to pay (server clock) */
+            holdSeconds: number;
+            /** Format: uuid */
+            id: string;
+            lines: components["schemas"]["CourtBookingLine"][];
+            /** @description Customer, guest or company */
+            name: string;
+            notes?: string | null;
+            package?: Record<string, never>;
+            packageCode?: string;
+            paid: string;
+            /** @enum {string} */
+            payStatus: "unpaid" | "partially_paid" | "paid" | "overpaid";
+            phone?: string | null;
+            promoCode?: string;
+            rawChannel: string;
+            /** Format: uuid */
+            recurringGroupId?: string | null;
+            serviceFee: string;
+            /** Format: date-time */
+            start?: string | null;
+            state: string;
+            status: string;
+            tax: string;
+            /** @description Public token of the confirmation / Cek Booking page */
+            token?: string;
+            void: boolean;
+            voidReason?: string;
+        };
+        CourtBookingDetail: {
+            booking: components["schemas"]["CourtBooking"];
+            folio?: components["schemas"]["FolioDetail"] | null;
+            history: components["schemas"]["ReservationHistoryEntry"][];
+            /** @description Payments taken by this action (receipts) */
+            payments?: components["schemas"]["Payment"][];
+        };
+        CourtBookingInput: {
+            /** @enum {string} */
+            channel?: "ops" | "back_office" | "member_app" | "website" | "walk_in";
+            corporateName?: string;
+            /** Format: uuid */
+            courtId?: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            discount?: components["schemas"]["SportclubDiscountInput"] | null;
+            /** Format: date-time */
+            end?: string;
             guest?: components["schemas"]["SportclubGuestInput"] | null;
             /** @description Create as Draft (online checkout) */
             hold?: boolean;
+            /** @description Several courts and hours in one booking and one payment (the cart) */
             lines?: components["schemas"]["CourtLine"][];
             notes?: string;
-            /** @description Session Package (4x/8x court voucher) to redeem instead of paying */
+            /** @description Court package (4x/8x) paying the hours */
             packageCode?: string;
+            /** @description Online method code (website, Member App): the service fee is added and the gateway payment opened */
+            payMethod?: string;
             payment?: components["schemas"]["SportclubPaymentInput"] | null;
-            /** @description Default: member when the customer has an active membership, else walk_in */
+            promoCode?: string;
+            /** @description Kept for reports; court prices are the same for members and guests */
             segment?: string;
             /** Format: date-time */
+            start?: string;
+            /**
+             * @description Front desk: walk-in or phone booking
+             * @enum {string}
+             */
+            via?: "walk_in" | "phone";
+        };
+        CourtBookingLine: {
+            amount?: string | null;
+            canCheckIn: boolean;
+            /** Format: date-time */
+            checkInFrom: string;
+            /** Format: uuid */
+            courtId?: string | null;
+            courtName: string;
+            /** Format: date-time */
+            end: string;
+            facilityCode?: string | null;
+            /** Format: uuid */
+            facilityId?: string | null;
+            facilityName?: string | null;
+            facilityType?: string | null;
+            /** Format: uuid */
+            id: string;
+            lineNo: number;
+            /** @description The court staff marked the court ready */
+            ready: boolean;
+            /** Format: uuid */
+            reservationId: string;
+            /** Format: uuid */
+            resourceId: string;
+            /** Format: date-time */
             start: string;
+            /** @enum {string} */
+            state: "awaiting_payment" | "expired" | "scheduled" | "late" | "playing" | "finished" | "no_show" | "void";
+            /** @enum {string} */
+            status: "held" | "confirmed" | "checked_in" | "completed" | "released" | "cancelled" | "no_show";
         };
         CourtBookingResult: {
+            booking?: components["schemas"]["CourtBooking"] | null;
+            checkout?: components["schemas"]["Checkout"] | null;
             folio?: components["schemas"]["FolioDetail"] | null;
             reservation: components["schemas"]["Reservation"];
             total: string;
+        };
+        CourtInfo: {
+            code: string;
+            facilityCode: string;
+            /** Format: uuid */
+            facilityId: string;
+            facilityName: string;
+            facilityOnline: boolean;
+            facilitySort: number;
+            facilityStatus: string;
+            facilityType?: string | null;
+            /** Format: uuid */
+            id: string;
+            indoor: boolean;
+            name: string;
+            onlineBooking: boolean;
+            photoUrl?: string | null;
+            priceItem: string;
+            /** Format: uuid */
+            resourceId?: string | null;
+            rules: components["schemas"]["FacilityRules"];
+            sortOrder: number;
+            status: string;
+            surface?: string | null;
         };
         CourtInput: {
             /** @description Code */
@@ -48935,8 +50012,17 @@ export interface components {
             indoor?: boolean | null;
             /** @description Name */
             name?: string;
+            /** @description Bookable online */
+            onlineBooking?: boolean | null;
+            /** @description Photo URL */
+            photoUrl?: string | null;
             /** @description Pricing Item (default: facility) */
             priceItem?: string | null;
+            /**
+             * Format: int64
+             * @description Order
+             */
+            sortOrder?: number | null;
             /**
              * @description Status
              * @enum {string|null}
@@ -48952,6 +50038,126 @@ export interface components {
             end: string;
             /** Format: date-time */
             start: string;
+        };
+        CourtPayInput: {
+            /** @description Default: the balance */
+            amount?: string;
+            /**
+             * Format: uuid
+             * @description Member account to charge (default: the booking's customer)
+             */
+            customerId?: string | null;
+            /** @enum {string} */
+            methodType: "cash" | "card" | "qris" | "bank_transfer" | "member_account";
+            /** @description Split per player: the name on the receipt */
+            payer?: string;
+            reference?: string;
+        };
+        CourtPolicy: {
+            /** @description Check-in opens this many minutes before the start */
+            checkInMinutes: number;
+            /** @description Front desk booking window (tournaments, communities) */
+            deskWindowDays: number;
+            extras: components["schemas"]["Extra"][];
+            /** @description Online payment time limit (the hold) */
+            holdMinutes: number;
+            /** @description Consecutive hours of one court in one booking */
+            maxHours: number;
+            methods: components["schemas"]["OnlineMethod"][];
+            minHours: number;
+            /** @description Minutes after the start without check-in: Not arrived */
+            noShowMinutes: number;
+            /** @description Court bookings in 30 days that flag a non-member as a membership prospect (0 = off) */
+            prospectVisits: number;
+            /** @description In-app reminder to the court staff on duty before a booking */
+            reminderMinutes: number;
+            /** @description false: the brochure prices are before tax */
+            taxIncluded: boolean;
+            /** @description Terms & conditions per language (id, en) */
+            terms: {
+                [key: string]: string;
+            };
+            /** @description Website and Member App booking window (days ahead) */
+            windowDays: number;
+        };
+        CourtReport: {
+            /** Format: uuid */
+            blockId?: string | null;
+            /** Format: uuid */
+            courtId: string;
+            courtName: string;
+            /** Format: date-time */
+            createdAt: string;
+            createdBy?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "ready" | "issue";
+            note?: string | null;
+            /** Format: uuid */
+            reservationId?: string | null;
+            /** @enum {string} */
+            status: "open" | "resolved";
+            /** Format: date-time */
+            until?: string | null;
+        };
+        CourtReportData: {
+            alerts: components["schemas"]["BoardAlert"][];
+            awaitingPayment: number;
+            bookedHours: string;
+            bookings: number;
+            byChannel: components["schemas"]["SportclubBreakdown"][];
+            byCourt: components["schemas"]["UtilRow"][];
+            byMethod: components["schemas"]["SportclubBreakdown"][];
+            bySport: components["schemas"]["UtilRow"][];
+            extras: string;
+            from: string;
+            heatmap: components["schemas"]["HeatCell"][];
+            noShowBySport: components["schemas"]["SportclubBreakdown"][];
+            /** @description No-show lines ÷ lines whose start has passed, 0–100 % */
+            noShowRate: string;
+            noShows: number;
+            /** @description Bookings outside the normal hours (made during the 24-hour demo, FR-132) */
+            outsideNormalHours: components["schemas"]["CourtBooking"][];
+            /** @description Court packages sold (deferred until used) */
+            packageSales: string;
+            /** @description Court package value recognised by the hours played */
+            packageUse: string;
+            revenue: string;
+            serviceFees: string;
+            to: string;
+            topCustomers: components["schemas"]["TopCustomer"][];
+            upcoming: components["schemas"]["CourtBooking"][];
+            utilization: string;
+            utilizationNormal: string;
+        };
+        CourtReportInput: {
+            /** Format: uuid */
+            courtId: string;
+            /** @description Issue: hours the court is closed from now (default 1) */
+            hours?: number;
+            /** @enum {string} */
+            kind: "ready" | "issue";
+            note?: string;
+            /**
+             * Format: uuid
+             * @description Ready: the booking prepared
+             */
+            reservationId?: string | null;
+        };
+        CourtReportResult: {
+            /** @description Bookings in the closed period: move them (front desk) */
+            affected: components["schemas"]["CourtBooking"][];
+            report: components["schemas"]["CourtReport"];
+        };
+        CourtStaffView: {
+            bookings: components["schemas"]["CourtBooking"][];
+            courts: components["schemas"]["CourtInfo"][];
+            issues: components["schemas"]["CourtReport"][];
+            /** Format: date-time */
+            now: string;
+            /** @description Courts marked ready today */
+            ready: components["schemas"]["CourtReport"][];
         };
         CreateAssignmentRequest: {
             /** Format: uuid */
@@ -50350,6 +51556,18 @@ export interface components {
             matchedOn: "phone" | "email";
             name: string;
         };
+        DutyStaff: {
+            /** Format: uuid */
+            employeeId: string;
+            /** Format: date-time */
+            from: string;
+            name: string;
+            role: string;
+            /** Format: date-time */
+            to: string;
+            /** Format: uuid */
+            userId?: string | null;
+        };
         EFakturExport: {
             /** @description CSV in the e-Faktur import layout (FK / LT / OF rows) */
             content: string;
@@ -51522,6 +52740,8 @@ export interface components {
             terminationType?: "resigned" | "terminated" | "contract_ended" | "retired" | "deceased" | null;
             /** Format: date-time */
             updatedAt: string;
+            /** @description Front Desk Areas (golf, sportclub) */
+            workAreas?: ("golf" | "sportclub")[] | null;
             /**
              * @description Worker Category
              * @enum {string|null}
@@ -51632,6 +52852,8 @@ export interface components {
              * @description Supervisor
              */
             supervisorId?: string | null;
+            /** @description Front Desk Areas (golf, sportclub) */
+            workAreas?: ("golf" | "sportclub")[] | null;
             /**
              * @description Worker Category
              * @enum {string|null}
@@ -53167,11 +54389,32 @@ export interface components {
             optionDate: string;
             reason?: string;
         };
+        Extra: {
+            code: string;
+            /** @description Revenue component (sport_rental, fnb …) */
+            component: string;
+            name: string;
+            /** @description Before tax */
+            price: string;
+        };
+        ExtraItem: {
+            /** @description Extra of the Court Booking policy */
+            code?: string;
+            /** @description Free item (with price) */
+            name?: string;
+            price?: string;
+            quantity?: number;
+        };
+        ExtrasInput: {
+            items: components["schemas"]["ExtraItem"][];
+        };
         Facility: {
             /** Format: date-time */
             archivedAt?: string | null;
             /** @description Attributes */
             attributes?: Record<string, never> | null;
+            /** @description Booking rules (minHours, maxHours, eveningFrom) */
+            bookingRules?: Record<string, never> | null;
             /**
              * Format: int64
              * @description Capacity
@@ -53179,6 +54422,8 @@ export interface components {
             capacity?: number | null;
             /** @description Code */
             code: string;
+            /** @description Website content (name EN, slug, photos, description, rules, amenities, FAQ) */
+            content?: Record<string, never> | null;
             /** Format: date-time */
             createdAt: string;
             /** @description Facility Type */
@@ -53197,6 +54442,8 @@ export interface components {
             minAge?: number | null;
             /** @description Name */
             name: string;
+            /** @description Bookable online (website, Member App) */
+            onlineBooking?: boolean | null;
             /** @description Opening Hours per Day Type */
             openingHours?: Record<string, never> | null;
             /** @description Pricing Item */
@@ -53208,6 +54455,11 @@ export interface components {
              * @description Bookable Resource
              */
             resourceId?: string | null;
+            /**
+             * Format: int64
+             * @description Order on the website
+             */
+            sortOrder?: number | null;
             /**
              * @description Status
              * @enum {string|null}
@@ -53226,9 +54478,31 @@ export interface components {
              */
             venueId?: string | null;
         };
+        FacilityContent: {
+            amenities?: string[];
+            description?: {
+                [key: string]: string;
+            };
+            faq?: {
+                [key: string]: string;
+            }[];
+            icon?: string;
+            nameEn?: string;
+            photos?: string[];
+            rules?: {
+                [key: string]: string[];
+            };
+            seoTitle?: {
+                [key: string]: string;
+            };
+            /** @description URL of the sport: /{lang}/book/sport-club/{slug} */
+            slug?: string;
+        };
         FacilityInput: {
             /** @description Attributes */
             attributes?: Record<string, never> | null;
+            /** @description Booking rules (minHours, maxHours, eveningFrom) */
+            bookingRules?: Record<string, never> | null;
             /**
              * Format: int64
              * @description Capacity
@@ -53236,6 +54510,8 @@ export interface components {
             capacity?: number | null;
             /** @description Code */
             code?: string;
+            /** @description Website content (name EN, slug, photos, description, rules, amenities, FAQ) */
+            content?: Record<string, never> | null;
             /** @description Facility Type */
             facilityType?: string | null;
             /**
@@ -53250,10 +54526,17 @@ export interface components {
             minAge?: number | null;
             /** @description Name */
             name?: string;
+            /** @description Bookable online (website, Member App) */
+            onlineBooking?: boolean | null;
             /** @description Opening Hours per Day Type */
             openingHours?: Record<string, never> | null;
             /** @description Pricing Item */
             priceItem?: string | null;
+            /**
+             * Format: int64
+             * @description Order on the website
+             */
+            sortOrder?: number | null;
             /**
              * @description Status
              * @enum {string|null}
@@ -53269,6 +54552,12 @@ export interface components {
              * @description Venue
              */
             venueId?: string | null;
+        };
+        FacilityRules: {
+            /** @description Start of the evening band (packages: day / evening hours) */
+            eveningFrom?: string;
+            maxHours?: number;
+            minHours?: number;
         };
         FavoriteInput: {
             /** Format: uuid */
@@ -54140,6 +55429,31 @@ export interface components {
             generatedAt: string;
             widgets: components["schemas"]["Widget"][];
         };
+        Grid: {
+            courts: components["schemas"]["GridCourt"][];
+            date: string;
+            /** Format: uuid */
+            facilityId: string;
+            taxIncluded: boolean;
+            windowDays: number;
+        };
+        GridCourt: {
+            court: components["schemas"]["CourtInfo"];
+            free: number;
+            slots: components["schemas"]["GridSlot"][];
+        };
+        GridSlot: {
+            /** Format: date-time */
+            end: string;
+            /** @description Brochure price when a promotion lowers it (struck through) */
+            listPrice?: string | null;
+            /** @description Price charged for this hour (after promotion, before tax) */
+            price?: string | null;
+            /** Format: date-time */
+            start: string;
+            /** @enum {string} */
+            status: "available" | "booked" | "blocked" | "past";
+        };
         GuaranteedPaxInput: {
             pax: number;
             reason?: string;
@@ -54371,6 +55685,21 @@ export interface components {
             totalSpending: string;
             totalStays: number;
             vip: boolean;
+        };
+        GuestTicketInput: {
+            guestName: string;
+            guestPhone?: string;
+            memberCharge?: boolean;
+            /** @description Online method code when not charged to the member account */
+            payMethod?: string;
+            /** @description YYYY-MM-DD; default today */
+            visitDate?: string;
+        };
+        GuestTicketResult: {
+            checkout?: components["schemas"]["Checkout"] | null;
+            entry: components["schemas"]["Entry"];
+            /** @description QR of the ticket for the share link */
+            token: string;
         };
         GuideHole: {
             description?: string | null;
@@ -54936,6 +56265,15 @@ export interface components {
             /** Format: date-time */
             serverTime: string;
         };
+        HeatCell: {
+            booked: number;
+            hour: number;
+            open: number;
+            /** @description 0–100 % */
+            rate: string;
+            /** @description 1 = Monday … 7 = Sunday */
+            weekday: number;
+        };
         HireResult: {
             /** Format: uuid */
             contractId: string;
@@ -55336,7 +56674,7 @@ export interface components {
             /** @enum {string} */
             severity: "low" | "medium" | "high" | "critical";
             /** @enum {string} */
-            source: "caddy" | "golf_cart" | "banquet";
+            source: "caddy" | "golf_cart" | "banquet" | "sportclub";
             /** @enum {string} */
             status: "open" | "closed" | "logged";
             subject?: string | null;
@@ -55347,6 +56685,7 @@ export interface components {
             golfCart: number;
             /** @description YYYY-MM */
             month: string;
+            sportClub: number;
         };
         Indicators: {
             averageRating?: string | null;
@@ -57039,6 +58378,7 @@ export interface components {
             voucherTypeId: string;
         };
         Item: {
+            area?: string;
             children?: components["schemas"]["Item"][];
             /** @description Module is enabled but its features arrive in a later phase */
             comingSoon?: boolean;
@@ -57049,6 +58389,7 @@ export interface components {
             module?: string;
             path: string;
             phase?: string;
+            program?: string;
             /** @description Heading of a group of items (role menus); not a link */
             section?: boolean;
         };
@@ -58711,6 +60052,16 @@ export interface components {
             mfaRequired: boolean;
             passwordChangeRequired: boolean;
             user: components["schemas"]["UserSummary"];
+        };
+        LookupInput: {
+            code: string;
+            /** @description Phone or e-mail used for the booking */
+            contact: string;
+            /** Format: uuid */
+            propertyId: string;
+        };
+        LookupResult: {
+            token: string;
         };
         LoseInput: {
             note?: string;
@@ -60871,7 +62222,10 @@ export interface components {
             status?: "active" | "inactive" | null;
         };
         Menu: {
+            areas?: string[];
             items: components["schemas"]["Item"][];
+            program?: string;
+            programs?: string[];
             /** @enum {string} */
             shell: "backoffice" | "management" | "member" | "ops" | "platform-admin";
         };
@@ -60936,6 +62290,13 @@ export interface components {
         MessageReadInput: {
             /** Format: uuid */
             flightId: string;
+        };
+        MethodQuote: {
+            cheapest: boolean;
+            code: string;
+            fee: string;
+            label: string;
+            total: string;
         };
         MethodTotal: {
             /** @description Decimal amount as string (never float). */
@@ -61259,6 +62620,18 @@ export interface components {
             par: number;
             sectionCode: string;
         };
+        MoveInput: {
+            /**
+             * Format: uuid
+             * @description Another court of the same sport (default: the same court)
+             */
+            courtId?: string | null;
+            /** Format: uuid */
+            lineId: string;
+            reason: string;
+            /** Format: date-time */
+            start: string;
+        };
         MovePlayerRequest: {
             /** Format: uuid */
             playerId: string;
@@ -61295,10 +62668,13 @@ export interface components {
             end: string;
             /** @description Several courts / hours in one booking (courtId/start/end ignored) */
             lines?: components["schemas"]["CourtLine"][];
-            /** @description Charge to my member account; otherwise pay the folio online */
+            /** @description Charge to my member account (FR-114) */
             memberCharge?: boolean;
             notes?: string;
             packageCode?: string;
+            /** @description Online method code (mock gateway, service fee added); held until paid */
+            payMethod?: string;
+            promoCode?: string;
             /** Format: date-time */
             start: string;
         };
@@ -61530,6 +62906,14 @@ export interface components {
             leave: components["schemas"]["LeaveCalendarEntry"][];
             swaps: components["schemas"]["ShiftSwap"][];
             to: string;
+        };
+        MySportSummary: {
+            /** @description Sport Club membership type in force */
+            membership?: string | null;
+            nextBooking?: components["schemas"]["CourtBooking"] | null;
+            nextClass?: components["schemas"]["SessionBooking"] | null;
+            packages: components["schemas"]["ActivePackage"][];
+            status?: string | null;
         };
         MyStayInput: {
             addons?: components["schemas"]["AddonInput"][];
@@ -61928,6 +63312,21 @@ export interface components {
             notes?: string | null;
             /** @enum {string} */
             status: "pending" | "done" | "not_applicable";
+        };
+        OnlineMethod: {
+            active: boolean;
+            /** @description qris, virtual_account, ewallet, card */
+            code: string;
+            /** @description Fixed service fee (Rupiah) */
+            fee: string;
+            label: string;
+            /**
+             * @description Billing method type of the gateway payment
+             * @enum {string}
+             */
+            methodType: "qris" | "virtual_account" | "card" | "payment_gateway";
+            /** @description Service fee in percent of the amount (cards) */
+            percent: string;
         };
         OpenAccountRequest: {
             /** @enum {string} */
@@ -63968,6 +65367,13 @@ export interface components {
              */
             status?: "active" | "inactive" | null;
         };
+        PackageRow: {
+            code: string;
+            items: string[];
+            name: string;
+            price: string;
+            uses: string;
+        };
         PackageSpec: {
             allocationMethod: string;
             cancellationFeePercent: string;
@@ -64007,6 +65413,17 @@ export interface components {
             left: string;
             to: string;
             used: string;
+        };
+        PackageType: {
+            category: string;
+            code: string;
+            /** Format: uuid */
+            id: string;
+            items: string[];
+            name: string;
+            price: string;
+            uses: string;
+            validityMonths?: number | null;
         };
         PackageVersion: {
             /** Format: date-time */
@@ -66777,6 +68194,14 @@ export interface components {
             /** @enum {string} */
             section: "revenue" | "cogs" | "expense" | "other";
         };
+        ProfitCenterDim: {
+            contribution: string;
+            costs: string;
+            key: string;
+            label: string;
+            margin?: string | null;
+            revenue: string;
+        };
         ProfitCenterMonth: {
             contribution: string;
             /** @description YYYY-MM */
@@ -66806,6 +68231,7 @@ export interface components {
             revenue: string;
             /** @description Net of the shared lines (negative = overhead) */
             sharedNet: string;
+            sportClub: components["schemas"]["ProfitCenterDim"][];
             to: string;
         };
         ProfitabilityRecalcInput: {
@@ -67171,6 +68597,14 @@ export interface components {
             capacity: number;
             layout: string;
         };
+        PublicBillLine: {
+            description: string;
+            /** @enum {string} */
+            kind: "rent" | "service_fee" | "discount" | "extra";
+            net: string;
+            tax: string;
+            total: string;
+        };
         PublicBooking: {
             canCancel: boolean;
             code: string;
@@ -67187,6 +68621,26 @@ export interface components {
             /** Format: date-time */
             startAt: string;
             status: string;
+        };
+        PublicBookingInfo: {
+            balance: string;
+            channel: string;
+            charges: string;
+            code: string;
+            /** Format: date-time */
+            end?: string | null;
+            holdSeconds: number;
+            lines: components["schemas"]["CourtBookingLine"][];
+            name: string;
+            packageCode?: string;
+            paid: string;
+            payStatus: string;
+            serviceFee: string;
+            /** Format: date-time */
+            start?: string | null;
+            state: string;
+            tax: string;
+            token: string;
         };
         PublicBookingInput: {
             addons?: string[];
@@ -67274,8 +68728,12 @@ export interface components {
             id: string;
             indoor: boolean;
             name: string;
+            onlineBooking: boolean;
+            photoUrl?: string | null;
+            priceItem: string;
             /** Format: uuid */
             resourceId?: string | null;
+            sortOrder: number;
             surface?: string | null;
         };
         PublicCourtBooking: {
@@ -67295,7 +68753,19 @@ export interface components {
             propertyId: string;
             /** Format: date-time */
             start: string;
+            /** @description Terms accepted (no cancellation, no refund) */
+            terms?: boolean;
             voucherCode?: string;
+        };
+        PublicCourtBookingView: {
+            bill: components["schemas"]["PublicBillLine"][];
+            booking: components["schemas"]["PublicBookingInfo"];
+            club: components["schemas"]["ClubInfo"];
+            methods: components["schemas"]["OnlineMethod"][];
+            payment?: components["schemas"]["PublicPendingPayment"] | null;
+            terms: {
+                [key: string]: string;
+            };
         };
         PublicEnrollment: {
             /** @description Participant birth date (age check) */
@@ -67362,11 +68832,20 @@ export interface components {
         };
         PublicFacility: {
             code: string;
+            content: components["schemas"]["FacilityContent"];
+            /** @description Courts bookable online */
+            courts: number;
             facilityType?: string | null;
+            /** @description Lowest hourly rate before tax (rate card) */
+            fromPrice?: string | null;
             /** Format: uuid */
             id: string;
+            indoor: boolean;
             name: string;
+            onlineBooking: boolean;
             openingHours: Record<string, never>;
+            rules: components["schemas"]["FacilityRules"];
+            sortOrder: number;
             usageMode: string;
         };
         PublicGuest: {
@@ -67459,6 +68938,19 @@ export interface components {
             /** @enum {string} */
             status: "pending" | "partially_paid" | "paid" | "overdue" | "cancelled";
         };
+        PublicPendingPayment: {
+            amount: string;
+            checkoutUrl?: string | null;
+            /** Format: date-time */
+            expiresAt?: string | null;
+            method: string;
+            number: string;
+            qrString?: string | null;
+            /** @description Mock gateway: pay on the website payment page */
+            sandbox: boolean;
+            status: string;
+            vaNumber?: string | null;
+        };
         PublicPlayer: {
             name: string;
             phone?: string;
@@ -67525,6 +69017,13 @@ export interface components {
             total: string;
             unitPrice: string;
         };
+        PublicQuoteInput: {
+            lines: components["schemas"]["CourtLine"][];
+            method?: string;
+            promoCode?: string;
+            /** Format: uuid */
+            propertyId: string;
+        };
         PublicRangeBookingInput: {
             /** @enum {string} */
             area?: "indoor" | "outdoor";
@@ -67577,6 +69076,13 @@ export interface components {
             classPrograms: components["schemas"]["PublicProgram"][];
             courts: components["schemas"]["PublicCourt"][];
             facilities: components["schemas"]["PublicFacility"][];
+            holdMinutes: number;
+            methods: components["schemas"]["OnlineMethod"][];
+            taxIncluded: boolean;
+            terms: {
+                [key: string]: string;
+            };
+            windowDays: number;
         };
         PublicStay: {
             bungalowTypes: components["schemas"]["PublicUnit"][];
@@ -68711,8 +70217,51 @@ export interface components {
             total: string;
             version: number;
         };
+        Quote: {
+            currency: string;
+            discount: string;
+            lines: components["schemas"]["QuoteLine"][];
+            method?: string;
+            methods: components["schemas"]["MethodQuote"][];
+            net: string;
+            promoApplied: boolean;
+            promoCode?: string;
+            promoError?: string;
+            /** @description Sum of the brochure prices (before tax) */
+            rent: string;
+            /** @description Service fee of the chosen online method (online payments only) */
+            serviceFee: string;
+            tax: string;
+            taxIncluded: boolean;
+            total: string;
+        };
+        QuoteInput: {
+            /** Format: uuid */
+            customerId?: string | null;
+            lines: components["schemas"]["CourtLine"][];
+            /** @description Online method code (website / Member App): adds its service fee */
+            method?: string;
+            promoCode?: string;
+        };
         QuoteLine: {
-            description: string;
+            /** Format: uuid */
+            courtId: string;
+            courtName: string;
+            dayType?: string | null;
+            discount: string;
+            /** Format: date-time */
+            end: string;
+            facilityName: string;
+            hours: number;
+            /** @description Brochure price of the line before promotion and tax */
+            listPrice: string;
+            /** @description After promotion, before tax */
+            net: string;
+            promotions: string[];
+            /** Format: date-time */
+            start: string;
+            tax: string;
+            timeBand?: string | null;
             total: string;
         };
         RFMCustomer: {
@@ -68976,6 +70525,10 @@ export interface components {
             sessions: number;
             /** Format: date-time */
             to: string;
+        };
+        RateCard: {
+            packages: components["schemas"]["PackageRow"][];
+            rates: components["schemas"]["SportclubRateRow"][];
         };
         RatePlan: {
             /** Format: date-time */
@@ -69638,6 +71191,68 @@ export interface components {
         RecruitmentReason: {
             reason?: string;
         };
+        Recurring: {
+            bookings?: components["schemas"]["CourtBooking"][];
+            code: string;
+            corporateName?: string | null;
+            /** Format: uuid */
+            courtId: string;
+            courtName: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            /** Format: date-time */
+            endDate: string;
+            facilityName: string;
+            /** Format: uuid */
+            groupId: string;
+            holderName: string;
+            hours: number;
+            /** Format: uuid */
+            id: string;
+            meetings: number;
+            notes?: string | null;
+            packageCode?: string | null;
+            /** Format: date-time */
+            pausedFrom?: string | null;
+            /** Format: date-time */
+            pausedUntil?: string | null;
+            paymentMode: string;
+            phone?: string | null;
+            played: number;
+            /** Format: date-time */
+            startDate: string;
+            startTime: string;
+            /** @enum {string} */
+            status: "active" | "paused" | "stopped" | "ended";
+            /** @description Open balance of the meetings */
+            unpaid: string;
+            upcoming: number;
+            weekdays: number[];
+        };
+        RecurringAction: {
+            /** @description Extend: new last date */
+            endDate?: string;
+            /** @description Pause: first date */
+            from?: string;
+            reason?: string;
+            /** @description Pause: last date */
+            until?: string;
+        };
+        RecurringDate: {
+            /** Format: uuid */
+            bookingId?: string | null;
+            date: string;
+            /** Format: date-time */
+            end: string;
+            price?: string;
+            reason?: string;
+            /** Format: date-time */
+            start: string;
+            /** @enum {string} */
+            status: "ok" | "conflict" | "created";
+        };
         RecurringInput: {
             /** @enum {string} */
             channel?: "member_app" | "website" | "back_office" | "walk_in" | "import" | "ops";
@@ -69657,6 +71272,12 @@ export interface components {
             notes?: string;
             occurrences: number;
             segment?: string;
+        };
+        RecurringPreview: {
+            conflicts: number;
+            count: number;
+            dates: components["schemas"]["RecurringDate"][];
+            total: string;
         };
         RecurringResult: {
             code?: string;
@@ -72047,6 +73668,25 @@ export interface components {
             name?: string | null;
             shared?: boolean | null;
         };
+        ScanInput: {
+            /** @description Booking code or the QR (public token) */
+            code?: string;
+            /** @description Lines to check in; default: the lines whose check-in is open now */
+            lineIds?: string[];
+        };
+        ScanResult: {
+            booking?: components["schemas"]["CourtBooking"] | null;
+            checkedIn: string[];
+            message?: string;
+            /** @enum {string} */
+            nextAction?: "take_payment" | "wait" | "search" | "none";
+            /** Format: date-time */
+            opensAt?: string | null;
+            /** @enum {string} */
+            reason?: "unpaid" | "too_early" | "over" | "expired" | "void" | "awaiting_payment" | "already_in" | "finished" | "no_show" | "unknown";
+            /** @enum {string} */
+            result: "checked_in" | "refused" | "not_found";
+        };
         Schedule: {
             /** Format: uuid */
             corporateAccountId?: string | null;
@@ -73757,6 +75397,78 @@ export interface components {
              */
             status?: "available" | "occupied" | "maintenance" | "out_of_service" | null;
         };
+        SportRevenue: {
+            amount: string;
+            facility: string;
+        };
+        SportclubBlockInput: {
+            courtIds: string[];
+            /** @description Only list the bookings in the way */
+            dryRun?: boolean;
+            /** @description HH:MM (24:00 = midnight) */
+            endTime: string;
+            /** @description First date YYYY-MM-DD */
+            from: string;
+            notes?: string;
+            /** @enum {string} */
+            reason: "maintenance" | "tournament" | "private_event" | "management_hold" | "weather_closure" | "other";
+            /** @description HH:MM */
+            startTime: string;
+            /** @description Last date (default: from) */
+            to?: string;
+            /** @description 1 = Monday … 7 = Sunday (default every day) */
+            weekdays?: number[];
+        };
+        SportclubBoard: {
+            alerts: components["schemas"]["BoardAlert"][];
+            blocks: components["schemas"]["BoardBlock"][];
+            bookings: components["schemas"]["CourtBooking"][];
+            courts: components["schemas"]["CourtInfo"][];
+            date: string;
+            /**
+             * Format: date-time
+             * @description First hour shown
+             */
+            from: string;
+            issues: components["schemas"]["CourtReport"][];
+            onDuty: components["schemas"]["DutyStaff"][];
+            summary: components["schemas"]["BoardSummary"];
+            /**
+             * Format: date-time
+             * @description Last hour shown
+             */
+            to: string;
+        };
+        SportclubBreakdown: {
+            amount: string;
+            count: number;
+            hours?: string;
+            key: string;
+            label?: string;
+        };
+        SportclubChargeTarget: {
+            bookingCode: string;
+            courts: string;
+            /** Format: uuid */
+            folioId: string;
+            name: string;
+            /** Format: uuid */
+            reservationId: string;
+            state: string;
+        };
+        SportclubCompleteInput: {
+            lineIds?: string[];
+        };
+        SportclubDiscountInput: {
+            amount: string;
+            reason: string;
+        };
+        SportclubExtendInput: {
+            /** @description Default 1 */
+            hours?: number;
+            /** Format: uuid */
+            lineId: string;
+        };
         SportclubGenerateResult: {
             sessions: number;
         };
@@ -73764,6 +75476,56 @@ export interface components {
             email?: string;
             name: string;
             phone?: string;
+        };
+        SportclubIncident: {
+            actionTaken?: string | null;
+            bookingCode?: string | null;
+            /** @enum {string} */
+            category: "injury" | "damage" | "complaint" | "lost_item" | "other";
+            /** Format: date-time */
+            closedAt?: string | null;
+            /** Format: uuid */
+            courtId?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            damageAmount?: string | null;
+            description: string;
+            /** Format: uuid */
+            facilityId?: string | null;
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: date-time */
+            occurredAt: string;
+            personName?: string | null;
+            place?: string | null;
+            reportedBy?: string | null;
+            /** Format: uuid */
+            reservationId?: string | null;
+            /** @enum {string} */
+            severity: "low" | "medium" | "high" | "critical";
+            /** @enum {string} */
+            status: "open" | "closed";
+        };
+        SportclubIncidentInput: {
+            actionTaken?: string;
+            /** @enum {string} */
+            category: "injury" | "damage" | "complaint" | "lost_item" | "other";
+            /** Format: uuid */
+            courtId?: string | null;
+            damageAmount?: string;
+            description: string;
+            /** Format: uuid */
+            facilityId?: string | null;
+            personName?: string;
+            /** Format: uuid */
+            reservationId?: string | null;
+            /** @enum {string} */
+            severity?: "low" | "medium" | "high" | "critical";
+        };
+        SportclubLinesInput: {
+            lineIds?: string[];
+            reason?: string;
         };
         SportclubLockerAssignment: {
             assignmentType: string;
@@ -73801,11 +75563,48 @@ export interface components {
         };
         SportclubPublicBooking: {
             checkout?: components["schemas"]["Checkout"] | null;
+            holdSeconds?: number;
             reference: string;
             status: string;
+            /** @description Court booking: the confirmation / payment page */
+            token?: string;
+        };
+        SportclubRateRow: {
+            band?: string | null;
+            dayType?: string | null;
+            from?: string | null;
+            item: string;
+            /** @description Price per hour from this many hours (Basket Indoor 2 hours) */
+            minHours: number;
+            name: string;
+            /** @description Per hour, before tax */
+            price: string;
+            to?: string | null;
         };
         SportclubReasonInput: {
             reason: string;
+        };
+        SportclubRecurringInput: {
+            corporateName?: string;
+            /** Format: uuid */
+            courtId: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            endDate: string;
+            guest?: components["schemas"]["SportclubGuestInput"] | null;
+            hours: number;
+            notes?: string;
+            packageCode?: string;
+            payment?: components["schemas"]["SportclubPaymentInput"] | null;
+            /** @enum {string} */
+            paymentMode: "prepaid" | "package" | "pay_per_visit" | "invoice";
+            /** @description Create the free dates and skip the clashing ones */
+            skipConflicts?: boolean;
+            startDate: string;
+            /** @description HH:MM */
+            startTime: string;
+            /** @description 1 = Monday … 7 = Sunday */
+            weekdays: number[];
         };
         SportclubSession: {
             booked: number;
@@ -74340,9 +76139,13 @@ export interface components {
         };
         StayQuote: {
             depositRequired: string;
-            lines: components["schemas"]["QuoteLine"][];
+            lines: components["schemas"]["StayQuoteLine"][];
             total: string;
             unitName: string;
+        };
+        StayQuoteLine: {
+            description: string;
+            total: string;
         };
         StayReasonInput: {
             reason?: string;
@@ -76690,6 +78493,20 @@ export interface components {
             schedule: components["schemas"]["RundownItem"][];
             venues: components["schemas"]["VenueHold"][];
         };
+        TopCustomer: {
+            bookings: number;
+            /** Format: uuid */
+            customerId?: string | null;
+            favorite?: string | null;
+            hours: string;
+            member: boolean;
+            name: string;
+            noShows: number;
+            phone?: string | null;
+            /** @description Non-member who plays often: membership lead */
+            prospect: boolean;
+            spend: string;
+        };
         TopPlayer: {
             /** Format: uuid */
             customerId?: string | null;
@@ -78866,6 +80683,26 @@ export interface components {
             /** Format: uuid */
             id: string;
         };
+        UtilRow: {
+            bookedHours: string;
+            bookings: number;
+            facility?: string;
+            key: string;
+            label: string;
+            noShows: number;
+            /** @description Normal opening hours (without the 24-hour demo) less the blocked hours */
+            normalHours: string;
+            /** @description Open hours less the blocked hours */
+            openHours: string;
+            /** @description Rent and extras before tax, per day of play */
+            revenue: string;
+            /** @description Revenue per open court hour */
+            revenuePerHour: string;
+            /** @description Booked ÷ open hours, 0–100 % */
+            utilization: string;
+            /** @description Booked within the normal hours ÷ normal hours, 0–100 % */
+            utilizationNormal: string;
+        };
         Utilization: {
             /** Format: uuid */
             caddyId: string;
@@ -80246,6 +82083,9 @@ export interface components {
             taskDate?: string;
             /** @enum {string} */
             taskType: "checkout_cleaning" | "stayover_cleaning" | "deep_cleaning" | "turndown" | "inspection" | "other";
+        };
+        idsInput: {
+            reason: string;
         };
     };
     responses: never;
@@ -170410,6 +172250,7 @@ export interface operations {
                 "filter[workerCategory]"?: string;
                 "filter[joinDate]"?: string;
                 "filter[terminationStatus]"?: string;
+                "filter[workAreas]"?: string;
                 "filter[status]"?: string;
             };
             header: {
@@ -171601,6 +173442,7 @@ export interface operations {
                 "filter[workerCategory]"?: string;
                 "filter[joinDate]"?: string;
                 "filter[terminationStatus]"?: string;
+                "filter[workAreas]"?: string;
                 "filter[status]"?: string;
             };
             header: {
@@ -203397,6 +205239,61 @@ export interface operations {
             };
         };
     };
+    getMemberSportClubCourtBookings: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CourtBooking"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postMemberSportClubCourtBookings: {
         parameters: {
             query?: never;
@@ -203506,6 +205403,221 @@ export interface operations {
             };
         };
     };
+    postMemberSportClubGuestTickets: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GuestTicketInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuestTicketResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberSportClubPackageTypes: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PackageType"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberSportClubPackages: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ActivePackage"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberSportClubQuote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuoteInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Quote"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postMemberSportClubSessionBookings: {
         parameters: {
             query?: never;
@@ -203581,6 +205693,53 @@ export interface operations {
                         items: components["schemas"]["SessionBooking"][];
                         nextCursor?: string;
                     };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberSportClubSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MySportSummary"];
                 };
             };
             /** @description Not authenticated */
@@ -212627,6 +214786,8 @@ export interface operations {
         parameters: {
             query?: {
                 shell?: "backoffice" | "management" | "member" | "ops" | "platform-admin" | "caddy";
+                /** @description Member App: the program of the menu (the Member App domain) */
+                program?: "golf" | "sport_club";
             };
             header?: never;
             path?: never;
@@ -222348,6 +224509,204 @@ export interface operations {
             };
         };
     };
+    getPublicCourtBookingsByToken: {
+        parameters: {
+            query: {
+                propertyId: string;
+            };
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicCourtBookingView"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCourtBookingsByTokenCalendarIcs: {
+        parameters: {
+            query: {
+                propertyId: string;
+            };
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/calendar": string;
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCourtBookingsByTokenETicketPdf: {
+        parameters: {
+            query: {
+                propertyId: string;
+            };
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCourtBookingsByTokenQrPng: {
+        parameters: {
+            query: {
+                propertyId: string;
+            };
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": string;
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicCourtBookingsByTokenAbandon: {
+        parameters: {
+            query: {
+                propertyId: string;
+            };
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicCourtBookingView"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicCourtBookingsLookup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LookupInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LookupResult"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getPublicDemoAccess: {
         parameters: {
             query?: never;
@@ -224124,6 +226483,137 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicSportClub"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicSportClubGrid: {
+        parameters: {
+            query: {
+                propertyId: string;
+                /** @description Sport id or slug */
+                facility: string;
+                date?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Grid"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicSportClubQuote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicQuoteInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Quote"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicSportClubRateCard: {
+        parameters: {
+            query: {
+                propertyId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RateCard"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicSportClubTicketsByToken: {
+        parameters: {
+            query: {
+                propertyId: string;
+            };
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Entry"];
                 };
             };
             /** @description Problem Details (RFC 9457) */
@@ -228352,16 +230842,15 @@ export interface operations {
             };
         };
     };
-    getSportclubBookings: {
+    getSportclubBlocks: {
         parameters: {
             query?: {
                 /** @description Opaque cursor from nextCursor. */
                 cursor?: string;
                 /** @description Page size (max 500). */
                 limit?: number;
-                /** @description YYYY-MM-DD */
-                date?: string;
-                "filter[status]"?: string;
+                from?: string;
+                to?: string;
             };
             header: {
                 /** @description Active property chosen in the property switcher. */
@@ -228379,7 +230868,294 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        items: components["schemas"]["Reservation"][];
+                        items: components["schemas"]["BoardBlock"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubBlocks: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SportclubBlockInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BlockResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubBlocksByIdRemove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["idsInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Empty"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSportclubBoard: {
+        parameters: {
+            query?: {
+                date?: string;
+                facilityId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SportclubBoard"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSportclubBoardStream: {
+        parameters: {
+            query?: {
+                /** @description Active property (EventSource cannot send X-Property-Id) */
+                propertyId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSportclubBookings: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description One day (YYYY-MM-DD) */
+                date?: string;
+                from?: string;
+                to?: string;
+                /** @description Code, name or phone */
+                q?: string;
+                "filter[facilityId]"?: string;
+                "filter[courtId]"?: string;
+                "filter[state]"?: string;
+                "filter[channel]"?: string;
+                "filter[payStatus]"?: string;
+                "filter[customerId]"?: string;
+                "filter[recurringGroupId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CourtBooking"][];
                         nextCursor?: string;
                     };
                 };
@@ -228438,6 +231214,677 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CourtBookingResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSportclubBookingsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourtBookingDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubBookingsByIdCheckIn: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScanInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScanResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubBookingsByIdComplete: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SportclubCompleteInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourtBookingDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubBookingsByIdDiscount: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SportclubDiscountInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourtBookingDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubBookingsByIdExtend: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SportclubExtendInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourtBookingDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubBookingsByIdExtras: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExtrasInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourtBookingDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubBookingsByIdMove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourtBookingDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubBookingsByIdNoShow: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SportclubLinesInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourtBookingDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubBookingsByIdPay: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CourtPayInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourtBookingDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubBookingsByIdVoid: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["idsInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourtBookingDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSportclubChargeTargets: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SportclubChargeTarget"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubCheckInScan: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScanInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScanResult"];
                 };
             };
             /** @description Not authenticated */
@@ -229346,6 +232793,320 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SportclubSession"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSportclubCourtPolicy: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourtPolicy"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    putSportclubCourtPolicy: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CourtPolicy"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourtPolicy"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSportclubCourtReport: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                facilityId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourtReportData"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubCourtReports: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CourtReportInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourtReportResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubCourtReportsByIdResolve: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourtReport"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSportclubCourtStaff: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourtStaffView"];
                 };
             };
             /** @description Not authenticated */
@@ -230315,6 +234076,230 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSportclubGrid: {
+        parameters: {
+            query: {
+                facilityId: string;
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Grid"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSportclubIncidents: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[status]"?: string;
+                from?: string;
+                to?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SportclubIncident"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubIncidents: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SportclubIncidentInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SportclubIncident"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubIncidentsByIdClose: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["idsInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SportclubIncident"];
                 };
             };
             /** @description Not authenticated */
@@ -231476,6 +235461,669 @@ export interface operations {
             };
         };
     };
+    getSportclubOverview: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                facilityId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourtReportData"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSportclubPackages: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                customerId?: string;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ActivePackage"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubQuote: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuoteInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Quote"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSportclubRateCard: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RateCard"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSportclubRecurring: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Recurring"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubRecurring: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SportclubRecurringInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recurring"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSportclubRecurringById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recurring"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubRecurringByIdExtend: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecurringAction"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recurring"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubRecurringByIdPause: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecurringAction"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recurring"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubRecurringByIdResume: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecurringAction"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recurring"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubRecurringByIdStop: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecurringAction"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recurring"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postSportclubRecurringPreview: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SportclubRecurringInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringPreview"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postSportclubSessionBookings: {
         parameters: {
             query?: never;
@@ -231499,6 +236147,65 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SessionBooking"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSportclubStaffOnDuty: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DutyStaff"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */

@@ -4,6 +4,7 @@ import { useGet, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDate } from '@oneclub/i18n';
 import { Icon, PlayTime, Skeleton, useAuth, useBootstrap, useNavigation } from '@oneclub/shell';
 import { RateCaddy } from './booking';
+import { ProgramSwitch, SportHome } from './sport';
 import { PromoCarousel } from './promo';
 import { Chip, dayLabel, money, StatusChip } from './ui';
 
@@ -43,6 +44,8 @@ export function MemberHome() {
   const book = nav.data?.items.find((i) => i.key === 'book')?.children ?? [];
   const first = (me?.fullName ?? '').split(' ')[0];
   const acc = loyalty.data?.account;
+  // the Sport Club Member App has its own home (FR-108..112)
+  if (nav.data?.program === 'sport_club') return <SportHome />;
   return (
     <div className="mj-page">
       <section className="mj-hero" aria-label="Membership">
@@ -62,6 +65,7 @@ export function MemberHome() {
           <div><span>{acc?.tierName ? `${acc.tierName} · Points` : 'Points'}</span><strong className="mj-num">{acc ? acc.balance.toLocaleString('en-GB') : '—'}</strong></div>
         </div>
       </section>
+      <ProgramSwitch />
 
       {ms && ms.daysToExpiry !== undefined && ms.daysToExpiry !== null && ms.daysToExpiry <= 60 && ms.status === 'active' && (
         <Link to="/membership" className="mj-card oc-row" style={{ textDecoration: 'none', color: 'inherit', borderColor: 'var(--mj-warn)' }}>

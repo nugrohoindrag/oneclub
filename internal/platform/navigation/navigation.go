@@ -32,13 +32,35 @@ type Item struct {
 	ComingSoon bool   `json:"comingSoon,omitempty" doc:"Module is enabled but its features arrive in a later phase"`
 	Phase      string `json:"phase,omitempty"`
 	Section    bool   `json:"section,omitempty" doc:"Heading of a group of items (role menus); not a link"`
-	Children   []Item `json:"children,omitempty"`
+	// Program ties a Member App item to a membership program (golf,
+	// sport_club): a golf member sees the golf menu, a Sport Club member the
+	// Sport Club menu (docs/requirement-booking-sportclub-mgcc.md FR-108).
+	Program string `json:"program,omitempty"`
+	// Area ties an Ops item to a front desk area (golf, sportclub): the
+	// Sport Club area is one desk for every sport, golf keeps its own menu
+	// (FR-47..51).
+	Area     string `json:"area,omitempty"`
+	Children []Item `json:"children,omitempty"`
 }
 
 // Menu is a shell's navigation.
 type Menu struct {
 	Shell string `json:"shell" enum:"backoffice,management,member,ops,platform-admin"`
 	Items []Item `json:"items"`
+	// Member App: the active membership programs of the member and the
+	// program this menu is built for (FR-108, FR-109).
+	Programs []string `json:"programs,omitempty"`
+	Program  string   `json:"program,omitempty"`
+	// Ops: the front desk areas the user may open (role + HRIS work areas,
+	// FR-49, FR-99).
+	Areas []string `json:"areas,omitempty"`
+}
+
+// NavContext is what the menus depend on beyond permissions: the active
+// membership programs of a member and the work areas of an employee.
+type NavContext struct {
+	Programs  []string
+	WorkAreas []string
 }
 
 func live(module, label, icon, path string) Item {
@@ -102,7 +124,27 @@ var Trees = map[string][]Item{
 				s("tournament-history", "Tournament History", "/golf/tournament-history", "golf.tournament_history.view"),
 			),
 		),
-		live("sportclub", "Sport Club", "sports_tennis", "/sport-club"),
+		// Dashboard Admin Sport Club (docs/requirement-booking-sportclub-mgcc.md §6.2)
+		mod("sportclub", "Sport Club", "sports_tennis", "/sport-club",
+			s("sc-overview", "Overview", "/sport-club", "sportclub.dashboard.view"),
+			s("sc-calendar", "Kalender Lapangan", "/sport-club/calendar", "sportclub.booking.view"),
+			s("sc-reservations", "Reservasi", "/sport-club/reservations", "sportclub.booking.view"),
+			s("sc-recurring", "Booking Rutin", "/sport-club/recurring", "sportclub.booking.view"),
+			s("sc-blocks", "Blokir Slot", "/sport-club/blocks", "sportclub.booking.view"),
+			s("sc-packages", "Paket & Voucher", "/sport-club/packages", "sportclub.booking.view"),
+			s("sc-reports", "Laporan & Ekspor", "/sport-club/reports", "sportclub.dashboard.view"),
+			s("sc-incidents", "Insiden", "/sport-club/incidents", "sportclub.incident.view"),
+			s("sc-operations", "Tiket, Kelas & Loker", "/sport-club/operations", "sportclub.entry.view"),
+			s("sc-settings", "Pengaturan", "/sport-club/settings/sports", "sportclub.facility.view",
+				s("sc-set-sports", "Cabang Olahraga", "/sport-club/settings/sports", "sportclub.facility.view"),
+				s("sc-set-courts", "Lapangan", "/sport-club/settings/courts", "sportclub.court.view"),
+				s("sc-set-hours", "Jam Buka & Hari Libur", "/sport-club/settings/hours", "sportclub.facility.view"),
+				s("sc-set-rules", "Aturan Booking", "/sport-club/settings/rules", "sportclub.booking.view"),
+				s("sc-set-rates", "Tarif", "/sport-club/settings/rates", "sportclub.booking.view"),
+				s("sc-set-payment", "Metode Bayar & Biaya Layanan", "/sport-club/settings/payment", "sportclub.booking.view"),
+				s("sc-set-content", "Konten Website", "/sport-club/settings/content", "sportclub.facility.view"),
+			),
+		),
 		mod("membership", "Membership", "card_membership", "/membership/members",
 			s("members", "Members", "/membership/members", "membership.member.view"),
 			s("membership-programs", "Membership Programs", "/membership/programs", "membership.program.view"),
@@ -457,36 +499,45 @@ var Trees = map[string][]Item{
 	"member": {
 		{Key: "home", Label: "Home", Path: "/", Icon: "home", Permission: catalog.ShellMemberPortal},
 		{Key: "book", Label: "Book", Path: "/book", Icon: "calendar_add_on", Permission: catalog.ShellMemberPortal, Children: []Item{
-			inModule("golf", s("book-tee-time", "Tee Time", "/book/tee-time", catalog.ShellMemberPortal)),
-			inModule("golf", s("book-driving-range", "Driving Range", "/book/driving-range", catalog.ShellMemberPortal)),
-			inModule("golf", s("course-guide", "Course Guide", "/golf/course-guide", catalog.ShellMemberPortal)),
+			golfItem(inModule("golf", s("book-tee-time", "Tee Time", "/book/tee-time", catalog.ShellMemberPortal))),
+			golfItem(inModule("golf", s("book-driving-range", "Driving Range", "/book/driving-range", catalog.ShellMemberPortal))),
+			golfItem(inModule("golf", s("course-guide", "Course Guide", "/golf/course-guide", catalog.ShellMemberPortal))),
+			golfItem(inModule("golf", s("tournaments", "Tournaments", "/golf/tournaments", catalog.ShellMemberPortal))),
+			// Sport Club (§8.4): courts like the website, classes, pool & gym
+			sportItem(inModule("sportclub", s("book-court", "Pesan Lapangan", "/sport-club/courts", catalog.ShellMemberPortal))),
+			sportItem(inModule("sportclub", s("sport-classes", "Kelas", "/sport-club/classes", catalog.ShellMemberPortal))),
+			sportItem(inModule("sportclub", s("sport-access", "Kolam & Gym", "/sport-club/access", catalog.ShellMemberPortal))),
+			// Lainnya: the club's general menus for every member (FR-112)
 			inModule("stay", s("book-bungalow", "Bungalow", "/book/bungalow", catalog.ShellMemberPortal)),
 			inModule("stay", s("book-meeting-room", "Meeting Room", "/book/meeting-room", catalog.ShellMemberPortal)),
 			inModule("banquet", s("upcoming-events", "Event", "/events", catalog.ShellMemberPortal)),
-			inModule("golf", s("tournaments", "Tournaments", "/golf/tournaments", catalog.ShellMemberPortal)),
-			inModule("sportclub", s("sport-club", "Sport Club", "/sport-club", catalog.ShellMemberPortal)),
 			inModule("commercial", s("order-food", "Order Food", "/order-food", catalog.ShellMemberPortal)),
 			inModule("commercial", s("packages", "Packages", "/packages", catalog.ShellMemberPortal)),
 			inModule("commercial", s("offers", "Offers", "/offers", catalog.ShellMemberPortal)),
 		}},
 		{Key: "activity", Label: "My Activity", Path: "/activity", Icon: "history", Permission: catalog.ShellMemberPortal, Children: []Item{
 			s("my-bookings", "Bookings", "/activity", catalog.ShellMemberPortal),
-			inModule("golf", s("golf-history", "Golf History", "/activity/golf", catalog.ShellMemberPortal)),
-			inModule("golf", s("golf-leaderboard", "Leaderboard", "/activity/leaderboard", catalog.ShellMemberPortal)),
-			inModule("golf", s("scores-handicap", "Scores & Handicap", "/golf/scores", catalog.ShellMemberPortal)),
+			golfItem(inModule("golf", s("golf-history", "Golf History", "/activity/golf", catalog.ShellMemberPortal))),
+			golfItem(inModule("golf", s("golf-leaderboard", "Leaderboard", "/activity/leaderboard", catalog.ShellMemberPortal))),
+			golfItem(inModule("golf", s("scores-handicap", "Scores & Handicap", "/golf/scores", catalog.ShellMemberPortal))),
+			golfItem(inModule("golf", s("my-tournaments", "My Tournaments", "/golf/my-tournaments", catalog.ShellMemberPortal))),
+			sportItem(inModule("sportclub", s("my-courts", "Booking Lapangan", "/activity/courts", catalog.ShellMemberPortal))),
+			sportItem(inModule("sportclub", s("my-classes", "Kelas & Kehadiran", "/activity/classes", catalog.ShellMemberPortal))),
+			sportItem(inModule("sportclub", s("my-visits", "Kunjungan Kolam/Gym", "/activity/visits", catalog.ShellMemberPortal))),
 			inModule("stay", s("stay-history", "Stay History", "/activity/stays", catalog.ShellMemberPortal)),
 			inModule("banquet", s("my-events", "My Events", "/events/my-events", catalog.ShellMemberPortal)),
-			inModule("golf", s("my-tournaments", "My Tournaments", "/golf/my-tournaments", catalog.ShellMemberPortal)),
 			inModule("crm", s("support-feedback", "Feedback", "/support/feedback", catalog.ShellMemberPortal)),
 		}},
 		{Key: "membership", Label: "Membership", Path: "/membership", Icon: "card_membership", Module: "membership", Permission: catalog.ShellMemberPortal, Children: []Item{
 			s("my-membership", "Membership", "/membership", catalog.ShellMemberPortal),
 			s("digital-member-card", "Digital Member Card", "/membership/card", catalog.ShellMemberPortal),
 			s("membership-benefits", "Benefits", "/membership/benefits", catalog.ShellMemberPortal),
-			inModule("golf", s("my-guests", "Guests", "/membership/guests", catalog.ShellMemberPortal)),
+			golfItem(inModule("golf", s("my-guests", "Guests", "/membership/guests", catalog.ShellMemberPortal))),
+			sportItem(inModule("sportclub", s("sport-guests", "Ajak Tamu", "/membership/sport-guests", catalog.ShellMemberPortal))),
 			s("family-members", "Family Members", "/membership/family", catalog.ShellMemberPortal),
-			inModule("crm", s("loyalty", "Loyalty", "/loyalty", catalog.ShellMemberPortal)),
-			inModule("commercial", s("vouchers", "Voucher & Prepaid", "/vouchers", catalog.ShellMemberPortal)),
+			golfItem(inModule("crm", s("loyalty", "Loyalty", "/loyalty", catalog.ShellMemberPortal))),
+			sportItem(inModule("sportclub", s("sport-packages", "Paket & Voucher", "/membership/packages", catalog.ShellMemberPortal))),
+			golfItem(inModule("commercial", s("vouchers", "Voucher & Prepaid", "/vouchers", catalog.ShellMemberPortal))),
 			s("membership-services", "Fees & Requests", "/membership/services", catalog.ShellMemberPortal),
 			s("membership-statement", "Membership Statement", "/membership/statements", catalog.ShellMemberPortal),
 		}},
@@ -505,7 +556,7 @@ var Trees = map[string][]Item{
 	},
 	"ops": {
 		{Key: "home", Label: "Home", Path: "/ops", Icon: "home", Permission: catalog.ShellOps},
-		{Key: "starter", Label: "Starter", Path: "/ops/starter", Icon: "flag", Module: "golf", Permission: "golf.starter.view", Children: []Item{
+		{Area: "golf", Key: "starter", Label: "Starter", Path: "/ops/starter", Icon: "flag", Module: "golf", Permission: "golf.starter.view", Children: []Item{
 			s("ops-tee-sheet", "Tee Sheet", "/ops/starter/tee-sheet", "golf.tee_sheet.view"),
 			s("queue", "Queue", "/ops/starter", "golf.starter.view"),
 			s("ready-flights", "Ready Flights", "/ops/starter/ready", "golf.starter.view"),
@@ -519,7 +570,7 @@ var Trees = map[string][]Item{
 			s("shotgun-start", "Shotgun Start", "/ops/tournament-desk/start", "golf.tournament.start"), // PRD P3 §7.6
 		}},
 		// PRD P3 FR-OPS-P3-02 Tournament Desk
-		{Key: "tournament-desk", Label: "Tournament Desk", Path: "/ops/tournament-desk", Icon: "emoji_events", Module: "golf",
+		{Area: "golf", Key: "tournament-desk", Label: "Tournament Desk", Path: "/ops/tournament-desk", Icon: "emoji_events", Module: "golf",
 			Permission: "golf.tournament_registration.check_in", Children: []Item{
 				s("tournament-check-in", "Registration Check-in", "/ops/tournament-desk", "golf.tournament_registration.check_in"),
 				s("tournament-draw", "Draw", "/ops/tournament-desk/draw", "golf.tournament.view"),
@@ -527,7 +578,7 @@ var Trees = map[string][]Item{
 				s("tournament-desk-leaderboard", "Leaderboard", "/ops/tournament-desk/leaderboard", "golf.tournament_leaderboard.view"),
 				s("tournament-desk-team-scoring", "Team Scoring", "/ops/tournament-desk/team-scoring", "golf.tournament_score.enter"), // PRD P5 EP-23
 			}},
-		{Key: "caddy-master", Label: "Caddy Master", Path: "/ops/caddy", Icon: "hiking", Module: "golf", Permission: "golf.caddy_assignment.manage", Children: []Item{
+		{Area: "golf", Key: "caddy-master", Label: "Caddy Master", Path: "/ops/caddy", Icon: "hiking", Module: "golf", Permission: "golf.caddy_assignment.manage", Children: []Item{
 			s("caddy-queue", "Caddy Queue", "/ops/caddy", "golf.caddy.view"),
 			s("caddy-availability", "Caddy Availability", "/ops/caddy/availability", "golf.caddy.view"),
 			s("caddy-assignment", "Caddy Assignment", "/ops/caddy/assignment", "golf.caddy_assignment.manage"),
@@ -537,7 +588,7 @@ var Trees = map[string][]Item{
 			// PRD P5 FR-ATT-08: caddies clocking in on the caddy house device join the queue.
 			{Key: "caddy-device-clock-ins", Label: "Device Clock-ins", Path: "/ops/caddy/clock-ins", Module: "hris", Permission: "hris.partner_attendance.view"},
 		}},
-		{Key: "front-desk", Label: "Front Desk", Path: "/ops/front-desk", Icon: "concierge", Module: "golf", Permission: "golf.check_in.perform", Children: []Item{
+		{Area: "golf", Key: "front-desk", Label: "Front Desk", Path: "/ops/front-desk", Icon: "concierge", Module: "golf", Permission: "golf.check_in.perform", Children: []Item{
 			s("reservations", "Reservations", "/ops/front-desk", "golf.booking.view"),
 			s("fd-new-booking", "New Booking", "/ops/front-desk/new", "golf.booking.create"),
 			s("fd-check-in", "Check-in", "/ops/front-desk/check-in", "golf.check_in.perform"),
@@ -560,7 +611,7 @@ var Trees = map[string][]Item{
 		}},
 		{Key: "housekeeping", Label: "Housekeeping", Path: "/ops/housekeeping", Icon: "mop", Module: "stay", Permission: "stay.housekeeping.view"},
 		{Key: "stay-maintenance", Label: "Bungalow Maintenance", Path: "/ops/stay-maintenance", Icon: "build", Module: "stay", Permission: "stay.work_order.view"},
-		{Key: "golf-staff", Label: "Golf Staff", Path: "/ops/golf-staff", Icon: "golf_course", Module: "golf", Permission: "golf.bag.manage", Children: []Item{
+		{Area: "golf", Key: "golf-staff", Label: "Golf Staff", Path: "/ops/golf-staff", Icon: "golf_course", Module: "golf", Permission: "golf.bag.manage", Children: []Item{
 			s("bag-drop", "Bag Drop", "/ops/golf-staff", "golf.bag.manage"),
 			s("bag-storage", "Bag Storage", "/ops/golf-staff/bag-storage", "golf.bag.manage"),
 			s("locker-assignment", "Locker Assignment", "/ops/golf-staff/lockers", "golf.locker_assignment.manage"),
@@ -569,9 +620,26 @@ var Trees = map[string][]Item{
 			s("golf-cart-inspection", "Golf Cart Inspection", "/ops/golf-staff/inspection", "golf.cart_inspection.create"),
 			s("ops-course-maintenance", "Course Maintenance", "/ops/golf-staff/maintenance", "golf.maintenance_task.view"),
 		}},
-		{Key: "driving-range", Label: "Driving Range", Path: "/ops/driving-range", Icon: "sports_golf", Module: "golf", Permission: "golf.range.operate"},
-		{Key: "sport-reception", Label: "Sport Reception", Path: "/ops/sport-reception", Icon: "sports_tennis", Module: "sportclub", Permission: "sportclub.access.validate"},
-		{Key: "instructor", Label: "Instructor", Path: "/ops/instructor", Icon: "school", Module: "sportclub", Permission: "sportclub.class.attendance"},
+		{Area: "golf", Key: "driving-range", Label: "Driving Range", Path: "/ops/driving-range", Icon: "sports_golf", Module: "golf", Permission: "golf.range.operate"},
+		// Sport Club: one front desk for every sport (docs/requirement-booking-sportclub-mgcc.md §5.3, FR-140, FR-142)
+		{Area: "sportclub", Key: "sport-desk", Label: "Sport Club", Path: "/ops/sport", Icon: "sports_tennis", Module: "sportclub", Permission: "sportclub.booking.view",
+			Children: []Item{
+				s("sport-board", "Papan Lapangan", "/ops/sport", "sportclub.booking.view"),
+				s("sport-new", "Booking Baru", "/ops/sport/new", "sportclub.booking.create"),
+				s("sport-check-in", "Check-in", "/ops/sport/check-in", "sportclub.booking.operate"),
+				s("sport-payments", "Pembayaran", "/ops/sport/payments", "sportclub.booking.operate"),
+				s("sport-finish", "Selesai Main", "/ops/sport/finish", "sportclub.booking.operate"),
+				s("sport-tickets", "Tiket Masuk", "/ops/sport/tickets", "sportclub.access.validate"),
+				s("sport-packages", "Paket & Kelas", "/ops/sport/packages", "sportclub.booking.create"),
+				s("sport-history", "Riwayat", "/ops/sport/history", "sportclub.booking.view"),
+				s("sport-incidents", "Insiden", "/ops/sport/incidents", "sportclub.incident.create"),
+				s("sport-cashier", "Tutup Shift", "/ops/sport/cashier", "billing.cashier_shift.operate"),
+				{Key: "sport-pos", Label: "POS Sport Café", Path: "/ops/pos", Module: "commercial", Permission: "commercial.order.create"},
+			}},
+		// court staff on the phone (FR-119): next two hours, court ready, report a problem
+		{Area: "sportclub", Key: "court-staff", Label: "Petugas Lapangan", Path: "/ops/sport/court-staff", Icon: "sports_score", Module: "sportclub",
+			Permission: "sportclub.court_report.create"},
+		{Area: "sportclub", Key: "instructor", Label: "Instructor", Path: "/ops/instructor", Icon: "school", Module: "sportclub", Permission: "sportclub.class.attendance"},
 		// PRD P5 §7.2, FR-INS-HR-04: Honor Statement of partner instructors (payout runs).
 		{Key: "honor-statement", Label: "Honor Statement", Path: "/ops/instructor/honor", Icon: "request_quote", Module: "hris", Permission: "hris.payout.own"},
 		{Key: "pos", Label: "POS", Path: "/ops/pos", Icon: "point_of_sale", Module: "commercial", Permission: "commercial.order.create"},
@@ -663,6 +731,9 @@ type ModuleChecker interface {
 type Service struct {
 	DB      *dbtx.DB
 	Modules ModuleChecker
+	// Context returns the programs of a member and the work areas of an
+	// employee (wired by the composition root; nil = no filter).
+	Context func(ctx context.Context, shell string) (NavContext, error)
 }
 
 // RoleTrees replace a shell's menu for a role template whose work sits in
@@ -713,6 +784,16 @@ func group(key, label, icon string, items ...Item) Item {
 func section(key, label string, items ...Item) Item {
 	return Item{Key: key, Label: label, Section: true, Children: items}
 }
+
+// golfItem / sportItem tie a Member App item to a membership program.
+func golfItem(it Item) Item  { it.Program = ProgramGolf; return it }
+func sportItem(it Item) Item { it.Program = ProgramSport; return it }
+
+// Membership program kinds of the Member App menus.
+const (
+	ProgramGolf  = "golf"
+	ProgramSport = "sport_club"
+)
 
 // inModule ties a role-tree item to a module (hidden while it is disabled).
 func inModule(module string, it Item) Item {
@@ -807,6 +888,12 @@ func roleTree(p *authz.Principal, shell string) []Item {
 
 // Build filters a shell's tree for the principal at the active property.
 func (sv *Service) Build(ctx context.Context, shell string) (Menu, error) {
+	return sv.BuildFor(ctx, shell, "")
+}
+
+// BuildFor builds a shell's menu; program selects the Member App menu (golf
+// or sport_club; default: the member's program, golf first).
+func (sv *Service) BuildFor(ctx context.Context, shell, program string) (Menu, error) {
 	tree, ok := Trees[shell]
 	if !ok {
 		return Menu{}, errs.BadRequest("invalid_shell", "unknown shell")
@@ -856,7 +943,59 @@ func (sv *Service) Build(ctx context.Context, shell string) (Menu, error) {
 		return out
 	}
 	items := filter(tree)
-	return Menu{Shell: shell, Items: items}, err
+	menu := Menu{Shell: shell, Items: items}
+	if err != nil || sv.Context == nil || (shell != "member" && shell != "ops") {
+		return menu, err
+	}
+	nc, err := sv.Context(ctx, shell)
+	if err != nil {
+		return menu, err
+	}
+	switch shell {
+	case "member":
+		menu.Programs = nc.Programs
+		if menu.Programs == nil {
+			menu.Programs = []string{}
+		}
+		if program != ProgramGolf && program != ProgramSport {
+			program = ProgramGolf
+			if len(nc.Programs) > 0 && !slices.Contains(nc.Programs, ProgramGolf) && slices.Contains(nc.Programs, ProgramSport) {
+				program = ProgramSport
+			}
+		}
+		menu.Program = program
+		menu.Items = keep(menu.Items, func(it Item) bool { return it.Program == "" || it.Program == program })
+	case "ops":
+		allowed := map[string]bool{}
+		for _, it := range menu.Items {
+			if it.Area != "" && (len(nc.WorkAreas) == 0 || slices.Contains(nc.WorkAreas, it.Area)) {
+				allowed[it.Area] = true
+			}
+		}
+		menu.Items = keep(menu.Items, func(it Item) bool { return it.Area == "" || allowed[it.Area] })
+		menu.Areas = []string{}
+		for _, a := range []string{"golf", "sportclub"} {
+			if allowed[a] {
+				menu.Areas = append(menu.Areas, a)
+			}
+		}
+	}
+	return menu, nil
+}
+
+// keep filters a tree (children included).
+func keep(items []Item, ok func(Item) bool) []Item {
+	out := []Item{}
+	for _, it := range items {
+		if !ok(it) {
+			continue
+		}
+		if len(it.Children) > 0 {
+			it.Children = keep(it.Children, ok)
+		}
+		out = append(out, it)
+	}
+	return out
 }
 
 func (sv *Service) handle(w http.ResponseWriter, r *http.Request) {
@@ -864,7 +1003,7 @@ func (sv *Service) handle(w http.ResponseWriter, r *http.Request) {
 	if shell == "" {
 		shell = "backoffice"
 	}
-	menu, err := sv.Build(r.Context(), shell)
+	menu, err := sv.BuildFor(r.Context(), shell, r.URL.Query().Get("program"))
 	if err != nil {
 		httpx.WriteError(w, r, err)
 		return
@@ -876,5 +1015,6 @@ func (sv *Service) handle(w http.ResponseWriter, r *http.Request) {
 func (sv *Service) Register(reg *route.Registry) {
 	reg.Add(route.Route{Method: http.MethodGet, Path: "/api/v1/platform/navigation", Module: "platform", Tag: "Application Shell",
 		Summary: "Menu of a shell filtered by enabled modules and my permissions", Response: Menu{},
-		Query: []route.Param{{Name: "shell", Enum: []string{"backoffice", "management", "member", "ops", "platform-admin", "caddy"}}}, Handler: sv.handle})
+		Query: []route.Param{{Name: "shell", Enum: []string{"backoffice", "management", "member", "ops", "platform-admin", "caddy"}},
+			{Name: "program", Enum: []string{"golf", "sport_club"}, Description: "Member App: the program of the menu (the Member App domain)"}}, Handler: sv.handle})
 }

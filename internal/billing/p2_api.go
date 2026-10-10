@@ -57,6 +57,7 @@ type LineCharge struct {
 	TaxLines         any        // tax breakdown of the pricing snapshot
 	BeneficiaryType  string     // caddy | instructor: money held for a partner
 	BeneficiaryID    *uuid.UUID //
+	CostCenter       string     // dimension of the journal line (e.g. sportclub:FUTSAL, FR-91 Sport Club)
 }
 
 // chargeTypes are P1's charge types; other revenue components post as
@@ -100,8 +101,8 @@ func (s *Service) AddLineCharge(ctx context.Context, tx pgx.Tx, c LineCharge) (u
 	}
 	raw, _ := json.Marshal(taxes)
 	_, err = tx.Exec(ctx, `UPDATE billing.folio_lines l SET business_line = coalesce($2, f.business_line), revenue_component = $3, tax_lines = $4,
-		beneficiary_type = $5, beneficiary_id = $6 FROM billing.folios f WHERE l.id = $1 AND f.id = l.folio_id`,
-		lid, nullStr(c.BusinessLine), c.RevenueComponent, raw, nullStr(c.BeneficiaryType), c.BeneficiaryID)
+		beneficiary_type = $5, beneficiary_id = $6, cost_center = $7 FROM billing.folios f WHERE l.id = $1 AND f.id = l.folio_id`,
+		lid, nullStr(c.BusinessLine), c.RevenueComponent, raw, nullStr(c.BeneficiaryType), c.BeneficiaryID, nullStr(c.CostCenter))
 	return lid, err
 }
 

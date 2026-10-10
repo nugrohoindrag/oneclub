@@ -278,6 +278,8 @@ var RoleTemplates = []RoleTemplate{
 	{Code: "sport_club_receptionist", Name: "Sport Club Receptionist", Category: "Sport Club", Scope: "property", Permissions: cat(ops, ma("sportclub"))},
 	{Code: "instructor_coach", Name: "Instructor / Coach", Category: "Sport Club", Scope: "property", Permissions: cat(ops, ma("sportclub"))},
 	{Code: "lifeguard", Name: "Lifeguard", Category: "Sport Club", Scope: "property", Permissions: cat(ops, ma("sportclub"))},
+	// court staff on the phone: next bookings, court ready, problems (docs/requirement-booking-sportclub-mgcc.md FR-119)
+	{Code: "sport_court_staff", Name: "Sport Court Staff", Category: "Sport Club", Scope: "property", Permissions: cat(ops, ma("sportclub"))},
 	// Membership
 	{Code: "membership_admin", Name: "Membership Admin", Category: "Membership", Scope: "property", Permissions: cat(bo, ma("membership", "crm"))},
 	{Code: "membership_manager", Name: "Membership Manager", Category: "Membership", Scope: "property", Permissions: cat(bo, ma("membership", "crm", "reporting"), []string{"reporting.report.view"})},

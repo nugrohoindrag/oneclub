@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { getActiveProperty, qs, request, useGet, useSend, uuidv7, type Page, type Schemas } from '@oneclub/api-client';
+import { qs, request, useGet, useSend, uuidv7, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import { enqueue } from '@oneclub/offline';
 import { Card, DataTable, ErrorAlert, Icon, MoneyField, SelectField, StatusPill, TextField, useAuth, useToast } from '@oneclub/shell';
@@ -7,13 +7,11 @@ import { DeskPayDialog, type DeskTender } from './deskpay';
 import { Btn, Head, money, today } from './golf';
 
 /*
- * Sport Reception (demo feedback 10 Oct 2026 #39): one desk for the whole
- * Sport Club in the blue POS look, like the golf Front Desk — sell the entry
- * ticket (walk-in, guest of a member, child, family, voucher), book courts
- * (several hours and courts, or a 4x/8x package), register for a class and
- * book its session, sell packages and vouchers, lockers, and the access
- * scan with the live occupancy. Every payment goes through the payment
- * page (method, confirm, receipt).
+ * Sport Club desk, entry and packages (demo feedback 10 Oct 2026 #39): the
+ * entry ticket (walk-in, guest of a member, child, family, voucher), class
+ * registration and sessions, packages and vouchers, lockers and the access
+ * scan with the live occupancy. Every payment goes through the payment page
+ * (method, confirm, receipt). Courts: sport/desk.tsx.
  */
 
 type R = Record<string, unknown> & { id: string };
@@ -21,27 +19,44 @@ type Who = { customerId?: string; name: string; phone: string };
 const idem = () => ({ 'Idempotency-Key': uuidv7() });
 const SCAN_KEY = 'oneclub.sport.scanFacility';
 
-const TABS = [['entry', 'Entry Ticket', 'confirmation_number'], ['courts', 'Court Booking', 'sports_tennis'], ['classes', 'Classes', 'school'],
-  ['packages', 'Packages & Vouchers', 'card_membership'], ['lockers', 'Lockers', 'lock'], ['access', 'Access & Occupancy', 'qr_code_scanner']] as const;
-type Tab = (typeof TABS)[number][0];
-
-export function SportReceptionPage() {
-  const [tab, setTab] = useState<Tab>('entry');
+/**
+ * Tiket Masuk (docs/requirement-booking-sportclub-mgcc.md §5.3, FR-142): the
+ * entry tickets of the pool and the gym, the access scan with the live
+ * occupancy and the lockers — one page of the Sport Club desk. Court
+ * bookings have their own pages (Papan Lapangan, Booking Baru, Check-in).
+ */
+export function SportTicketsPage() {
+  const [tab, setTab] = useState<'entry' | 'access' | 'lockers'>('entry');
   return (
     <div className="oc-stack">
-      <Head title="Sport Reception" help="Entry tickets, courts, classes, packages and lockers of the Sport Club — paid on the payment page." />
+      <Head title="Tiket Masuk" help="Tiket kolam / gym (walk-in, tamu member, anak, keluarga, voucher), scan kartu member atau tiket, okupansi, dan loker." />
       <div className="oc-row-wrap" role="tablist">
-        {TABS.map(([k, l, icon]) => (
+        {([['entry', 'Jual Tiket', 'confirmation_number'], ['access', 'Scan & Okupansi', 'qr_code_scanner'], ['lockers', 'Loker', 'lock']] as const).map(([k, l, icon]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} className={`oc-btn ${tab === k ? 'oc-btn-ink' : 'oc-btn-neutral'}`} style={{ minHeight: 48 }}
             onClick={() => setTab(k)}><Icon name={icon} size={18} /> {l}</button>
         ))}
       </div>
       {tab === 'entry' && <EntryTab />}
-      {tab === 'courts' && <CourtsTab />}
-      {tab === 'classes' && <ClassesTab />}
-      {tab === 'packages' && <PackagesTab />}
-      {tab === 'lockers' && <LockersTab />}
       {tab === 'access' && <AccessTab />}
+      {tab === 'lockers' && <LockersTab />}
+    </div>
+  );
+}
+
+/** Paket & Kelas: court and class packages (FR-65) and the class registration and sessions. */
+export function SportPackagesPage() {
+  const [tab, setTab] = useState<'packages' | 'classes'>('packages');
+  return (
+    <div className="oc-stack">
+      <Head title="Paket & Kelas" help="Jual paket lapangan 4x/8x (sesuai brosur), voucher masuk, registrasi kelas dan booking sesi kelas." />
+      <div className="oc-row-wrap" role="tablist">
+        {([['packages', 'Paket & Voucher', 'card_membership'], ['classes', 'Kelas', 'school']] as const).map(([k, l, icon]) => (
+          <button key={k} type="button" role="tab" aria-selected={tab === k} className={`oc-btn ${tab === k ? 'oc-btn-ink' : 'oc-btn-neutral'}`} style={{ minHeight: 48 }}
+            onClick={() => setTab(k)}><Icon name={icon} size={18} /> {l}</button>
+        ))}
+      </div>
+      {tab === 'packages' && <PackagesTab />}
+      {tab === 'classes' && <ClassesTab />}
     </div>
   );
 }
@@ -166,90 +181,6 @@ function EntryTab() {
       {paying && q.price != null && (
         <DeskPayDialog amount={q.price} summary={[['Entry', `${String(fac?.name ?? '')} · ${ENTRY_TYPES.find((x) => x[0] === type)?.[1] ?? ''}`], ['Visitor', who.name || '—']]}
           members={who.customerId ? [{ customerId: who.customerId, name: who.name }] : []} onClose={() => setPaying(false)} pay={issue} onFinish={done} />
-      )}
-    </>
-  );
-}
-
-type Slot = { start: string; end: string; status: string; price?: string | null };
-type Pick = { courtId: string; courtName: string; start: string; end: string; price: number };
-const hhmm = (iso: string) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-
-function CourtsTab() {
-  const toast = useToast();
-  const page = useGet<{ facilities: R[]; courts: R[] }>(`/api/v1/public/sport-club${qs({ propertyId: getActiveProperty() })}`);
-  const sports = (page.data?.facilities ?? []).filter((f) => f.usageMode === 'slot_booking');
-  const [sport, setSport] = useState('');
-  const sp = sport || String(sports[0]?.id ?? '');
-  const courts = (page.data?.courts ?? []).filter((c) => c.facilityId === sp && c.resourceId);
-  const [date, setDate] = useState(today());
-  const [grid, setGrid] = useState<Record<string, Slot[]>>({});
-  const [picks, setPicks] = useState<Pick[]>([]);
-  const [who, setWho] = useState<Who>({ name: '', phone: '' });
-  const [pkg, setPkg] = useState('');
-  const [paying, setPaying] = useState(false);
-  const [error, setError] = useState<unknown>(null);
-  const load = () => Promise.all(courts.map(async (c) => {
-    const a = await request<{ resources: { slots: Slot[] }[] }>('GET', `/api/v1/public/availability${qs({ propertyId: getActiveProperty(), resourceType: 'sport_court',
-      resourceId: String(c.resourceId), date })}`);
-    return [c.id, a.resources[0]?.slots ?? []] as const;
-  })).then((xs) => setGrid(Object.fromEntries(xs)), setError);
-  const key = courts.map((c) => c.id).join(',');
-  useEffect(() => { void load(); }, [key, date]); // eslint-disable-line react-hooks/exhaustive-deps
-  const total = picks.reduce((n, p) => n + p.price, 0);
-  const picked = (c: R, s: Slot) => picks.some((p) => p.courtId === c.id && p.start === s.start);
-  const toggle = (c: R, s: Slot) => setPicks((ps) => (picked(c, s) ? ps.filter((p) => !(p.courtId === c.id && p.start === s.start))
-    : [...ps, { courtId: c.id, courtName: String(c.name), start: s.start, end: s.end, price: Number(s.price ?? 0) }]));
-  const body = () => ({ lines: picks.map((p) => ({ courtId: p.courtId, start: p.start, end: p.end })), customerId: who.customerId,
-    guest: who.customerId ? undefined : { name: who.name, phone: who.phone || undefined }, channel: 'ops', packageCode: pkg || undefined });
-  const book = async (t?: DeskTender) => {
-    await request('POST', '/api/v1/sportclub/bookings', { ...body(), payment: t ? { methodType: t.methodType, reference: t.reference } : undefined }, idem());
-    return [] as Record<string, unknown>[];
-  };
-  const done = () => { setPaying(false); setPicks([]); setPkg(''); toast('Court booked'); void load(); };
-  const ready = picks.length > 0 && (who.customerId || who.name);
-  return (
-    <>
-      <Card title="Courts" icon="sports_tennis">
-        <div className="oc-stack">
-          <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
-            {sports.map((f) => <Btn key={f.id} label={String(f.name)} kind={sp === f.id ? 'ink' : 'neutral'} onClick={() => { setSport(f.id); setPicks([]); }} />)}
-            <TextField label="Date" type="date" value={date} onChange={(v) => { setDate(v); setPicks([]); }} />
-          </div>
-          {courts.map((c) => (
-            <div key={c.id}>
-              <strong>{String(c.name)}</strong> <span className="oc-small oc-muted">{String(c.surface ?? '')}</span>
-              <div className="oc-row-wrap" style={{ marginTop: 6 }}>
-                {(grid[c.id] ?? []).map((s) => (
-                  <button key={s.start} type="button" className={`oc-btn ${picked(c, s) ? 'oc-btn-ink' : 'oc-btn-neutral'}`} style={{ minHeight: 56, minWidth: 104, flexDirection: 'column' }}
-                    disabled={s.status !== 'available' && !picked(c, s)} onClick={() => toggle(c, s)}>
-                    <strong>{hhmm(s.start)}</strong>
-                    <span className="oc-small">{s.status === 'available' ? money(s.price) : s.status === 'reserved' ? 'Booked' : 'Closed'}</span>
-                  </button>
-                ))}
-                {(grid[c.id] ?? []).length === 0 && <span className="oc-muted">No hours on this date.</span>}
-              </div>
-            </div>
-          ))}
-          <ErrorAlert error={error} />
-        </div>
-      </Card>
-      <Card title="Booking" icon="shopping_cart">
-        <div className="oc-stack">
-          {picks.length === 0 ? <span className="oc-muted">Tap the free hours (several hours and courts in one booking).</span>
-            : picks.map((p) => <div key={p.courtId + p.start}>{p.courtName} · {hhmm(p.start)}–{hhmm(p.end)} · {money(p.price)}</div>)}
-          <WhoField value={who} onChange={setWho} />
-          <TextField label="Court package code (4x/8x, optional — one hour at a time)" value={pkg} onChange={setPkg} />
-          <div className="oc-row-wrap" style={{ alignItems: 'center' }}>
-            <strong style={{ fontSize: 22 }}>{pkg ? 'Package' : money(total)}</strong>
-            <Btn label={pkg ? 'Book with the package' : 'Pay & book'} kind="primary" disabled={!ready || (!!pkg && picks.length !== 1)}
-              onClick={() => (pkg ? void book().then(done, (e) => toast((e as Error).message, 'error')) : setPaying(true))} />
-          </div>
-        </div>
-      </Card>
-      {paying && (
-        <DeskPayDialog amount={total} summary={[['Courts', picks.map((p) => `${p.courtName} ${hhmm(p.start)}`).join(', ')], ['Customer', who.name || '—']]}
-          members={who.customerId ? [{ customerId: who.customerId, name: who.name }] : []} onClose={() => setPaying(false)} pay={book} onFinish={done} />
       )}
     </>
   );

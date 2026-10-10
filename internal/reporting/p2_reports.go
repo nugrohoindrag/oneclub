@@ -247,7 +247,8 @@ func P2Permissions() ([]catalog.Permission, map[string][]string) {
 		"outlet_manager":     cat(dash, byModule["commercial"]),
 		"caddy_manager":      {"reporting.report.view", "reporting.golf_caddy_utilization.view", "reporting.golf_caddy_settlement.view"},
 		"accountant": {"reporting.report.view", "reporting.export.create", "reporting.commercial_voucher_liability.view", "reporting.commercial_voucher_breakage.view",
-			"reporting.commercial_shift.view", "reporting.golf_caddy_settlement.view", "reporting.sportclub_instructor_fee.view"},
+			"reporting.commercial_shift.view", "reporting.golf_caddy_settlement.view", "reporting.sportclub_instructor_fee.view",
+			"reporting.sportclub_settlement.view", "reporting.sportclub_settlement_daily.view", "reporting.sportclub_court_bookings.view"},
 	}
 }
 

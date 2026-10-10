@@ -7,14 +7,14 @@ import { PosDialog, money, type Order, type Row } from './shared';
 
 // Payment Method, the shift it needs, and Order Successful (POS design).
 
-type Method = 'qris' | 'card' | 'member_account' | 'golfer_bill' | 'voucher_prepaid' | 'loyalty_points' | 'cash';
+type Method = 'qris' | 'card' | 'member_account' | 'golfer_bill' | 'court_bill' | 'voucher_prepaid' | 'loyalty_points' | 'cash';
 const REST: Method[] = ['qris', 'card', 'cash'];
-const LABEL: Record<Method, string> = { qris: 'QRIS', card: 'Credit Card', member_account: 'Member Account', golfer_bill: 'Golfer Bill', voucher_prepaid: 'Voucher', loyalty_points: 'Redeem Points', cash: 'Cash' };
+const LABEL: Record<Method, string> = { qris: 'QRIS', card: 'Credit Card', member_account: 'Member Account', golfer_bill: 'Golfer Bill', court_bill: 'Court Bill (Sport Club)', voucher_prepaid: 'Voucher', loyalty_points: 'Redeem Points', cash: 'Cash' };
 
 export function Brand({ m }: { m: Method }) {
   if (m === 'qris') return <span className="pos-brand-qris" aria-hidden="true">QRIS</span>;
   if (m === 'card') return <span className="pos-brand-card" aria-hidden="true"><i /><i /></span>;
-  const icon = m === 'cash' ? 'payments' : m === 'member_account' ? 'card_membership' : m === 'golfer_bill' ? 'sports_golf' : m === 'voucher_prepaid' ? 'redeem' : 'loyalty';
+  const icon = m === 'cash' ? 'payments' : m === 'member_account' ? 'card_membership' : m === 'golfer_bill' ? 'sports_golf' : m === 'court_bill' ? 'sports_tennis' : m === 'voucher_prepaid' ? 'redeem' : 'loyalty';
   return <span className="pos-brand-icon" aria-hidden="true"><Icon name={icon} size={16} /></span>;
 }
 
@@ -46,7 +46,7 @@ export function PaymentDialog({ order, shiftId, outletId, onClose, onPaid, onShi
   const acct = acctQ.data?.items.find((a) => a.status === 'active');
   const pointValue = Number(acct?.redemptionValue ?? 0);
   const maxPoints = acct && pointValue > 0 ? Math.min(Number(acct.balance ?? 0), Math.floor(due / pointValue)) : 0;
-  const methods: Method[] = ['qris', 'card', ...(order.customerId ? ['member_account' as Method] : []), ...(can('commercial.order.pay') && due === Number(order.total) ? ['golfer_bill' as Method] : []),
+  const methods: Method[] = ['qris', 'card', ...(order.customerId ? ['member_account' as Method] : []), ...(can('commercial.order.pay') && due === Number(order.total) ? ['golfer_bill' as Method, 'court_bill' as Method] : []),
     'voucher_prepaid', ...(maxPoints > 0 ? ['loyalty_points' as Method] : []), 'cash'];
   const [method, setMethod] = useState<Method>('qris');
   const [ref, setRef] = useState('');
@@ -55,12 +55,13 @@ export function PaymentDialog({ order, shiftId, outletId, onClose, onPaid, onShi
   const [rest, setRest] = useState<Method>('cash');
   const [received, setReceived] = useState('');
   const [golfer, setGolfer] = useState<Row | null>(null);
+  const [court, setCourt] = useState<Row | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const pts = Math.min(Number(points || maxPoints), maxPoints);
   const change = method === 'cash' && received ? Number(received) - due : 0;
   const ready = !!shiftId && due > 0 && !(method === 'voucher_prepaid' && !voucher.trim()) && !(method === 'cash' && received !== '' && Number(received) < due)
-    && !(method === 'loyalty_points' && pts <= 0) && !(method === 'golfer_bill' && !golfer);
+    && !(method === 'loyalty_points' && pts <= 0) && !(method === 'golfer_bill' && !golfer) && !(method === 'court_bill' && !court);
   const pay = async () => {
     setBusy(true);
     setError(null);
@@ -72,6 +73,12 @@ export function PaymentDialog({ order, shiftId, outletId, onClose, onPaid, onShi
         // the whole order goes on the golfer's booking folio, settled at the Golfer Check-out
         const o = await request<Order>('POST', `/api/v1/commercial/orders/${order.id}:charge`, { folioId: golfer.folioId });
         onPaid(o, `${LABEL.golfer_bill} · ${String(golfer.playerName)} (${String(golfer.bookingCode)})`);
+        return;
+      }
+      if (method === 'court_bill' && court) {
+        // the café order goes on the bill of the court booking in play, settled at Selesai Main (FR-135)
+        const o = await request<Order>('POST', `/api/v1/commercial/orders/${order.id}:charge`, { folioId: court.folioId });
+        onPaid(o, `${LABEL.court_bill} · ${String(court.name)} (${String(court.bookingCode)})`);
         return;
       }
       const o = await request<Order>('POST', `/api/v1/commercial/orders/${order.id}:pay`, { shiftId, tenders }, { 'Idempotency-Key': uuidv7() });
@@ -102,6 +109,7 @@ export function PaymentDialog({ order, shiftId, outletId, onClose, onPaid, onShi
             <div className="pos-method-body pos-muted">Charged to the member account of {order.customerName ?? 'the customer'}; it appears on the member statement.</div>
           )}
           {method === m && m === 'golfer_bill' && <GolferPicker value={golfer} onChange={setGolfer} />}
+          {method === m && m === 'court_bill' && <CourtPicker value={court} onChange={setCourt} />}
           {method === m && m === 'voucher_prepaid' && (
             <div className="pos-method-body"><input className="pos-input" placeholder="Voucher code" value={voucher} onChange={(e) => setVoucher(e.target.value)} autoFocus /></div>
           )}
@@ -241,5 +249,23 @@ export function SuccessDialog({ order, method, onClose, offline }: { order: Orde
         <button className="pos-btn" onClick={onClose}>Done</button>
       </div>
     </PosDialog>
+  );
+}
+
+/** A court booking in play (renter, booking code, court) whose bill takes the café order (Sport Club FR-135). */
+function CourtPicker({ value, onChange }: { value: Row | null; onChange: (c: Row | null) => void }) {
+  const [q, setQ] = useState('');
+  const list = useGet<Page<Row>>(`/api/v1/sportclub/charge-targets${qs({ q: q.trim() || undefined })}`, { retry: false });
+  return (
+    <div className="pos-method-body">
+      <input className="pos-input" placeholder="Cari kode booking, nama penyewa" value={q} onChange={(e) => setQ(e.target.value)} />
+      <div className="pos-guests">
+        {(list.data?.items ?? []).map((c) => (
+          <button key={String(c.reservationId)} type="button" className="pos-guest" data-wide aria-pressed={value?.reservationId === c.reservationId}
+            onClick={() => onChange(c)}>{String(c.name)} · {String(c.bookingCode)}<br /><small>{String(c.courts)}</small></button>
+        ))}
+        {list.data && list.data.items.length === 0 && <span className="pos-muted">Tidak ada booking lapangan yang sedang main.</span>}
+      </div>
+    </div>
   );
 }

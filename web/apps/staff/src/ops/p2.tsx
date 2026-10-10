@@ -1,10 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { qs, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime, formatNumber } from '@oneclub/i18n';
-import { Link } from 'react-router';
+import { Link, Navigate } from 'react-router';
 import { GOLF_STREAM, useLive } from '../live';
 import { CourseMonitorPage } from './marshal';
-import { SportReceptionPage } from './sport';
 import { ACCOMMODATION_OPS_ROUTES } from '../accommodation/routes';
 import {
   Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, SelectField, StatusPill, TextField, useAuth, useToast,
@@ -289,7 +288,7 @@ export const P2_OPS_ROUTES = [
   { path: 'golf-staff/inspection', element: <GolfCartInspectionPage /> },
   ...ACCOMMODATION_OPS_ROUTES, // Stay Front Desk, Housekeeping, Maintenance (accommodation requirements)
   { path: 'driving-range', element: <DrivingRangePage /> },
-  { path: 'sport-reception', element: <SportReceptionPage /> },
+  { path: 'sport-reception', element: <Navigate to="/ops/sport/tickets" replace /> }, // Tiket Masuk replaces Sport Reception (FR-142)
   { path: 'instructor', element: <InstructorPage /> },
 ];
 
@@ -297,7 +296,7 @@ export const P2_OPS_ROUTES = [
 export function P2Tiles() {
   const { can } = useAuth();
   const tiles: [string, string, string, string][] = [
-    ['sports_golf', 'Driving Range', '/ops/driving-range', 'golf.range.operate'], ['sports_tennis', 'Sport Reception', '/ops/sport-reception', 'sportclub.access.validate'],
+    ['sports_golf', 'Driving Range', '/ops/driving-range', 'golf.range.operate'], ['sports_tennis', 'Sport Club', '/ops/sport', 'sportclub.booking.view'],
     ['school', 'Instructor', '/ops/instructor', 'sportclub.class.attendance'], ['hotel', 'Stay Front Desk', '/ops/stay-desk', 'stay.stay.view'],
     ['mop', 'Housekeeping', '/ops/housekeeping', 'stay.housekeeping.view'], ['build', 'Bungalow Maintenance', '/ops/stay-maintenance', 'stay.work_order.view'],
     ['point_of_sale', 'POS', '/ops/pos', 'commercial.order.create'],

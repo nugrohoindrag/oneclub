@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getSitemap } from '../components/cms/api';
+import { getProperty, pub } from './lib-p2';
 import { LANGS } from './lib';
 import { STATIC_ROUTES, absolute, siteOrigin } from './seo';
 
@@ -38,6 +39,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (covered.has(p)) continue;
       out.push({ url: `${origin}${p}`, changeFrequency: 'weekly', priority: r ? 0.5 : 1, alternates: { languages } });
     }
+  }
+  // the page of every sport bookable online (Sport Club court booking, FR-77)
+  const property = await getProperty();
+  const sc = property ? await pub<{ facilities: { code: string; usageMode: string; courts: number; content?: { slug?: string } }[] }>(
+    `/api/v1/public/sport-club?propertyId=${property.id}`) : null;
+  for (const f of (sc?.facilities ?? []).filter((x) => x.usageMode === 'slot_booking' && x.courts > 0)) {
+    const slug = f.content?.slug || f.code.toLowerCase();
+    const languages = Object.fromEntries(LANGS.map((l) => [l, `${origin}/${l}/book/sport-club/${slug}`]));
+    for (const l of LANGS) out.push({ url: languages[l], changeFrequency: 'daily', priority: 0.6, alternates: { languages } });
   }
   return out;
 }

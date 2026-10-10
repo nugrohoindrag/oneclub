@@ -561,3 +561,14 @@ func fmtAmount(s string) string {
 	}
 	return "Rp " + b.String()
 }
+
+// sportLead hands a Sport Club membership prospect to Sales as a lead
+// (docs/requirement-booking-sportclub-mgcc.md FR-89).
+func (a *App) sportLead(ctx context.Context, tx pgx.Tx, property, customerID uuid.UUID, name, phone, email, note string) (string, error) {
+	if a.Sales.Module == nil {
+		return "", nil
+	}
+	l, err := a.Sales.Module.CreateLead(ctx, tx, property, sales.LeadInput{Name: name, Phone: phone, Email: email, Source: "walk_in", Channel: "sport_club",
+		Line: "membership", Notes: note, CustomerID: &customerID, DuplicateAcknowledged: true})
+	return l.Number, err
+}

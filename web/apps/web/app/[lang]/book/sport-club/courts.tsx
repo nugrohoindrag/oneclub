@@ -1,255 +1,167 @@
 'use client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Lang } from '../../../lib';
-import { checkoutHref } from '../../../pay-link';
+import {
+  api, dayLabel, hhmm, money, readCart, sportName, writeCart, ymd, type Court, type Facility, type Grid, type Line, type Method, type Quote, type Slot,
+} from './shared';
 
 /*
- * Book a Sport Club court like AYO, minus the venue search (one club; demo
- * feedback 10 Oct 2026 #41, docs/requirement-booking-sportclub-mgcc.md):
- * pick the sport → the date → the hour grid of every court (free / booked /
- * closed, with the price of each hour) → the cart → guest checkout → pay.
- * The price on a slot is the price charged (rate card of Rates 2025, tax
- * included); several hours and courts go into one booking and one payment.
+ * Book a Sport Club court like AYO, minus the venue search (one club;
+ * docs/requirement-booking-sportclub-mgcc.md §5): the date (7-day tabs, a
+ * calendar up to the booking window) → the time of day and the court type →
+ * the hour grid of every court with its price → the cart → checkout (renter,
+ * method with its service fee, voucher, cost breakdown, terms) → the payment
+ * page. Slots refresh every 30 seconds; the server refuses a taken slot and
+ * the cart stays (FR-138).
  */
 
-interface Facility { id: string; code: string; name: string; facilityType?: string | null; usageMode: string }
-interface Court { id: string; code: string; name: string; facilityId: string; surface?: string | null; indoor: boolean; resourceId?: string | null }
-interface Slot { start: string; end: string; status: string; price?: string | null }
-interface Availability { resources: { resource: { id: string }; slots: Slot[] }[] }
-interface Line { courtId: string; courtName: string; start: string; end: string; price: string }
-interface Problem { detail?: string; title?: string }
-
-const CART_KEY = 'oneclub.sportclub.cart';
 const T = {
   id: {
-    sport: 'Pilih cabang olahraga', courts: 'lapangan', date: 'Pilih tanggal', more: 'Tanggal lain', free: 'jadwal tersedia', booked: 'Booked', closed: 'Tutup',
-    past: 'Lewat', chosen: 'Dipilih', cart: 'Jadwal dipilih', empty: 'Belum ada jadwal dipilih. Ketuk jam yang tersedia.', subtotal: 'Total (termasuk pajak)',
-    next: 'Selanjutnya', back: 'Tambah jadwal', checkout: 'Checkout', name: 'Nama lengkap', phone: 'Nomor ponsel (WhatsApp)', email: 'E-mail',
-    method: 'Metode pembayaran', voucher: 'Kode voucher (opsional)', terms: 'Saya setuju dengan syarat & ketentuan: booking tidak dapat dibatalkan dan tidak ada refund.',
-    consent: 'Kirimi saya berita dan penawaran (opsional).', pay: 'Bayar sekarang', none: 'Tidak ada jadwal pada tanggal ini — coba tanggal lain.',
-    error: 'Jadwal gagal dimuat.', retry: 'Muat ulang', policy: 'Booking tidak dapat dibatalkan dan tidak ada refund. Harga sudah termasuk pajak.',
-    taken: 'Jadwal ini baru saja dipesan orang lain — hapus dari keranjang atau pilih jam lain.', indoor: 'Indoor', outdoor: 'Outdoor', from: 'mulai',
-    remove: 'Hapus', hour: 'jam', done: 'Booking dibuat', ref: 'Kode booking', due: 'Selesaikan pembayaran', reload: 'Perbarui',
+    date: 'Pilih tanggal', calendar: 'Kalender', time: 'Waktu', all: 'Semua', morning: 'Pagi', afternoon: 'Siang', evening: 'Malam', type: 'Jenis lapangan',
+    free: 'jadwal tersedia', booked: 'Booked', closed: 'Tutup', past: 'Lewat', blocked: 'Tutup', chosen: 'Dipilih', min: '60 menit', cart: 'Keranjang',
+    empty: 'Belum ada jadwal dipilih. Ketuk jam yang tersedia.', next: 'Lanjut ke pembayaran', none: 'Tidak ada jadwal pada tanggal ini — coba tanggal lain.',
+    error: 'Jadwal gagal dimuat.', retry: 'Muat ulang', taken: 'Jadwal ini baru saja dipesan orang lain — hapus dari keranjang.', indoor: 'Indoor', outdoor: 'Outdoor',
+    remove: 'Hapus', subtotal: 'Subtotal sewa', back: 'Tambah jadwal', checkout: 'Checkout', renter: 'Data Penyewa', name: 'Nama lengkap',
+    phone: 'Nomor ponsel (WhatsApp)', email: 'E-mail', schedule: 'Jadwal', method: 'Metode pembayaran', pick: 'Pilih metode', cheapest: 'Termurah',
+    fee: 'biaya layanan', voucher: 'Kode voucher / promo', apply: 'Pakai', costs: 'Rincian biaya', rent: 'Biaya sewa', discount: 'Diskon',
+    tax: 'Pajak', service: 'Biaya layanan', total: 'Total bayar', consent: 'Kirimi saya berita dan penawaran (opsional).', pay: 'Bayar Sekarang',
+    takenServer: 'Ada jadwal yang sudah tidak tersedia. Jadwal diperbarui — hapus yang bertanda merah lalu coba lagi.', priceNote: 'Harga per jam',
+    taxIn: 'sudah termasuk pajak', taxEx: 'belum termasuk pajak', cartOther: 'jadwal cabor lain di keranjang', clear: 'Kosongkan',
+    voucherNote: 'Saldo voucher dipakai saat pembayaran; sisa tagihan (bila ada) dibayar dengan metode pilihan.',
   },
   en: {
-    sport: 'Choose a sport', courts: 'courts', date: 'Choose the date', more: 'Other date', free: 'times free', booked: 'Booked', closed: 'Closed',
-    past: 'Past', chosen: 'Chosen', cart: 'Chosen times', empty: 'No time chosen yet. Tap a free hour.', subtotal: 'Total (tax included)',
-    next: 'Next', back: 'Add more times', checkout: 'Checkout', name: 'Full name', phone: 'Mobile (WhatsApp)', email: 'E-mail',
-    method: 'Payment method', voucher: 'Voucher code (optional)', terms: 'I agree to the terms: bookings cannot be cancelled and are not refunded.',
-    consent: 'Send me news and offers (optional).', pay: 'Pay now', none: 'No times on this date — try another date.',
-    error: 'The times could not be loaded.', retry: 'Reload', policy: 'Bookings cannot be cancelled and are not refunded. Prices include tax.',
-    taken: 'Someone just booked this time — remove it from the cart or choose another hour.', indoor: 'Indoor', outdoor: 'Outdoor', from: 'from',
-    remove: 'Remove', hour: 'h', done: 'Booking created', ref: 'Booking code', due: 'Complete the payment', reload: 'Refresh',
+    date: 'Choose the date', calendar: 'Calendar', time: 'Time', all: 'All', morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening', type: 'Court type',
+    free: 'times free', booked: 'Booked', closed: 'Closed', past: 'Past', blocked: 'Closed', chosen: 'Chosen', min: '60 min', cart: 'Cart',
+    empty: 'No time chosen yet. Tap a free hour.', next: 'Continue to payment', none: 'No times on this date — try another date.',
+    error: 'The times could not be loaded.', retry: 'Reload', taken: 'Someone just booked this time — remove it from the cart.', indoor: 'Indoor', outdoor: 'Outdoor',
+    remove: 'Remove', subtotal: 'Rent subtotal', back: 'Add more times', checkout: 'Checkout', renter: 'Renter details', name: 'Full name',
+    phone: 'Mobile (WhatsApp)', email: 'E-mail', schedule: 'Schedule', method: 'Payment method', pick: 'Choose a method', cheapest: 'Cheapest',
+    fee: 'service fee', voucher: 'Voucher / promo code', apply: 'Apply', costs: 'Cost breakdown', rent: 'Court rent', discount: 'Discount',
+    tax: 'Tax', service: 'Service fee', total: 'Total to pay', consent: 'Send me news and offers (optional).', pay: 'Pay Now',
+    takenServer: 'Some times are no longer free. The grid is refreshed — remove the ones in red and try again.', priceNote: 'Price per hour',
+    taxIn: 'tax included', taxEx: 'before tax', cartOther: 'times of another sport in the cart', clear: 'Clear',
+    voucherNote: 'The voucher balance pays at checkout; any rest is paid with the chosen method.',
   },
 };
 
-const money = (v: string | number, lang: Lang) =>
-  new Intl.NumberFormat(lang === 'id' ? 'id-ID' : 'en-US', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(v));
-const hhmm = (iso: string) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
-const ymd = (d: Date) => d.toLocaleDateString('sv', { timeZone: 'Asia/Jakarta' });
-const SPORT_ICON: Record<string, string> = { tennis: '🎾', futsal: '⚽', basketball: '🏀', volleyball: '🏐' };
+type Band = '' | 'morning' | 'afternoon' | 'evening';
+const bandOf = (iso: string): Band => {
+  const h = Number(new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Asia/Jakarta' }).slice(0, 2));
+  return h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+};
 
-function readCart(): Line[] {
-  try { return JSON.parse(localStorage.getItem(CART_KEY) ?? '[]') as Line[]; } catch { return []; }
-}
-function writeCart(c: Line[]) {
-  try { localStorage.setItem(CART_KEY, JSON.stringify(c)); } catch { /* private window: the cart lives in the page only */ }
-}
-
-export function SportCourtBooking({ lang, propertyId, facilities, courts }: { lang: Lang; propertyId: string; facilities: Facility[]; courts: Court[] }) {
+export function SportCourtBooking({ lang, propertyId, sport, courts, methods, terms, windowDays, taxIncluded }: {
+  lang: Lang; propertyId: string; sport: Facility; courts: Court[]; methods: Method[]; terms: Record<string, string>; windowDays: number; taxIncluded: boolean;
+}) {
   const t = T[lang];
-  const id = lang === 'id';
-  const sports = facilities.filter((f) => f.usageMode === 'slot_booking' && courts.some((c) => c.facilityId === f.id));
-  const [sport, setSport] = useState(sports.length === 1 ? sports[0].id : '');
-  const days = useMemo(() => Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() + i); return d; }), []);
-  const [date, setDate] = useState(ymd(new Date()));
-  const [grid, setGrid] = useState<Record<string, Slot[]>>({});
-  const [failed, setFailed] = useState(false);
-  const [open, setOpen] = useState<string>('');
+  const days = useMemo(() => Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() + i); return ymd(d); }), []);
+  const [date, setDate] = useState(days[0]);
+  const [band, setBand] = useState<Band>('');
+  const [surface, setSurface] = useState('');
+  const [grid, setGrid] = useState<Grid | null>(null);
+  const [failed, setFailed] = useState('');
+  const [open, setOpen] = useState<Record<string, boolean>>({});
   const [cart, setCartState] = useState<Line[]>([]);
   const [step, setStep] = useState<'pick' | 'checkout'>('pick');
-  const [guest, setGuest] = useState({ name: '', phone: '', email: '', website: '' });
-  const [method, setMethod] = useState('qris');
-  const [code, setCode] = useState('');
-  const [agree, setAgree] = useState(false);
-  const [optIn, setOptIn] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [done, setDone] = useState<{ reference: string; status: string } | null>(null);
   useEffect(() => setCartState(readCart()), []);
   const setCart = (c: Line[]) => { setCartState(c); writeCart(c); };
-  const mine = courts.filter((c) => c.facilityId === sport && c.resourceId);
-  const max = ymd(new Date(Date.now() + 30 * 86_400_000));
+  const max = ymd(new Date(Date.now() + windowDays * 86_400_000));
 
   const load = useCallback(async () => {
-    if (!sport) return;
-    setFailed(false);
     try {
-      const out: Record<string, Slot[]> = {};
-      await Promise.all(courts.filter((c) => c.facilityId === sport && c.resourceId).map(async (c) => {
-        const r = await fetch(`/api/v1/public/availability?propertyId=${propertyId}&resourceType=sport_court&resourceId=${c.resourceId}&date=${date}`);
-        if (!r.ok) throw new Error(String(r.status));
-        const a = (await r.json()) as Availability;
-        out[c.id] = a.resources[0]?.slots ?? [];
-      }));
-      setGrid(out);
-      setOpen((o) => o || courts.find((c) => c.facilityId === sport)?.id || '');
-    } catch {
-      setFailed(true);
+      setGrid(await api<Grid>(`/api/v1/public/sport-club/grid?propertyId=${propertyId}&facility=${sport.id}&date=${date}`));
+      setFailed('');
+    } catch (e) {
+      setFailed((e as Error).message);
     }
-  }, [sport, date, courts, propertyId]);
+  }, [propertyId, sport.id, date]);
   useEffect(() => {
     void load();
-    const timer = setInterval(() => void load(), 30_000);
+    const timer = setInterval(() => void load(), 30_000); // FR-24
     return () => clearInterval(timer);
   }, [load]);
 
   const inCart = (c: Court, s: Slot) => cart.some((l) => l.courtId === c.id && l.start === s.start);
   const toggle = (c: Court, s: Slot) => {
     if (inCart(c, s)) setCart(cart.filter((l) => !(l.courtId === c.id && l.start === s.start)));
-    else setCart([...cart, { courtId: c.id, courtName: c.name, start: s.start, end: s.end, price: s.price ?? '0' }].sort((a, b) => a.start.localeCompare(b.start)));
+    else setCart([...cart, { courtId: c.id, courtName: c.name, facility: sportName(sport, lang), sport: sport.id, start: s.start, end: s.end, price: s.price ?? '0' }]
+      .sort((a, b) => a.start.localeCompare(b.start)));
   };
-  const total = cart.reduce((n, l) => n + Number(l.price), 0);
-  // a chosen hour someone else took meanwhile
-  const taken = (l: Line) => (grid[l.courtId] ?? []).some((s) => s.start === l.start && s.status !== 'available');
-  const fromPrice = (f: Facility) => {
-    const prices = courts.filter((c) => c.facilityId === f.id).flatMap((c) => grid[c.id] ?? []).map((s) => Number(s.price)).filter((p) => p > 0);
-    return prices.length ? Math.min(...prices) : 0;
-  };
-
-  const pay = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    setError('');
-    try {
-      const body = { propertyId, guest, lines: cart.map((l) => ({ courtId: l.courtId, start: l.start, end: l.end })), payMethod: method,
-        voucherCode: code || undefined, consent: optIn };
-      const r = await fetch('/api/v1/public/court-bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      const d = (await r.json().catch(() => ({}))) as Problem & { reference?: string; status?: string; checkout?: { online?: { checkoutUrl?: string | null; status?: string } } };
-      if (!r.ok) throw new Error(d.detail ?? d.title ?? `Error ${r.status}`);
-      setCart([]);
-      const url = checkoutHref(d.checkout?.online?.checkoutUrl, lang, `/${lang}/book/sport-club?ref=${encodeURIComponent(d.reference ?? '')}`);
-      if (url && d.checkout?.online?.status === 'pending') { window.location.href = url; return; }
-      setDone({ reference: d.reference ?? '', status: d.status ?? '' });
-    } catch (err) {
-      setError((err as Error).message); // the cart stays: change it or try again
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  if (done) {
-    return (
-      <div className="w-card" role="status">
-        <h2>{t.done}</h2>
-        <p>{t.ref} <strong>{done.reference}</strong> · {done.status}</p>
-        <p className="w-muted">{t.policy}</p>
-      </div>
-    );
-  }
+  // a chosen hour someone else took meanwhile (this sport and date)
+  const taken = (l: Line) => (grid?.courts ?? []).some((g) => g.court.id === l.courtId && g.slots.some((s) => s.start === l.start && s.status !== 'available'));
+  const surfaces = [...new Set(courts.map((c) => c.surface ?? '').filter(Boolean))];
+  const shown = (grid?.courts ?? []).filter((g) => !surface || (g.court.surface ?? '') === surface);
 
   if (step === 'checkout') {
-    return (
-      <form className="w-card w-form" onSubmit={pay}>
-        <h2 style={{ gridColumn: '1 / -1', margin: 0 }}>{t.checkout}</h2>
-        <CartList lang={lang} cart={cart} taken={taken} onRemove={(l) => setCart(cart.filter((x) => x !== l))} />
-        <label>{t.name}<input required value={guest.name} onChange={(e) => setGuest({ ...guest, name: e.target.value })} /></label>
-        <label>{t.phone}<input type="tel" value={guest.phone} onChange={(e) => setGuest({ ...guest, phone: e.target.value })} /></label>
-        <label>{t.email}<input type="email" value={guest.email} onChange={(e) => setGuest({ ...guest, email: e.target.value })} /></label>
-        <label aria-hidden="true" style={{ position: 'absolute', left: -9999 }}>Website<input tabIndex={-1} autoComplete="off" value={guest.website}
-          onChange={(e) => setGuest({ ...guest, website: e.target.value })} /></label>
-        <label>{t.method}
-          <select value={method} onChange={(e) => setMethod(e.target.value)}>
-            <option value="qris">QRIS</option><option value="virtual_account">Virtual Account</option><option value="card">{id ? 'Kartu kredit' : 'Card'}</option>
-          </select>
-        </label>
-        <label>{t.voucher}<input value={code} onChange={(e) => setCode(e.target.value)} /></label>
-        <label style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-          <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} style={{ width: 'auto', marginTop: 4 }} /><span>{t.terms}</span></label>
-        <label style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-          <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} style={{ width: 'auto', marginTop: 4 }} /><span>{t.consent}</span></label>
-        {error && <p className="w-error" role="alert" style={{ gridColumn: '1 / -1' }}>{error}</p>}
-        <div style={{ gridColumn: '1 / -1', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          <button type="button" className="w-btn w-btn-ghost" onClick={() => setStep('pick')}>{t.back}</button>
-          <button className="w-btn" disabled={busy || !cart.length || !agree || !guest.name || (!guest.phone && !guest.email) || cart.some(taken)}>
-            {busy ? '…' : `${t.pay} · ${money(total, lang)}`}</button>
-        </div>
-      </form>
-    );
+    return <Checkout lang={lang} propertyId={propertyId} cart={cart} setCart={setCart} taken={taken} methods={methods} terms={terms}
+      onBack={() => setStep('pick')} onTaken={() => { setStep('pick'); void load(); }} />;
   }
-
   return (
     <div className="w-sc">
-      <section aria-label={t.sport}>
-        <h2>{t.sport}</h2>
-        <div className="w-grid">
-          {sports.map((f) => {
-            const n = courts.filter((c) => c.facilityId === f.id);
-            const p = sport === f.id ? fromPrice(f) : 0;
-            return (
-              <button key={f.id} type="button" className="w-card w-sc-sport" aria-pressed={sport === f.id} onClick={() => { setSport(f.id); setOpen(''); }}>
-                <span style={{ fontSize: 28 }} aria-hidden="true">{SPORT_ICON[f.facilityType ?? ''] ?? '🏟️'}</span>
-                <strong>{f.name}</strong>
-                <span className="w-muted">{n.length} {t.courts} · {n.some((c) => c.indoor) ? t.indoor : t.outdoor}{p ? ` · ${t.from} ${money(p, lang)}/${t.hour}` : ''}</span>
-              </button>
-            );
-          })}
+      <section aria-label={t.date}>
+        <div className="w-sc-days" role="tablist" aria-label={t.date}>
+          {days.map((v) => (
+            <button key={v} type="button" role="tab" aria-selected={date === v} className="w-sc-day" onClick={() => setDate(v)}>
+              <span>{dayLabel(`${v}T12:00:00+07:00`, lang, { weekday: 'short' })}</span>
+              <strong>{dayLabel(`${v}T12:00:00+07:00`, lang, { day: 'numeric', month: 'short' })}</strong>
+            </button>
+          ))}
+          <label className="w-sc-day" aria-selected={!days.includes(date)}>📅 {t.calendar}
+            <input type="date" value={date} min={days[0]} max={max} onChange={(e) => e.target.value && setDate(e.target.value)} /></label>
         </div>
-      </section>
-      {sport && (
-        <section aria-label={t.date} style={{ marginTop: 24 }}>
-          <h2>{t.date}</h2>
-          <div className="w-sc-days" role="tablist">
-            {days.map((d) => {
-              const v = ymd(d);
-              return (
-                <button key={v} type="button" role="tab" aria-selected={date === v} className="w-sc-day" onClick={() => setDate(v)}>
-                  <span>{d.toLocaleDateString(id ? 'id-ID' : 'en-GB', { weekday: 'short', timeZone: 'Asia/Jakarta' })}</span>
-                  <strong>{d.toLocaleDateString(id ? 'id-ID' : 'en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Jakarta' })}</strong>
-                </button>
-              );
-            })}
-            <label className="w-sc-day">{t.more}<input type="date" value={date} min={ymd(new Date())} max={max} onChange={(e) => e.target.value && setDate(e.target.value)} /></label>
+        <div className="w-sc-filters">
+          <div className="w-sc-seg" role="group" aria-label={t.time}>
+            {(['', 'morning', 'afternoon', 'evening'] as Band[]).map((b) => (
+              <button key={b || 'all'} type="button" aria-pressed={band === b} onClick={() => setBand(b)}>{b ? t[b] : t.all}</button>
+            ))}
           </div>
-          <p className="w-muted">{t.policy}</p>
-          {failed && <p className="w-error" role="alert">{t.error} <button type="button" className="w-btn w-btn-ghost" onClick={() => void load()}>{t.retry}</button></p>}
-          {mine.map((c) => {
-            const slots = grid[c.id] ?? [];
-            const free = slots.filter((s) => s.status === 'available').length;
-            return (
-              <div key={c.id} className="w-card w-sc-court">
-                <button type="button" className="w-sc-court-head" aria-expanded={open === c.id} onClick={() => setOpen(open === c.id ? '' : c.id)}>
-                  <strong>{c.name}</strong><span className="w-muted">{c.surface ?? ''} · {c.indoor ? t.indoor : t.outdoor}</span>
-                  <span className="w-sc-free">{free} {t.free}</span>
-                </button>
-                {open === c.id && (
-                  slots.length === 0 ? <p className="w-muted">{t.none}</p> : (
-                    <div className="w-sc-slots">
-                      {slots.map((s) => {
-                        const chosen = inCart(c, s);
-                        const label = s.status === 'available' ? (s.price ? money(s.price, lang) : '—')
-                          : s.status === 'reserved' ? t.booked : new Date(s.end) < new Date() ? t.past : t.closed;
-                        return (
-                          <button key={s.start} type="button" className="w-sc-slot" data-status={chosen ? 'chosen' : s.status} disabled={s.status !== 'available' && !chosen}
-                            aria-pressed={chosen} onClick={() => toggle(c, s)}>
-                            <small>60 min</small><strong>{hhmm(s.start)}–{hhmm(s.end)}</strong><span>{chosen ? t.chosen : label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )
-                )}
-              </div>
-            );
-          })}
-        </section>
-      )}
+          {surfaces.length > 1 && (
+            <div className="w-sc-seg" role="group" aria-label={t.type}>
+              <button type="button" aria-pressed={!surface} onClick={() => setSurface('')}>{t.all}</button>
+              {surfaces.map((x) => <button key={x} type="button" aria-pressed={surface === x} onClick={() => setSurface(x)}>{x}</button>)}
+            </div>
+          )}
+        </div>
+        <p className="w-muted">{t.priceNote} {taxIncluded ? t.taxIn : t.taxEx}.</p>
+        {failed && <p className="w-error" role="alert">{t.error} {failed} <button type="button" className="w-btn w-btn-ghost" onClick={() => void load()}>{t.retry}</button></p>}
+        {shown.map((g, i) => {
+          const c = g.court;
+          const slots = g.slots.filter((s) => !band || bandOf(s.start) === band);
+          const isOpen = open[c.id] ?? i === 0;
+          return (
+            <div key={c.id} className="w-card w-sc-court">
+              <button type="button" className="w-sc-court-head" aria-expanded={isOpen} onClick={() => setOpen({ ...open, [c.id]: !isOpen })}>
+                {c.photoUrl && <img src={c.photoUrl} alt="" className="w-sc-thumb" />}
+                <span><strong>{c.name}</strong><br /><span className="w-muted">{[sportName(sport, lang), c.surface, c.indoor ? t.indoor : t.outdoor].filter(Boolean).join(' · ')}</span></span>
+                <span className="w-sc-free" data-none={g.free === 0 || undefined}>{g.free} {t.free}</span>
+              </button>
+              {isOpen && (slots.length === 0 ? <p className="w-muted">{t.none}</p> : (
+                <div className="w-sc-slots">
+                  {slots.map((s) => {
+                    const chosen = inCart(c, s);
+                    const label = s.status === 'available' ? <>{s.listPrice && <s>{money(s.listPrice, lang)}</s>} {money(s.price, lang)}</>
+                      : s.status === 'booked' ? t.booked : s.status === 'past' ? t.past : t.closed;
+                    return (
+                      <button key={s.start} type="button" className="w-sc-slot" data-status={chosen ? 'chosen' : s.status} disabled={s.status !== 'available' && !chosen}
+                        aria-pressed={chosen} onClick={() => toggle(c, s)}>
+                        <small>{t.min}</small><strong>{hhmm(s.start)}–{hhmm(s.end)}</strong><span>{chosen ? t.chosen : label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </section>
       <aside className="w-card w-sc-cart" aria-label={t.cart}>
         <h2>{t.cart} ({cart.length})</h2>
         {cart.length === 0 ? <p className="w-muted">{t.empty}</p> : (
           <>
             <CartList lang={lang} cart={cart} taken={taken} onRemove={(l) => setCart(cart.filter((x) => x !== l))} />
+            <div className="w-sc-line"><strong>{t.subtotal}</strong><strong>{money(cart.reduce((n, l) => n + Number(l.price), 0), lang)}</strong><span /></div>
             <button type="button" className="w-btn" disabled={cart.some(taken)} onClick={() => setStep('checkout')}>{t.next}</button>
+            <button type="button" className="w-btn w-btn-ghost" onClick={() => setCart([])}>{t.clear}</button>
           </>
         )}
       </aside>
@@ -257,27 +169,122 @@ export function SportCourtBooking({ lang, propertyId, facilities, courts }: { la
   );
 }
 
-function CartList({ lang, cart, taken, onRemove }: { lang: Lang; cart: Line[]; taken: (l: Line) => boolean; onRemove: (l: Line) => void }) {
+export function CartList({ lang, cart, taken, onRemove }: { lang: Lang; cart: Line[]; taken: (l: Line) => boolean; onRemove?: (l: Line) => void }) {
   const t = T[lang];
-  const total = cart.reduce((n, l) => n + Number(l.price), 0);
-  const byCourt = [...new Set(cart.map((l) => l.courtName))];
+  const groups = [...new Set(cart.map((l) => `${l.facility} · ${l.courtName}`))];
   return (
-    <div style={{ gridColumn: '1 / -1' }}>
-      {byCourt.map((court) => (
-        <div key={court} style={{ marginBottom: 8 }}>
-          <strong>{court}</strong>
-          {cart.filter((l) => l.courtName === court).map((l) => (
-            <div key={l.start} className="w-sc-line" data-taken={taken(l) || undefined}>
-              <span>{new Date(l.start).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Asia/Jakarta' })}
-                {' '}{hhmm(l.start)}–{hhmm(l.end)}</span>
+    <div>
+      {groups.map((g) => (
+        <div key={g} style={{ marginBottom: 8 }}>
+          <strong>{g}</strong>
+          {cart.filter((l) => `${l.facility} · ${l.courtName}` === g).map((l) => (
+            <div key={l.courtId + l.start} className="w-sc-line" data-taken={taken(l) || undefined}>
+              <span>{dayLabel(l.start, lang)} {hhmm(l.start)}–{hhmm(l.end)}</span>
               <span>{money(l.price, lang)}</span>
-              <button type="button" className="w-sc-remove" aria-label={`${t.remove} ${hhmm(l.start)}`} onClick={() => onRemove(l)}>✕</button>
+              {onRemove ? <button type="button" className="w-sc-remove" aria-label={`${t.remove} ${hhmm(l.start)}`} onClick={() => onRemove(l)}>✕</button> : <span />}
               {taken(l) && <span className="w-error" style={{ gridColumn: '1 / -1' }}>{t.taken}</span>}
             </div>
           ))}
         </div>
       ))}
-      <div className="w-sc-line"><strong>{t.subtotal}</strong><strong>{money(total, lang)}</strong><span /></div>
     </div>
+  );
+}
+
+function Checkout({ lang, propertyId, cart, setCart, taken, methods, terms, onBack, onTaken }: {
+  lang: Lang; propertyId: string; cart: Line[]; setCart: (c: Line[]) => void; taken: (l: Line) => boolean; methods: Method[]; terms: Record<string, string>;
+  onBack: () => void; onTaken: () => void;
+}) {
+  const t = T[lang];
+  const [guest, setGuest] = useState({ name: '', phone: '', email: '', website: '' });
+  const [method, setMethod] = useState('');
+  const [code, setCode] = useState('');
+  const [promo, setPromo] = useState('');
+  const [agree, setAgree] = useState(false);
+  const [optIn, setOptIn] = useState(false);
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const key = JSON.stringify([cart.map((l) => [l.courtId, l.start]), promo, method]);
+  useEffect(() => {
+    if (!cart.length) return undefined;
+    let live = true;
+    api<Quote>('/api/v1/public/sport-club/quote', { method: 'POST', body: JSON.stringify({ propertyId, lines: cart.map((l) => ({ courtId: l.courtId, start: l.start, end: l.end })),
+      promoCode: promo || undefined, method: method || undefined }) })
+      .then((q) => { if (live) { setQuote(q); setError(''); } }, (e: Error) => { if (live) setError(e.message); });
+    return () => { live = false; };
+  }, [key]);
+  const fees = new Map((quote?.methods ?? []).map((m) => [m.code, m]));
+  const pay = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError('');
+    try {
+      const d = await api<{ token?: string; reference: string }>('/api/v1/public/court-bookings', { method: 'POST', body: JSON.stringify({
+        propertyId, guest, lines: cart.map((l) => ({ courtId: l.courtId, start: l.start, end: l.end })), payMethod: method, voucherCode: promo || undefined,
+        consent: optIn, terms: agree }) });
+      // the cart of this booking is kept for a failed payment (back to the cart, FR-34)
+      try { sessionStorage.setItem(`oneclub.sportclub.paid-cart.${d.token}`, JSON.stringify(cart)); } catch { /* ignore */ }
+      setCart([]);
+      window.location.href = `/${lang}/book/sport-club/pay/${d.token}`;
+    } catch (err) {
+      const status = (err as { status?: number }).status;
+      if (status === 409) { setError(t.takenServer); onTaken(); } else setError((err as Error).message); // the cart stays (FR-138)
+      setBusy(false);
+    }
+  };
+  const valid = agree && method && guest.name.trim() && (guest.phone.trim() || guest.email.trim()) && cart.length > 0 && !cart.some(taken);
+  return (
+    <form className="w-sc-checkout" onSubmit={pay}>
+      <div className="w-card">
+        <h2>{t.renter}</h2>
+        <div className="w-form">
+          <label>{t.name}<input required autoComplete="name" value={guest.name} onChange={(e) => setGuest({ ...guest, name: e.target.value })} /></label>
+          <label>{t.phone}<input type="tel" autoComplete="tel" value={guest.phone} onChange={(e) => setGuest({ ...guest, phone: e.target.value })} /></label>
+          <label>{t.email}<input type="email" autoComplete="email" value={guest.email} onChange={(e) => setGuest({ ...guest, email: e.target.value })} /></label>
+          <label aria-hidden="true" style={{ position: 'absolute', left: -9999 }}>Website<input tabIndex={-1} autoComplete="off" value={guest.website}
+            onChange={(e) => setGuest({ ...guest, website: e.target.value })} /></label>
+        </div>
+        <h2 style={{ marginTop: 20 }}>{t.schedule}</h2>
+        <CartList lang={lang} cart={cart} taken={taken} onRemove={(l) => setCart(cart.filter((x) => x !== l))} />
+        <button type="button" className="w-btn w-btn-ghost" onClick={onBack}>{t.back}</button>
+      </div>
+      <div className="w-card">
+        <h2>{t.method}</h2>
+        <div className="w-sc-methods" role="radiogroup" aria-label={t.method}>
+          {methods.filter((m) => m.active !== false).map((m) => {
+            const q = fees.get(m.code);
+            return (
+              <label key={m.code} className="w-sc-method" data-on={method === m.code || undefined}>
+                <input type="radio" name="method" value={m.code} checked={method === m.code} onChange={() => setMethod(m.code)} />
+                <span><strong>{m.label}</strong>{q?.cheapest && <em className="w-sc-badge">{t.cheapest}</em>}<br />
+                  <small className="w-muted">{t.fee} {q ? money(q.fee, lang) : Number(m.percent) ? `${m.percent}%` : money(m.fee, lang)}{q ? ` · ${t.total} ${money(q.total, lang)}` : ''}</small></span>
+              </label>
+            );
+          })}
+        </div>
+        <div className="w-sc-voucher">
+          <input aria-label={t.voucher} placeholder={t.voucher} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} />
+          <button type="button" className="w-btn w-btn-ghost" disabled={!code.trim()} onClick={() => setPromo(code.trim())}>{t.apply}</button>
+        </div>
+        {promo && quote?.promoError && <p className="w-error">{quote.promoError}</p>}
+        {promo && quote?.voucher && <p className="w-muted">{t.voucherNote}</p>}
+        <h2 style={{ marginTop: 20 }}>{t.costs}</h2>
+        {quote && (
+          <dl className="w-sc-costs">
+            <dt>{t.rent}</dt><dd>{money(quote.rent, lang)}</dd>
+            {Number(quote.discount) > 0 && <><dt>{t.discount}</dt><dd>−{money(quote.discount, lang)}</dd></>}
+            <dt>{t.tax}</dt><dd>{money(quote.tax, lang)}</dd>
+            <dt>{t.service}</dt><dd>{method ? money(quote.serviceFee, lang) : '—'}</dd>
+            <dt><strong>{t.total}</strong></dt><dd><strong>{money(quote.total, lang)}</strong></dd>
+          </dl>
+        )}
+        <label className="w-sc-check"><input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} /><span>{terms[lang] ?? terms.id}</span></label>
+        <label className="w-sc-check"><input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} /><span>{t.consent}</span></label>
+        {error && <p className="w-error" role="alert">{error}</p>}
+        <button className="w-btn" style={{ width: '100%' }} disabled={busy || !valid}>{busy ? '…' : `${t.pay}${quote && method ? ` · ${money(quote.total, lang)}` : ''}`}</button>
+        {!method && <p className="w-muted">{t.pick}</p>}
+      </div>
+    </form>
   );
 }

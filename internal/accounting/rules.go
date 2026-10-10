@@ -465,7 +465,8 @@ var componentAccounts = map[string]string{
 	"membership_fee": "4610", "membership_annual_fee": "@deferred_clearing", "renewal_fee": "4630", "card_replacement_fee": "4630",
 	"reactivation_fee": "4630", "nominee_fee": "4630",
 	"voucher_deferred": "@deferred_clearing", "package": "@deferred_clearing", "deposit": "@customer_deposits",
-	"breakage": "4810", "cancellation_fee": "4820", "no_show_fee": "4820", "damage_charge": "4820", "late_checkout_fee": "4820",
+	"gateway_fee": "4890", // payment gateway service fee charged to the guest (Sport Club FR-93)
+	"breakage":    "4810", "cancellation_fee": "4820", "no_show_fee": "4820", "damage_charge": "4820", "late_checkout_fee": "4820",
 	"discount": "4910", "promotion_discount": "4910", "rain_check_credit": "4910", "loyalty_redemption": "@loyalty_liability",
 	"other": "4890",
 }

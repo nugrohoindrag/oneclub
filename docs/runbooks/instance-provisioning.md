@@ -37,7 +37,8 @@ Each customer gets its **own database, database roles and Docker Compose stack**
    | `DOMAIN_CADDY` | `caddy.moderngolf.id` | Caddy Tablet |
    | `DOMAIN_KITCHEN` | `kitchen.moderngolf.id` | Kitchen Display |
    | `DOMAIN_PRESENCE` | `presence.moderngolf.id` | Attendance Form (clock in / out with GPS, no login) |
-   | `DOMAIN_MEMBER` | `app.moderngolf.id` | Member App |
+   | `DOMAIN_MEMBER` | `app.moderngolf.id` | Member App (Golf) |
+   | `DOMAIN_MEMBER_SPORT` | `sport.moderngolf.id` | Sport Club Member App (same build) |
    | `DOMAIN_WEB` | `www.moderngolf.id` | Website |
 
    Every domain proxies `/api`, so requests stay same-origin; set `ALLOWED_ORIGINS` to the seven `https://` origins

@@ -271,9 +271,8 @@ export function SportClubPage() {
   const book = useSend<Row>('POST', '/api/v1/member/sport-club/session-bookings', ['/api/v1/member/sport-club/']);
   return (
     <div className="oc-stack">
-      <PageHeader title="Sport Club" help="Show your Digital Member Card QR at the gate for Facility Access." />
+      <PageHeader title="Kelas Sport Club" help="Daftar kelas, booking sesi, dan pakai kuota paket kelas. Lapangan dipesan di menu Pesan Lapangan." />
       <ErrorAlert error={book.error} />
-      <MemberCourtBooking />
       <MemberClassEnroll enrolled={(classes.data?.items ?? []).filter((c) => c.status === 'active').map((c) => c.programId)} onDone={() => void classes.refetch()} />
       <Card title="My Classes" icon="school">
         <DataTable rows={classes.data?.items as unknown as Row[]} columns={[{ key: 'programName', header: 'Class' },
@@ -296,93 +295,6 @@ export function SportClubPage() {
 
 type SportPage = { facilities: { id: string; name: string; usageMode: string }[]; courts: { id: string; name: string; facilityId: string; resourceId?: string | null }[];
   classPrograms: { id: string; name: string; discipline: string }[] };
-type CourtSlot = { start: string; end: string; status: string; price?: string | null };
-type CourtPick = { courtId: string; courtName: string; start: string; end: string; price: number };
-const hm = (iso: string) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-const ymdLocal = (d: Date) => d.toLocaleDateString('sv');
-
-/** Book Facility (demo feedback 10 Oct 2026 #39): the sport, the date, the
- * free hours of every court with their price, then member charge or pay online. */
-function MemberCourtBooking() {
-  const toast = useToast();
-  const page = useGet<SportPage>(`/api/v1/public/sport-club?propertyId=${getActiveProperty()}`);
-  const sports = (page.data?.facilities ?? []).filter((f) => f.usageMode === 'slot_booking');
-  const [sport, setSport] = useState('');
-  const sp = sport || sports[0]?.id || '';
-  const courts = (page.data?.courts ?? []).filter((c) => c.facilityId === sp && c.resourceId);
-  const [date, setDate] = useState(ymdLocal(new Date()));
-  const [grid, setGrid] = useState<Record<string, CourtSlot[]>>({});
-  const [picks, setPicks] = useState<CourtPick[]>([]);
-  const [charge, setCharge] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<unknown>(null);
-  const [payment, setPayment] = useState<Schemas['Payment'] | null>(null);
-  const key = courts.map((c) => c.id).join(',');
-  const load = () => Promise.all(courts.map(async (c) => {
-    const a = await request<{ resources: { slots: CourtSlot[] }[] }>('GET', `/api/v1/public/availability?propertyId=${getActiveProperty()}&resourceType=sport_court&resourceId=${c.resourceId}&date=${date}`);
-    return [c.id, a.resources[0]?.slots ?? []] as const;
-  })).then((xs) => setGrid(Object.fromEntries(xs)), setError);
-  useEffect(() => { void load(); }, [key, date]); // eslint-disable-line react-hooks/exhaustive-deps
-  const picked = (c: { id: string }, s: CourtSlot) => picks.some((p) => p.courtId === c.id && p.start === s.start);
-  const toggle = (c: { id: string; name: string }, s: CourtSlot) => setPicks((ps) => (picked(c, s) ? ps.filter((p) => !(p.courtId === c.id && p.start === s.start))
-    : [...ps, { courtId: c.id, courtName: c.name, start: s.start, end: s.end, price: Number(s.price ?? 0) }]));
-  const total = picks.reduce((n, p) => n + p.price, 0);
-  const book = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      const r = await request<Schemas['CourtBookingResult']>('POST', '/api/v1/member/sport-club/court-bookings', { lines: picks.map((p) => ({ courtId: p.courtId, start: p.start, end: p.end })),
-        courtId: picks[0].courtId, start: picks[0].start, end: picks[0].end, memberCharge: charge }, { 'Idempotency-Key': uuidv7() });
-      setPicks([]);
-      void load();
-      if (!charge && r.folio && Number(r.folio.summary.balance) > 0) {
-        setPayment(await request<Schemas['Payment']>('POST', `/api/v1/member/folios/${r.folio.id}:pay-online`, { method: 'qris' }));
-      } else toast(`Court booked · ${r.reservation.code}`);
-    } catch (e) {
-      setError(e);
-    } finally {
-      setBusy(false);
-    }
-  };
-  if (!sports.length) return null;
-  return (
-    <Card title="Book a Court" icon="sports_tennis">
-      <div className="oc-stack">
-        {payment ? <PaymentPanel payment={payment} onPaid={() => { setPayment(null); toast('Paid — your court is booked'); }} onFailed={() => setPayment(null)} /> : <>
-          <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
-            {sports.map((f) => <button key={f.id} type="button" className={`oc-btn ${sp === f.id ? 'oc-btn-ink' : 'oc-btn-neutral'}`} onClick={() => { setSport(f.id); setPicks([]); }}>{f.name}</button>)}
-            <TextField label="Date" type="date" value={date} min={ymdLocal(new Date())} max={ymdLocal(new Date(Date.now() + 30 * 86_400_000))} onChange={(v) => { setDate(v); setPicks([]); }} />
-          </div>
-          {courts.map((c) => (
-            <div key={c.id}>
-              <strong>{c.name}</strong>
-              <div className="oc-row-wrap" style={{ marginTop: 6 }}>
-                {(grid[c.id] ?? []).map((sl) => (
-                  <button key={sl.start} type="button" className={`oc-btn oc-btn-sm ${picked(c, sl) ? 'oc-btn-ink' : 'oc-btn-outline'}`} style={{ minHeight: 48, flexDirection: 'column' }}
-                    disabled={sl.status !== 'available' && !picked(c, sl)} onClick={() => toggle(c, sl)}>
-                    <strong>{hm(sl.start)}</strong><span className="oc-small">{sl.status === 'available' ? money(sl.price) : sl.status === 'reserved' ? 'Booked' : 'Closed'}</span>
-                  </button>
-                ))}
-                {(grid[c.id] ?? []).length === 0 && <span className="oc-muted oc-small">No hours on this date.</span>}
-              </div>
-            </div>
-          ))}
-          {picks.length > 0 && (
-            <div className="oc-row-wrap" style={{ alignItems: 'center' }}>
-              <span>{picks.map((p) => `${p.courtName} ${hm(p.start)}`).join(', ')}</span>
-              <strong>{money(total)}</strong>
-              <Checkbox label="Charge to my member account" checked={charge} onChange={setCharge} />
-              <button className="oc-btn oc-btn-ink" disabled={busy} onClick={() => void book()}>{charge ? 'Book' : 'Book & pay'}</button>
-            </div>
-          )}
-          <span className="oc-small oc-muted">Bookings cannot be cancelled and are not refunded. Prices include tax.</span>
-        </>}
-        <ErrorAlert error={error} />
-      </div>
-    </Card>
-  );
-}
-
 /** Book Class: register for a class program, then book its sessions (#39). */
 function MemberClassEnroll({ enrolled, onDone }: { enrolled: string[]; onDone: () => void }) {
   const toast = useToast();
@@ -418,7 +330,7 @@ function MemberClassEnroll({ enrolled, onDone }: { enrolled: string[]; onDone: (
           <button className="oc-btn oc-btn-ink" disabled={!program || busy} onClick={() => void enroll()}>Register</button>
         </div>
       )}
-      <p className="oc-small oc-muted" style={{ marginBottom: 0 }}>After registering, book the sessions below; the 4x / 8x class packages are sold at the Sport Reception.</p>
+      <p className="oc-small oc-muted" style={{ marginBottom: 0 }}>After registering, book the sessions below; buy a 4x / 8x class package at member rates in <Link to="/membership/packages">Paket &amp; Voucher</Link>.</p>
       <ErrorAlert error={error} />
     </Card>
   );
@@ -519,7 +431,7 @@ export function PreferencesPage() {
 export const P2_MEMBER_ROUTES = [
   { path: 'golf/scores', element: <ScoresPage /> },
   { path: 'golf/scores/:id', element: <ScorecardPage /> },
-  { path: 'sport-club', element: <SportClubPage /> },
+  { path: 'sport-club/classes', element: <SportClubPage /> },
   { path: 'vouchers', element: <VouchersPage /> },
   { path: 'membership/services', element: <MembershipServicesPage /> },
   { path: 'order-food', element: <OrderFoodPage /> },

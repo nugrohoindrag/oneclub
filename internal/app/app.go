@@ -161,6 +161,7 @@ func Build(cfg *config.Config, db *dbtx.DB, o Options) (*App, error) {
 	a.Approvals.RegisterDocumentType(approval.TestDocumentType, nil)
 	a.Approvals.RegisterDocumentType(org.VenueActivationType, a.Org.VenueDecision)
 	a.Navigation = &navigation.Service{DB: db, Modules: a.Instance}
+	a.Navigation.Context = a.navContext
 
 	var blob storage.Blob
 	if db != nil {

@@ -5,7 +5,7 @@ import '@oneclub/shell/shell.css';
 import './member.css';
 import './journey/journey.css';
 import {
-  AppProviders, ErrorBoundary, LoginPage, NotFoundPage, NotificationsPage, RequireShell, ResetPasswordPage, TopNavLayout, useFlag,
+  AppProviders, ErrorBoundary, LoginPage, NotFoundPage, NotificationsPage, RequireShell, ResetPasswordPage, TopNavLayout, setMemberProgram, useFlag,
 } from '@oneclub/shell';
 import { BenefitsPage, CardPage, FamilyPage, MemberProfilePage, MyChargesPage, MyPaymentsPage, OtpLoginPage, StatementsPage } from './golf';
 import { P2_MEMBER_ROUTES } from './p2';
@@ -25,6 +25,9 @@ import { TeeTimeWizard } from './journey/teetime';
 import { HubFrame } from './journey/ui';
 import { MemberSignIn, MemberSignUp } from './journey/auth';
 import { PromoDetailPage } from './journey/promo';
+import {
+  MemberDemoPage, MyClassesPage, MyCourtsPage, MyVisitsPage, SportAccessPage, SportCourtsPage, SportGuestsPage, SportPackagesPage, setProgramDomains,
+} from './journey/sport';
 
 function MemberLogin() {
   const signup = useFlag('member.self_registration') === true;
@@ -53,6 +56,8 @@ const router = createBrowserRouter([
       { path: '/reset-password', element: <ResetPasswordPage /> },
       // Discover → Join Membership (before the member has an account)
       { path: '/join', element: <JoinPage /> },
+      // demo access: pick a member persona, log in with the e-mail filled in (404 on a live instance)
+      { path: '/demo', element: <MemberDemoPage /> },
       { path: '/join/apply/:typeId', element: <ApplyPage /> },
       { path: '/join/status', element: <ApplicationStatusPage /> },
       {
@@ -98,6 +103,15 @@ const router = createBrowserRouter([
           { path: 'golf/my-golf-cart', element: to('/activity') },
           { path: 'bookings', element: to('/activity') },
           { path: 'stay', element: to('/book/bungalow') },
+          // Sport Club Member App (docs/requirement-booking-sportclub-mgcc.md §8.4)
+          { path: 'sport-club', element: to('/sport-club/courts') },
+          { path: 'sport-club/courts', element: <SportCourtsPage /> },
+          { path: 'sport-club/access', element: <SportAccessPage /> },
+          { path: 'activity/courts', element: <MyCourtsPage /> },
+          { path: 'activity/classes', element: <MyClassesPage /> },
+          { path: 'activity/visits', element: <MyVisitsPage /> },
+          { path: 'membership/sport-guests', element: <SportGuestsPage /> },
+          { path: 'membership/packages', element: <SportPackagesPage /> },
           ...P2_MEMBER_ROUTES,
           ...P3_MEMBER_ROUTES,
           { path: 'notifications', element: <NotificationsPage /> },
@@ -111,10 +125,34 @@ const router = createBrowserRouter([
 // Member App theme in the POS look (member.css)
 document.documentElement.dataset.app = 'member';
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <AppProviders>
-      <RouterProvider router={router} />
-    </AppProviders>
-  </React.StrictMode>,
-);
+/**
+ * Golf and Sport Club are two Member Apps on their own domains (FR-108..112):
+ * the domain says the program in /surface.json; without one (local, a
+ * custom domain) ?program=, a sportmember.* host or the member's last choice.
+ */
+async function loadProgram() {
+  let program = new URLSearchParams(window.location.search).get('program') ?? '';
+  try {
+    const r = await fetch('/surface.json', { cache: 'no-store' });
+    if (r.ok && (r.headers.get('content-type') ?? '').includes('json')) {
+      const s = (await r.json()) as { program?: string; domains?: Record<string, string> };
+      program ||= s.program ?? '';
+      setProgramDomains(s.domains);
+    }
+  } catch { /* offline: the last choice */ }
+  if (!program && window.location.hostname.startsWith('sportmember.')) program = 'sport_club';
+  try {
+    program ||= localStorage.getItem('oneclub.member.program') ?? '';
+  } catch { /* private window */ }
+  if (program === 'golf' || program === 'sport_club') setMemberProgram(program);
+}
+
+void loadProgram().then(() => {
+  ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+      <AppProviders>
+        <RouterProvider router={router} />
+      </AppProviders>
+    </React.StrictMode>,
+  );
+});

@@ -34,6 +34,8 @@ services:
       DOMAIN_KITCHEN: ${DOMAIN_KITCHEN}
       DOMAIN_PRESENCE: ${DOMAIN_PRESENCE}
       DOMAIN_MEMBER: ${DOMAIN_MEMBER}
+      # Sport Club Member App (same build, program sport_club)
+      DOMAIN_MEMBER_SPORT: ${DOMAIN_MEMBER_SPORT:-sportmember.localhost}
       DOMAIN_WEB: ${DOMAIN_WEB}
       ACME_EMAIL: ${ACME_EMAIL}
     volumes:

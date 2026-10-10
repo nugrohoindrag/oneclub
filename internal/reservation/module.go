@@ -122,7 +122,7 @@ func ConfirmHold(ctx context.Context, tx pgx.Tx, allocationID uuid.UUID) error {
 func ReleaseExpired(ctx context.Context, db *dbtx.DB) (int64, error) {
 	var n int64
 	err := db.WithTx(dbtx.System(ctx), func(tx pgx.Tx) error {
-		tag, err := tx.Exec(ctx, `UPDATE reservation.allocations SET status = 'released' WHERE status = 'held' AND expires_at <= now()`)
+		tag, err := tx.Exec(ctx, `UPDATE reservation.allocations SET status = 'released' WHERE status = 'held' AND expires_at <= $1`, clock.Now())
 		n = tag.RowsAffected()
 		return err
 	})

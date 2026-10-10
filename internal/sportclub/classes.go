@@ -683,5 +683,5 @@ func Templates() []provision.Template {
 			out = append(out, provision.Template{Event: "sportclub.class_cancelled", Channel: ch, Locale: loc, Subject: c[0], Body: c[1]})
 		}
 	}
-	return out
+	return append(out, courtTemplates()...)
 }

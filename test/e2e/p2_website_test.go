@@ -36,10 +36,14 @@ func TestP2Website(t *testing.T) {
 	}
 	start := time.Date(day.Year(), day.Month(), day.Day(), 9, 0, 0, 0, f.Loc)
 	guest := map[string]any{"name": "Web Tamu", "phone": "+6281777000111", "email": "webtamu@site.test"}
+	// the terms (no cancellation, no refund) must be accepted
+	pub.Must(422, "POST", "/api/v1/public/court-bookings", map[string]any{"propertyId": prop, "guest": guest, "courtId": court,
+		"start": rfc(start), "end": rfc(start.Add(time.Hour)), "payMethod": "qris"})
 	bk := pub.Must(201, "POST", "/api/v1/public/court-bookings", map[string]any{"propertyId": prop, "guest": guest, "courtId": court,
-		"start": rfc(start), "end": rfc(start.Add(time.Hour)), "payMethod": "qris"}).JSON()
+		"start": rfc(start), "end": rfc(start.Add(time.Hour)), "payMethod": "qris", "terms": true}).JSON()
 	co := bk["checkout"].(map[string]any)
-	if co["total"] != "150000" || co["online"].(map[string]any)["status"] != "completed" {
+	// rent + the QRIS service fee of the Sport Club court policy (Rp4.000)
+	if co["total"] != "154000" || co["online"].(map[string]any)["status"] != "completed" || bk["token"] == "" {
 		t.Fatalf("court checkout: %v", bk)
 	}
 	if _, err := inst.App.Dispatcher.DispatchPending(t.Context()); err != nil {
@@ -52,7 +56,7 @@ func TestP2Website(t *testing.T) {
 	}
 	// Same visitor again → same customer (dedup); slot taken → 409.
 	if r := pub.Do("POST", "/api/v1/public/court-bookings", map[string]any{"propertyId": prop, "guest": guest, "courtId": court,
-		"start": rfc(start), "end": rfc(start.Add(time.Hour))}); r.Status != 409 {
+		"start": rfc(start), "end": rfc(start.Add(time.Hour)), "payMethod": "qris", "terms": true}); r.Status != 409 {
 		t.Fatalf("slot already booked: %s", r)
 	}
 	var n int
@@ -60,13 +64,13 @@ func TestP2Website(t *testing.T) {
 	if n != 1 {
 		t.Fatalf("customer dedup: %d", n)
 	}
-	// Voucher code covers the whole booking: confirmed without online payment.
+	// Voucher code covers the whole booking: confirmed without online payment (and without a service fee).
 	gift := idOf(sa.Must(201, "POST", "/api/v1/commercial/voucher-types", map[string]any{"code": "WEB-GIFT", "name": "Gift 300K", "kind": "value",
 		"category": "gift", "unit": "rupiah", "faceValue": "300000", "price": "300000", "validityMonths": 12}))
 	gv := sa.Must(201, "POST", "/api/v1/commercial/vouchers:sell", map[string]any{"voucherTypeId": gift, "guestName": "Gift Buyer",
 		"payment": map[string]any{"methodType": "cash"}}, "Idempotency-Key", newKey()).JSON()["vouchers"].([]any)[0].(map[string]any)
 	vb := pub.Must(201, "POST", "/api/v1/public/court-bookings", map[string]any{"propertyId": prop, "guest": guest, "courtId": court,
-		"start": rfc(start.Add(2 * time.Hour)), "end": rfc(start.Add(3 * time.Hour)), "voucherCode": gv["code"]}).JSON()
+		"start": rfc(start.Add(2 * time.Hour)), "end": rfc(start.Add(3 * time.Hour)), "voucherCode": gv["code"], "payMethod": "qris", "terms": true}).JSON()
 	if vb["status"] != "confirmed" || !dec(vb["checkout"].(map[string]any)["voucherPaid"]).Equal(dec("150000")) {
 		t.Fatalf("voucher code booking: %v", vb)
 	}

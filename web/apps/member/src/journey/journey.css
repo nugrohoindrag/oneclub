@@ -289,3 +289,13 @@ a.mj-item:hover strong { color: var(--md-sys-color-primary); }
 .mj-promo-hero { min-height: 200px; border-radius: var(--mj-radius); padding: 16px; display: flex; align-items: flex-start;
   background: linear-gradient(135deg, var(--md-sys-color-primary), var(--md-sys-color-primary-strong, #0b3d91)); background-size: cover; background-position: center; }
 @media (prefers-reduced-motion: reduce) { .mj-promo-strip { scroll-behavior: auto; } }
+
+/* Sport Club court booking: the cart bar under the slot grid */
+.mj-sheet {
+  position: sticky; bottom: calc(env(safe-area-inset-bottom, 0px) + 72px); z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+  padding: 12px 14px; border-radius: 16px; background: var(--md-sys-color-surface); border: 1px solid var(--md-sys-color-outline-variant);
+  box-shadow: 0 6px 24px rgba(23, 31, 56, 0.14);
+}
+.mj-sheet > span:first-child { flex: 1; min-width: 0; }
+.mj-slot s { color: var(--md-sys-color-on-surface-variant); font-weight: 400; }
+.mj-slot span:has(s)::before { display: none; }

@@ -30,7 +30,7 @@ mkdir -p /srv/oneclub/{scripts,compose,instances} && chown -R deploy:deploy /srv
 
 ## 2. DNS
 
-A records to the VPS for `@`, `www`, `dashboard`, `cashier`, `caddy`, `kitchen`, `presence`, `member` (or one
+A records to the VPS for `@`, `www`, `dashboard`, `cashier`, `caddy`, `kitchen`, `presence`, `member`, `sportmember` (or one
 wildcard `*` plus `@`). Caddy issues the certificates on the first deploy.
 
 ## 3. Instance directory
@@ -53,6 +53,7 @@ DOMAIN_CADDY=caddy.oneclub.web.id
 DOMAIN_KITCHEN=kitchen.oneclub.web.id
 DOMAIN_PRESENCE=presence.oneclub.web.id
 DOMAIN_MEMBER=member.oneclub.web.id
+DOMAIN_MEMBER_SPORT=sportmember.oneclub.web.id
 DOMAIN_WEB="oneclub.web.id, www.oneclub.web.id"
 ACME_EMAIL=admin@oneclub.web.id
 MEMBER_PORTAL_URL=https://member.oneclub.web.id

@@ -54,7 +54,7 @@ func init() {
 		"property_admin", "general_manager", "club_manager", "resort_manager", "golf_manager", "banquet_manager")
 }
 
-var incidentSources = []string{"caddy", "golf_cart", "banquet"}
+var incidentSources = []string{"caddy", "golf_cart", "banquet", "sportclub"}
 
 // profitCenterOrder lists the profit centers of the club in display order
 // (product owner, 9 Oct 2026), the shared overhead last.
@@ -180,7 +180,20 @@ type ProfitCenters struct {
 	PreviousContribution string                `json:"previousContribution"`
 	PreviousNetIncome    string                `json:"previousNetIncome"`
 	Accounts             []ProfitCenterAccount `json:"accounts"`
-	GeneratedAt          time.Time             `json:"generatedAt"`
+	// Sport Club per sport (cost center of the journal lines; Sport Club
+	// FR-104): revenue, costs and contribution of each sport.
+	SportClub   []ProfitCenterDim `json:"sportClub"`
+	GeneratedAt time.Time         `json:"generatedAt"`
+}
+
+// ProfitCenterDim is one dimension (sport) of a profit center.
+type ProfitCenterDim struct {
+	Key          string  `json:"key" db:"key"`
+	Label        string  `json:"label" db:"label"`
+	Revenue      string  `json:"revenue" db:"revenue"`
+	Costs        string  `json:"costs" db:"costs"`
+	Contribution string  `json:"contribution" db:"contribution"`
+	Margin       *string `json:"margin" db:"-"`
 }
 
 type pcSums struct{ revenue, cogs, expense, other decimal.Decimal }
@@ -306,6 +319,19 @@ func profitCenters(ctx context.Context, tx pgx.Tx, _ *http.Request, rg managemen
 	out.SharedNet, out.NetIncome = sharedNet.String(), contribution.Add(sharedNet).String()
 	out.PreviousContribution, out.PreviousNetIncome = prevContribution.String(), prevContribution.Add(prevSharedNet).String()
 
+	if out.SportClub, err = handle.List[ProfitCenterDim](tx.Query(ctx, `SELECT coalesce(l.cost_center, 'sportclub') AS key,
+		coalesce(f.name, CASE WHEN l.cost_center IS NULL OR l.cost_center = 'sportclub' THEN 'Sport Club (shared)' ELSE l.cost_center END) AS label,
+		trim_scale(coalesce(sum(l.profit) FILTER (WHERE l.section IN ('revenue', 'other')), 0))::text AS revenue,
+		trim_scale(coalesce(-sum(l.profit) FILTER (WHERE l.section IN ('cogs', 'expense')), 0))::text AS costs, trim_scale(sum(l.profit))::text AS contribution
+		FROM reporting.acc_profit_center_lines l LEFT JOIN sportclub.facilities f ON 'sportclub:' || f.code = l.cost_center AND f.property_id = $3
+		WHERE l.profit_center = 'sportclub' AND l.journal_date BETWEEN $1 AND $2 GROUP BY 1, 2 ORDER BY 3 DESC`, rg.From, rg.To, handle.Property(ctx))); err != nil {
+		return out, err
+	}
+	for i := range out.SportClub {
+		r, _ := decimal.NewFromString(out.SportClub[i].Revenue)
+		c, _ := decimal.NewFromString(out.SportClub[i].Contribution)
+		out.SportClub[i].Margin = share(c, r)
+	}
 	accts, err := tx.Query(ctx, `SELECT profit_center, section, account_code, min(account_name),
 		trim_scale(CASE WHEN section IN ('revenue', 'other') THEN sum(profit) ELSE -sum(profit) END)::text
 		FROM reporting.acc_profit_center_lines WHERE journal_date BETWEEN $1 AND $2 GROUP BY 1, 2, 3 HAVING sum(profit) <> 0 ORDER BY 1, 2, 3`, rg.From, rg.To)
@@ -328,7 +354,7 @@ func profitCenters(ctx context.Context, tx pgx.Tx, _ *http.Request, rg managemen
 // IncidentItem is one incident of the dashboard.
 type IncidentItem struct {
 	ID           string    `json:"id" db:"id"`
-	Source       string    `json:"source" db:"source" enum:"caddy,golf_cart,banquet"`
+	Source       string    `json:"source" db:"source" enum:"caddy,golf_cart,banquet,sportclub"`
 	Number       string    `json:"number" db:"number"`
 	Subject      *string   `json:"subject" db:"subject"`
 	Category     string    `json:"category" db:"category"`
@@ -347,6 +373,8 @@ type IncidentMonth struct {
 	Caddy    int    `json:"caddy"`
 	GolfCart int    `json:"golfCart"`
 	Banquet  int    `json:"banquet"`
+	// Sport Club incidents (docs/requirement-booking-sportclub-mgcc.md FR-107).
+	SportClub int `json:"sportClub"`
 }
 
 // IncidentDashboard is the Incidents dashboard.
@@ -443,7 +471,8 @@ func incidentDashboard(ctx context.Context, tx pgx.Tx, _ *http.Request, rg manag
 	}
 	for m := trendFrom; !m.After(rg.Month); m = m.AddDate(0, 1, 0) {
 		c := counts[m.Format("2006-01")]
-		out.Trend = append(out.Trend, IncidentMonth{Month: m.Format("2006-01"), Caddy: c["caddy"], GolfCart: c["golf_cart"], Banquet: c["banquet"]})
+		out.Trend = append(out.Trend, IncidentMonth{Month: m.Format("2006-01"), Caddy: c["caddy"], GolfCart: c["golf_cart"], Banquet: c["banquet"],
+			SportClub: c["sportclub"]})
 	}
 
 	if out.OpenItems, err = handle.List[IncidentItem](tx.Query(ctx, incidentItemSelect+` WHERE status = 'open' ORDER BY occurred_at LIMIT 20`)); err != nil {

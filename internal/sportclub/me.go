@@ -24,7 +24,9 @@ type MyCourtBookingInput struct {
 	Start        time.Time   `json:"start"`
 	End          time.Time   `json:"end"`
 	PackageCode  string      `json:"packageCode,omitempty"`
-	MemberCharge bool        `json:"memberCharge,omitempty" doc:"Charge to my member account; otherwise pay the folio online"`
+	MemberCharge bool        `json:"memberCharge,omitempty" doc:"Charge to my member account (FR-114)"`
+	PayMethod    string      `json:"payMethod,omitempty" doc:"Online method code (mock gateway, service fee added); held until paid"`
+	PromoCode    string      `json:"promoCode,omitempty"`
 	Notes        string      `json:"notes,omitempty"`
 	Lines        []CourtLine `json:"lines,omitempty" doc:"Several courts / hours in one booking (courtId/start/end ignored)"`
 }
@@ -55,8 +57,14 @@ func (m *Module) registerMe(reg *route.Registry) {
 			if err != nil {
 				return CourtBookingResult{}, err
 			}
+			if in.PackageCode == "" && !in.MemberCharge && in.PayMethod == "" {
+				return CourtBookingResult{}, handle.Invalid("payMethod", "required", "choose a payment method, the member account or a package")
+			}
+			// same booking as the website (FR-113): channel Member App, profile data, no cancellation (FR-118)
 			return m.BookCourt(ctx, tx, p.PropertyID, CourtBookingInput{CourtID: in.CourtID, Start: in.Start, End: in.End, CustomerID: &p.ID,
-				Channel: "member_app", PackageCode: in.PackageCode, Notes: in.Notes, Payment: memberCharge(in.MemberCharge), Lines: in.Lines}, r.Header.Get("Idempotency-Key"))
+				Channel: "member_app", PackageCode: in.PackageCode, PromoCode: in.PromoCode, Notes: in.Notes, Payment: memberCharge(in.MemberCharge && in.PackageCode == ""),
+				Hold: in.PayMethod != "" && !in.MemberCharge && in.PackageCode == "", PayMethod: map[bool]string{true: in.PayMethod}[!in.MemberCharge && in.PackageCode == ""],
+				Lines: in.Lines}, r.Header.Get("Idempotency-Key"))
 		})})
 	me(route.Route{Method: http.MethodGet, Path: "/api/v1/member/sport-club/class-sessions", Summary: "Class schedule to book", Response: Session{}, List: true,
 		Query: []route.Param{{Name: "from"}, {Name: "days", Type: "integer"}, {Name: "filter[programId]"}},

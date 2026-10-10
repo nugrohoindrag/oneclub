@@ -3,6 +3,7 @@ module oneclub
 go 1.27.0
 
 require (
+	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc
 	github.com/getkin/kin-openapi v0.149.0
 	github.com/go-chi/chi/v5 v5.3.2
 	github.com/google/uuid v1.6.0
@@ -21,7 +22,6 @@ require (
 )
 
 require (
-	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-openapi/jsonpointer v1.0.0 // indirect

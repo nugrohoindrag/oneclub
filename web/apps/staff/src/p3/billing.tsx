@@ -531,12 +531,12 @@ function ScheduleDrawer({ id, onClose }: { id: string; onClose: () => void }) {
 
 // ── Cashier (FR-EOD-01) ───────────────────────────────────────────────────
 
-export function CashierPage() {
+export function CashierPage({ defaultStation = 'front_desk' }: { defaultStation?: string } = {}) {
   const { can } = useAuth();
   const toast = useToast();
   const cur = useGet<R & { totals: R[] }>('/api/v1/billing/cashier-shifts/current', { retry: false });
   const shifts = useGet<Page<R>>('/api/v1/billing/cashier-shifts?limit=50');
-  const [station, setStation] = useState('front_desk');
+  const [station, setStation] = useState(defaultStation);
   const [float, setFloat] = useState('0');
   const [modal, setModal] = useState<'' | 'move' | 'close'>('');
   const open = useSend<Record<string, unknown>>('POST', '/api/v1/billing/cashier-shifts', BILLING);

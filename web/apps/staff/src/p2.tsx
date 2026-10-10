@@ -9,6 +9,7 @@ import { DomainDashboard } from './p5/bi-dash';
 import { FloorPlanPage } from './pos/floorplan';
 import { CourseMonitorPage } from './ops/marshal';
 import { MaintenancePage } from './ops/maintenance';
+import { SportPerformanceCourts } from './sport/admin';
 
 type Row = Record<string, unknown>;
 
@@ -101,7 +102,7 @@ export const HUBS: Hub[] = [
       cols: [['number', 'Letter'], ['customerName', 'Member'], ['clubName', 'Club'], ['playFrom', 'From', 'date'], ['playTo', 'To', 'date'], ['status', 'Status', 'status']] },
   ] },
   { path: 'golf/master', title: 'Golf Master Data', only: ['golf.caddy_level', 'golf.cart_checklist', 'golf.range_bay', 'golf.reciprocal_club', 'golf.hall_of_fame'], lists: [] },
-  { path: 'sport-club', title: 'Sport Club', modules: ['sportclub'], lists: [
+  { path: 'sport-club/operations', title: 'Tiket, Kelas & Loker', modules: ['sportclub'], lists: [
     { slug: 'bookings', title: 'Bookings', path: '/api/v1/sportclub/bookings', perm: 'sportclub.booking.view', dated: true,
       cols: [['code', 'Booking'], ['customerName', 'Customer'], ['guestName', 'Guest'], ['start', 'Start', 'datetime'], ['channel', 'Channel'], ['status', 'Status', 'status']] },
     { slug: 'entries', title: 'Entries', path: '/api/v1/sportclub/entries', perm: 'sportclub.entry.view', dated: true,
@@ -292,4 +293,6 @@ export const P2_ROUTES = [
 
 /** Management dashboards P2 adds next to P1's golf, membership and booking pages. */
 export const P2_MANAGEMENT_ROUTES = DASHBOARDS.filter(([code]) => ['sport-club-performance', 'commercial-performance', 'crm-performance'].includes(code))
-  .map(([code]) => ({ path: code, element: <KPIDashboardPage key={code} code={code} /> }));
+  .map(([code]) => ({ path: code, element: code === 'sport-club-performance'
+    // the KPI dashboard and the court KPIs per sport: utilisation, revenue per court hour, channel, no-show (FR-105)
+    ? <><KPIDashboardPage key={code} code={code} /><SportPerformanceCourts /></> : <KPIDashboardPage key={code} code={code} /> }));

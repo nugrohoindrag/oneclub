@@ -13,7 +13,6 @@ import (
 
 	"oneclub/internal/billing"
 	"oneclub/internal/crm"
-	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/httpx"
 	"oneclub/internal/kernel/route"
@@ -21,22 +20,33 @@ import (
 )
 
 type PublicFacility struct {
-	ID           uuid.UUID      `json:"id" db:"id"`
-	Code         string         `json:"code" db:"code"`
-	Name         string         `json:"name" db:"name"`
-	FacilityType *string        `json:"facilityType" db:"facility_type"`
-	UsageMode    string         `json:"usageMode" db:"usage_mode"`
-	OpeningHours map[string]any `json:"openingHours" db:"opening_hours"`
+	ID            uuid.UUID       `json:"id" db:"id"`
+	Code          string          `json:"code" db:"code"`
+	Name          string          `json:"name" db:"name"`
+	FacilityType  *string         `json:"facilityType" db:"facility_type"`
+	UsageMode     string          `json:"usageMode" db:"usage_mode"`
+	OpeningHours  map[string]any  `json:"openingHours" db:"opening_hours"`
+	SortOrder     int             `json:"sortOrder" db:"sort_order"`
+	OnlineBooking bool            `json:"onlineBooking" db:"online_booking"`
+	Content       FacilityContent `json:"content" db:"content"`
+	Rules         FacilityRules   `json:"rules" db:"booking_rules"`
+	Courts        int             `json:"courts" db:"courts" doc:"Courts bookable online"`
+	Indoor        bool            `json:"indoor" db:"indoor"`
+	FromPrice     *string         `json:"fromPrice" db:"from_price" doc:"Lowest hourly rate before tax (rate card)"`
 }
 
 type PublicCourt struct {
-	ID         uuid.UUID  `json:"id" db:"id"`
-	Code       string     `json:"code" db:"code"`
-	Name       string     `json:"name" db:"name"`
-	FacilityID uuid.UUID  `json:"facilityId" db:"facility_id"`
-	Surface    *string    `json:"surface" db:"surface"`
-	Indoor     bool       `json:"indoor" db:"indoor"`
-	ResourceID *uuid.UUID `json:"resourceId" db:"resource_id"`
+	ID            uuid.UUID  `json:"id" db:"id"`
+	Code          string     `json:"code" db:"code"`
+	Name          string     `json:"name" db:"name"`
+	FacilityID    uuid.UUID  `json:"facilityId" db:"facility_id"`
+	Surface       *string    `json:"surface" db:"surface"`
+	Indoor        bool       `json:"indoor" db:"indoor"`
+	ResourceID    *uuid.UUID `json:"resourceId" db:"resource_id"`
+	SortOrder     int        `json:"sortOrder" db:"sort_order"`
+	OnlineBooking bool       `json:"onlineBooking" db:"online_booking"`
+	PhotoURL      *string    `json:"photoUrl" db:"photo_url"`
+	PriceItem     string     `json:"priceItem" db:"price_item"`
 }
 
 type PublicProgram struct {
@@ -51,9 +61,14 @@ type PublicProgram struct {
 
 // PublicSportClub is the Sport Club page.
 type PublicSportClub struct {
-	Facilities []PublicFacility `json:"facilities"`
-	Courts     []PublicCourt    `json:"courts"`
-	Programs   []PublicProgram  `json:"classPrograms"`
+	Facilities  []PublicFacility  `json:"facilities"`
+	Courts      []PublicCourt     `json:"courts"`
+	Programs    []PublicProgram   `json:"classPrograms"`
+	WindowDays  int               `json:"windowDays"`
+	HoldMinutes int               `json:"holdMinutes"`
+	TaxIncluded bool              `json:"taxIncluded"`
+	Methods     []OnlineMethod    `json:"methods"`
+	Terms       map[string]string `json:"terms"`
 }
 
 type PublicCourtBooking struct {
@@ -63,10 +78,11 @@ type PublicCourtBooking struct {
 	Start       time.Time       `json:"start"`
 	End         time.Time       `json:"end"`
 	VoucherCode string          `json:"voucherCode,omitempty"`
-	PayMethod   string          `json:"payMethod,omitempty" enum:"qris,virtual_account,card"`
+	PayMethod   string          `json:"payMethod,omitempty" enum:"qris,virtual_account,ewallet,card"`
 	Notes       string          `json:"notes,omitempty"`
 	Lines       []CourtLine     `json:"lines,omitempty" doc:"Several courts / hours in one booking and one payment (the cart)"`
 	Consent     bool            `json:"consent,omitempty" doc:"Marketing consent (UU PDP): ticked by the visitor, never pre-checked"`
+	Terms       bool            `json:"terms,omitempty" doc:"Terms accepted (no cancellation, no refund)"`
 }
 
 func (b PublicCourtBooking) Property() uuid.UUID      { return b.PropertyID }
@@ -85,9 +101,11 @@ func (b PublicEnrollment) Visitor() crm.PublicGuest { return b.Guest }
 
 // PublicBooking is the Booking Confirmation of the website.
 type PublicBooking struct {
-	Reference string            `json:"reference"`
-	Status    string            `json:"status"`
-	Checkout  *billing.Checkout `json:"checkout"`
+	Reference   string            `json:"reference"`
+	Status      string            `json:"status"`
+	Checkout    *billing.Checkout `json:"checkout"`
+	Token       string            `json:"token,omitempty" doc:"Court booking: the confirmation / payment page"`
+	HoldSeconds int               `json:"holdSeconds,omitempty"`
 }
 
 func (m *Module) registerPublic(reg *route.Registry) {
@@ -104,13 +122,35 @@ func (m *Module) registerPublic(reg *route.Registry) {
 			var out PublicSportClub
 			err = db.WithReadTx(ctx, func(tx pgx.Tx) error {
 				var err error
-				if out.Facilities, err = handle.List[PublicFacility](tx.Query(ctx, `SELECT id, code, name, facility_type, usage_mode, opening_hours FROM sportclub.facilities
-					WHERE property_id = $1 AND status = 'active' AND archived_at IS NULL ORDER BY name`, pid)); err != nil {
+				// a sport shows when it is bookable online (FR-05), in the order of the back office (FR-07)
+				if out.Facilities, err = handle.List[PublicFacility](tx.Query(ctx, `SELECT f.id, f.code, f.name, f.facility_type, f.usage_mode, f.opening_hours,
+					f.sort_order, f.online_booking, f.content, f.booking_rules,
+					(SELECT count(*) FROM sportclub.courts c WHERE c.facility_id = f.id AND c.status = 'active' AND c.archived_at IS NULL AND c.online_booking
+					  AND c.resource_id IS NOT NULL)::int AS courts,
+					coalesce((SELECT bool_or(c.indoor) FROM sportclub.courts c WHERE c.facility_id = f.id AND c.status = 'active' AND c.archived_at IS NULL), false) AS indoor,
+					(SELECT trim_scale(min(r.price))::text FROM commercial.pricing_rules r WHERE r.property_id = f.property_id AND r.service_type = 'sport_court'
+					  AND r.status = 'active' AND r.effective_from <= billing.local_date(r.property_id) AND (r.effective_to IS NULL OR r.effective_to >= billing.local_date(r.property_id)) AND r.min_quantity <= 1
+					  AND r.item_ref IN (SELECT coalesce(nullif(c.price_item, ''), nullif(f.price_item, ''), f.code) FROM sportclub.courts c WHERE c.facility_id = f.id)) AS from_price
+					FROM sportclub.facilities f WHERE f.property_id = $1 AND f.status = 'active' AND f.archived_at IS NULL
+					AND (f.usage_mode <> 'slot_booking' OR f.online_booking) ORDER BY f.sort_order, f.name`, pid)); err != nil {
 					return err
 				}
-				if out.Courts, err = handle.List[PublicCourt](tx.Query(ctx, `SELECT id, code, name, facility_id, surface, indoor, resource_id FROM sportclub.courts
-					WHERE property_id = $1 AND status = 'active' AND archived_at IS NULL ORDER BY name`, pid)); err != nil {
+				if out.Courts, err = handle.List[PublicCourt](tx.Query(ctx, `SELECT c.id, c.code, c.name, c.facility_id, c.surface, c.indoor, c.resource_id, c.sort_order,
+					c.online_booking, c.photo_url, coalesce(nullif(c.price_item, ''), nullif(f.price_item, ''), f.code) AS price_item
+					FROM sportclub.courts c JOIN sportclub.facilities f ON f.id = c.facility_id
+					WHERE c.property_id = $1 AND c.status = 'active' AND c.archived_at IS NULL AND c.online_booking ORDER BY c.sort_order, c.name`, pid)); err != nil {
 					return err
+				}
+				pol, err := m.courtPolicy(ctx, tx, pid)
+				if err != nil {
+					return err
+				}
+				out.WindowDays, out.HoldMinutes, out.TaxIncluded, out.Terms = pol.WindowDays, pol.HoldMinutes, pol.TaxIncluded, pol.Terms
+				out.Methods = []OnlineMethod{}
+				for _, o := range pol.Methods {
+					if o.Active {
+						out.Methods = append(out.Methods, o)
+					}
 				}
 				out.Programs, err = handle.List[PublicProgram](tx.Query(ctx, `SELECT id, name, discipline, level, min_age, max_age, description
 					FROM sportclub.class_programs WHERE property_id = $1 AND status = 'active' AND archived_at IS NULL ORDER BY name`, pid))
@@ -125,18 +165,12 @@ func (m *Module) registerPublic(reg *route.Registry) {
 	crm.PublicRoute(reg, "sportclub", route.Route{Method: http.MethodPost, Path: "/api/v1/public/court-bookings", Summary: "Book Sport Club court (non-member; online payment)",
 		Request: PublicCourtBooking{}, Response: PublicBooking{},
 		Handler: crm.PublicWrite(db, http.StatusCreated, func(ctx context.Context, tx pgx.Tx, r *http.Request, pid uuid.UUID, c crm.Customer, in PublicCourtBooking) (PublicBooking, error) {
-			// booking window: 30 days ahead; no time already past (club decision 10 Oct 2026)
-			last := clock.Now().AddDate(0, 0, 31)
-			for _, l := range append([]CourtLine{{CourtID: in.CourtID, Start: in.Start, End: in.End}}, in.Lines...) {
-				if l.Start.IsZero() {
-					continue
-				}
-				if l.Start.After(last) {
-					return PublicBooking{}, errs.Validation("outside_booking_window", "courts can be booked up to 30 days ahead")
-				}
-				if l.End.Before(clock.Now()) {
-					return PublicBooking{}, errs.Validation("slot_past", "this time has already passed")
-				}
+			// the booking window, opening hours, duration and online courts are checked by BookCourt (FR-11, FR-18, FR-35)
+			if !in.Terms {
+				return PublicBooking{}, handle.Invalid("terms", "required", "accept the terms: bookings cannot be cancelled and are not refunded")
+			}
+			if in.PayMethod == "" {
+				return PublicBooking{}, handle.Invalid("payMethod", "required", "choose a payment method")
 			}
 			if in.Consent { // an unticked box never revokes an earlier consent
 				yes := true
@@ -144,26 +178,18 @@ func (m *Module) registerPublic(reg *route.Registry) {
 					return PublicBooking{}, err
 				}
 			}
-			res, err := m.BookCourt(ctx, tx, pid, CourtBookingInput{CourtID: in.CourtID, Start: in.Start, End: in.End, CustomerID: &c.ID, Channel: "website",
-				Hold: true, Notes: in.Notes, Lines: in.Lines}, "")
+			lines := in.Lines
+			if len(lines) == 0 {
+				lines = []CourtLine{{CourtID: in.CourtID, Start: in.Start, End: in.End}}
+			}
+			res, err := m.BookCourt(ctx, tx, pid, CourtBookingInput{Lines: lines, CustomerID: &c.ID, Guest: &GuestInput{Name: in.Guest.Name, Phone: in.Guest.Phone,
+				Email: in.Guest.Email}, Channel: "website", Hold: true, Notes: in.Notes, PromoCode: in.VoucherCode, PayMethod: in.PayMethod}, "")
 			if err != nil {
 				return PublicBooking{}, err
 			}
-			out := PublicBooking{Reference: res.Reservation.Code, Status: res.Reservation.Status}
-			if res.Folio != nil {
-				co, err := m.Billing.Checkout(ctx, tx, billing.CheckoutRequest{FolioID: res.Folio.ID, VoucherCode: in.VoucherCode, Method: in.PayMethod,
-					Description: "Court booking " + res.Reservation.Code})
-				if err != nil {
-					return out, err
-				}
-				out.Checkout = &co
-				if co.AmountDue == "0" {
-					r2, err := m.Res.Confirm(ctx, tx, res.Reservation.ID, false)
-					if err != nil {
-						return out, err
-					}
-					out.Status = r2.Status
-				}
+			out := PublicBooking{Reference: res.Reservation.Code, Status: res.Reservation.Status, Checkout: res.Checkout}
+			if res.Booking != nil {
+				out.Token, out.HoldSeconds = res.Booking.Token, res.Booking.HoldSeconds
 			}
 			return out, nil
 		})})

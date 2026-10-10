@@ -91,7 +91,8 @@ func (a *App) buildP2(reg *route.Registry, cfg *config.Config, db *dbtx.DB, file
 	for _, dt := range membership.LifecycleDocumentTypes() {
 		a.Approvals.RegisterDocumentType(dt, a.Membership.Decision)
 	}
-	a.SportClub = &sportclub.Module{DB: db, Res: a.Reservations, Billing: a.Billing, Vouchers: a.Vouchers, Events: a.Bus, Approvals: a.Approvals, Notify: a.Notification}
+	a.SportClub = &sportclub.Module{DB: db, Res: a.Reservations, Billing: a.Billing, Vouchers: a.Vouchers, Events: a.Bus, Approvals: a.Approvals, Notify: a.Notification,
+		Hub: a.Hub, Leads: a.sportLead}
 	a.SportClub.Register(reg, a.Engine)
 	a.Approvals.RegisterDocumentType(sportclub.InstructorFeeType, a.SportClub.FeeDecision)
 	a.Sync.Handle("sportclub.access_validate", a.SportClub.SyncAccess)
@@ -123,6 +124,7 @@ func (a *App) buildP2(reg *route.Registry, cfg *config.Config, db *dbtx.DB, file
 
 	// Workers and schedules.
 	reservation.RegisterEngineJobs(a.Registrar, db)
+	a.SportClub.RegisterJobs(a.Registrar) // court reminders, membership prospects
 	a.Vouchers.RegisterJobs(a.Registrar)
 	a.Membership.RegisterP2Jobs(a.Registrar)
 	a.Experience.RegisterJobs(a.Registrar)
@@ -140,6 +142,11 @@ func (a *App) subscribeP2() {
 	// Online payments confirm held website / app bookings.
 	a.Bus.Subscribe(billing.EventPaymentSettled, "reservation.confirm_paid", a.Reservations.ConfirmPaid)
 	a.Bus.Subscribe("reservation.confirmed", "reservation.notify_confirmed", a.Reservations.NotifyConfirmed)
+	// court bookings changed elsewhere (online payment, hold expiry) reach the open court boards
+	for _, ev := range []string{"reservation.confirmed", "reservation.cancelled", "reservation.checked_in", "reservation.completed", "reservation.no_show",
+		"reservation.rescheduled"} {
+		a.Bus.Subscribe(ev, "sportclub.board_live", a.SportClub.OnReservationEvent)
+	}
 	// Theoretical consumption / food cost of every sale (FR-BOM-04).
 	a.Bus.Subscribe("commercial.sale_completed", "inventory.consumption", a.Inventory.SaleCompleted)
 }
@@ -180,6 +187,15 @@ func segmentFacts(ctx context.Context, q dbtx.Querier, property uuid.UUID, since
 	for c, x := range act {
 		f := out[c]
 		f.Visits, f.Spend = x.Visits, x.Spend
+		out[c] = f
+	}
+	courts, err := sportclub.SegmentFacts(ctx, q, property, since)
+	if err != nil {
+		return nil, err
+	}
+	for c, x := range courts {
+		f := out[c]
+		f.CourtBookings, f.Sports, f.LastCourtPlay = x.CourtBookings, x.Sports, x.LastCourtPlay
 		out[c] = f
 	}
 	return out, nil

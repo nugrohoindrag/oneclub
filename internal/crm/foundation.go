@@ -53,6 +53,11 @@ type Facts struct {
 	Programs        []string
 	Visits          int
 	Spend           decimal.Decimal
+	// Sport Club court bookings in the window and the last court played
+	// (docs/requirement-booking-sportclub-mgcc.md FR-87).
+	CourtBookings int
+	Sports        []string
+	LastCourtPlay *time.Time
 }
 
 // FactsFunc returns segmentation facts of every customer at a property for
@@ -420,6 +425,10 @@ type SegmentRules struct {
 	MaxAge          *int     `json:"maxAge,omitempty"`
 	Resident        *bool    `json:"resident,omitempty"`
 	Gender          string   `json:"gender,omitempty"`
+	// Sport Club (FR-87): e.g. futsal players ≥ 4×/month, or not played for 60 days.
+	MinCourtBookings  *int     `json:"minCourtBookings,omitempty" doc:"Court bookings in the window at least"`
+	Sports            []string `json:"sports,omitempty" doc:"Played one of these sports (facility codes, e.g. FUTSAL)"`
+	CourtInactiveDays *int     `json:"courtInactiveDays,omitempty" doc:"Played a court before but not in the last N days"`
 }
 
 type SegmentResult struct {
@@ -472,7 +481,10 @@ func (m *Engagement) ComputeSegment(ctx context.Context, tx pgx.Tx, property, si
 			r.MaxVisits != nil && f.Visits > *r.MaxVisits,
 			minSpend.IsPositive() && f.Spend.LessThan(minSpend),
 			r.Resident != nil && p.Resident != *r.Resident,
-			r.Gender != "" && p.Gender != r.Gender:
+			r.Gender != "" && p.Gender != r.Gender,
+			r.MinCourtBookings != nil && f.CourtBookings < *r.MinCourtBookings,
+			len(r.Sports) > 0 && !overlaps(r.Sports, f.Sports),
+			r.CourtInactiveDays != nil && (f.LastCourtPlay == nil || f.LastCourtPlay.After(now.AddDate(0, 0, -*r.CourtInactiveDays))):
 			continue
 		}
 		if r.MinAge != nil || r.MaxAge != nil {

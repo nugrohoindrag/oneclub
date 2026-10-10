@@ -192,19 +192,34 @@ export function ProfitCentersDashboard() {
               tone={a.section === 'revenue' ? 'green' : 'red'} /> },
             { key: 'amount', header: 'Amount', align: 'right', render: (a) => <strong className="oc-dash-num">{money(a.amount)}</strong> },
           ]} />
+        {selected.code === 'sportclub' && (
+          // Sport Club per sport: the cost center of the court rent (docs/requirement-booking-sportclub-mgcc.md FR-104)
+          <DashTable<SportDim> title="Sport Club · per cabor" icon="sports_tennis" rows={(pc as unknown as { sportClub?: SportDim[] }).sportClub ?? []} rowKey={(d) => d.key}
+            empty="Belum ada jurnal per cabor pada periode ini." onRow={() => nav('/sport-club/reports')}
+            columns={[
+              { key: 'label', header: 'Cabor', render: (d) => <DashName icon="sports_tennis" name={d.label} sub={d.key} /> },
+              { key: 'revenue', header: 'Revenue', align: 'right', render: (d) => <span className="oc-dash-num">{moneyShort(d.revenue)}</span> },
+              { key: 'costs', header: 'Costs', align: 'right', render: (d) => <span className="oc-dash-num">{moneyShort(d.costs)}</span> },
+              { key: 'contribution', header: 'Contribution', align: 'right', render: (d) => <strong className="oc-dash-num">{moneyShort(d.contribution)}</strong> },
+              { key: 'margin', header: 'Margin', align: 'right', render: (d) => <span className="oc-dash-num">{pct(d.margin)}</span> },
+            ]} />
+        )}
       </DashGrid>
     </div>
   );
 }
 
-const SOURCE: Record<string, [string, string]> = { caddy: ['Caddy', 'person'], golf_cart: ['Golf Cart', 'electric_car'], banquet: ['Banquet Event', 'celebration'] };
+interface SportDim { key: string; label: string; revenue: string; costs: string; contribution: string; margin: string | null }
+
+const SOURCE: Record<string, [string, string]> = { caddy: ['Caddy', 'person'], golf_cart: ['Golf Cart', 'electric_car'], banquet: ['Banquet Event', 'celebration'], sportclub: ['Sport Club', 'sports_tennis'] };
 const SEVERITY_COLOR: Record<string, string> = { critical: 'var(--dash-red)', high: 'var(--dash-amber)', medium: 'var(--dash-blue)', low: 'var(--dash-sky)' };
 const SEVERITY_TONE: Record<string, DashStatus> = { critical: 'bad', high: 'bad', medium: 'warn', low: 'neutral' };
 const STATUS_TONE: Record<string, [DashStatus, string]> = { open: ['warn', 'Open'], closed: ['good', 'Closed'], logged: ['neutral', 'Logged'] };
 const sourceLabel = (s: string) => SOURCE[s]?.[0] ?? label(s);
 const daysAgo = (iso: string) => Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000));
 /** Back Office list of an incident (golf incidents are closed there). */
-const incidentPath = (i: Incident) => (i.source === 'caddy' ? '/golf/operations/caddy-incidents' : i.source === 'golf_cart' ? '/golf/operations/cart-incidents' : undefined);
+const incidentPath = (i: Incident) => (i.source === 'caddy' ? '/golf/operations/caddy-incidents' : i.source === 'golf_cart' ? '/golf/operations/cart-incidents'
+  : i.source === 'sportclub' ? '/sport-club/incidents' : undefined);
 
 /** Incidents: caddy, golf cart and banquet incidents of the period, what is still open. */
 export function IncidentsDashboard() {
@@ -218,9 +233,9 @@ export function IncidentsDashboard() {
   if (!d.data) return <div className="oc-dash-page"><DashHead title={title} controls={controls} /><Skeleton rows={8} /></div>;
   const x = d.data;
   const sub = `${formatDate(x.from)} – ${formatDate(x.to)} · updated ${formatDateTime(x.generatedAt)}`;
-  const totals = x.trend.map((t) => t.caddy + t.golfCart + t.banquet);
+  const totals = x.trend.map((t) => t.caddy + t.golfCart + t.banquet + Number((t as { sportClub?: number }).sportClub ?? 0));
   const trend = x.trend.map((t, i) => ({
-    label: monthLabel(t.month), title: `${monthLabel(t.month)} ${t.month.slice(0, 4)} · caddy ${t.caddy}, golf cart ${t.golfCart}, banquet ${t.banquet}`,
+    label: monthLabel(t.month), title: `${monthLabel(t.month)} ${t.month.slice(0, 4)} · caddy ${t.caddy}, golf cart ${t.golfCart}, banquet ${t.banquet}, sport club ${Number((t as { sportClub?: number }).sportClub ?? 0)}`,
     a: totals[i], b: t.caddy, state: (i === x.trend.length - 1 ? 'current' : 'past') as 'current' | 'past',
   }));
   const sources = x.bySource.map((b, i) => ({ label: sourceLabel(b.label), value: Number(b.value), color: DASH_COLORS[i % DASH_COLORS.length] }));
@@ -245,6 +260,7 @@ export function IncidentsDashboard() {
           <div className="oc-dash-actions">
             <DashButton tone="blue" icon="person" to="/golf/operations/caddy-incidents">Caddy</DashButton>
             <DashButton tone="dark" icon="electric_car" to="/golf/operations/cart-incidents">Golf cart</DashButton>
+            <DashButton tone="grey" icon="sports_tennis" to="/sport-club/incidents">Sport Club</DashButton>
             <DashButton tone="grey" icon="description" to="/reports/reporting.incidents">Report</DashButton>
           </div>
         </DashCard>
