@@ -1144,7 +1144,8 @@ func TestP4AccountingGolfPerTransaction(t *testing.T) {
 	cashier := login(t, inst, "cashier@demo.oneclub.id", demoPassword)
 	course := demoCourse(t, inst)
 	playDay := clubDay(inst, 11, isWeekday)
-	slot := slotsOf(teeTimes(t, gm, course, playDay), "afternoon", 10)[18]
+	pm := slotsOf(teeTimes(t, gm, course, playDay), "afternoon", 10)
+	slot := pm[min(18, len(pm)-1)] // the afternoon is shorter on a 24-hour demo tee sheet
 	// a single player: this tee time accepts one player (template minimum 1)
 	sysExec(t, inst, `UPDATE golf.tee_times SET min_players = 1 WHERE id = $1`, mustUUID(str(slot["id"])))
 	bk := gm.Must(201, "POST", "/api/v1/golf/bookings", map[string]any{"bookingType": "member", "channel": "back_office", "teeTimeId": slot["id"],

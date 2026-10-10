@@ -1027,7 +1027,7 @@ func (m *Module) rateCard(ctx context.Context, q dbtx.Querier, property uuid.UUI
 	var err error
 	if out.Rates, err = handle.List[RateRow](q.Query(ctx, `SELECT DISTINCT ON (r.code) r.item_ref AS item, r.name, dt.name AS day_type,
 		coalesce(dt.priority, 0) * 10 + coalesce(substr(dt.weekdays, 1, 1)::int, 9) AS day_order, tb.name AS band,
-		to_char(tb.start_time, 'HH24:MI') AS band_from, to_char(tb.end_time, 'HH24:MI') AS band_to, trim_scale(r.price)::text AS price, r.min_quantity
+		left(tb.start_time::text, 5) AS band_from, left(tb.end_time::text, 5) AS band_to, trim_scale(r.price)::text AS price, r.min_quantity
 		FROM commercial.pricing_rules r LEFT JOIN commercial.line_day_types dt ON dt.id = r.line_day_type_id LEFT JOIN commercial.time_bands tb ON tb.id = r.time_band_id
 		WHERE r.property_id = $1 AND r.service_type = 'sport_court' AND r.status = 'active' AND r.effective_from <= billing.local_date(r.property_id)
 		AND (r.effective_to IS NULL OR r.effective_to >= billing.local_date(r.property_id)) ORDER BY r.code, r.version DESC`, property)); err != nil {

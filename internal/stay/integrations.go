@@ -49,7 +49,7 @@ func (m *Module) CustomerSection(ctx context.Context, q dbtx.Querier, property, 
 		(SELECT t.name FROM stay.stays x JOIN stay.bungalow_types t ON t.id = x.unit_type_id WHERE x.customer_id = $1 AND x.status IN ('checked_in', 'checked_out')
 		  GROUP BY t.name ORDER BY count(*) DESC LIMIT 1),
 		trim_scale(coalesce(sum(ef.charges) FILTER (WHERE s.status IN ('checked_in', 'checked_out')), 0))::text,
-		bool_or(s.vip)
+		coalesce(bool_or(s.vip), false)
 		FROM stay.stays s LEFT JOIN reporting.eng_folios ef ON ef.folio_id = s.folio_id WHERE s.customer_id = $1 AND s.kind = 'bungalow'`, customer).
 		Scan(&a.Stays, &a.Nights, &a.Upcoming, &a.NoShows, &a.Cancellations, &a.LastStay, &a.FavoriteType, &spend, &a.VIP); err != nil {
 		return a, err

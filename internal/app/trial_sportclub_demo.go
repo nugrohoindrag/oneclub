@@ -254,9 +254,8 @@ func trialSportHistory(ctx context.Context, t *Trial) {
 		}
 		sort.Slice(plan, func(i, j int) bool { return plan[i].hour < plan[j].hour })
 		type booked struct {
-			id   string
-			s    sportSlot
-			sold bool
+			id string
+			s  sportSlot
 		}
 		var done []booked
 		for gi, s := range plan {

@@ -23,7 +23,9 @@ func TestScorecardPrintAndShare(t *testing.T) {
 	playDay, _ := time.ParseInLocation("2006-01-02", day, clubLoc(inst))
 	caddy := idOf(sa.Must(201, "POST", "/api/v1/golf/caddies", map[string]any{"code": "C051", "name": "Caddy Card", "gender": "female"}))
 	sa.Must(201, "POST", "/api/v1/golf/caddy-attendance:clock-in", map[string]any{"caddyId": caddy, "at": rfc(at(playDay, 5, 30))})
-	sa.Must(201, "POST", "/api/v1/golf/caddy-assignments", map[string]any{"flightId": fid, "auto": true})
+	// this caddy by name: caddies clocked in by other tests on the same day would come first in the queue
+	sa.Must(201, "POST", "/api/v1/golf/caddy-assignments", map[string]any{"flightId": fid, "assignments": []map[string]any{{"caddyId": caddy,
+		"playerIds": playerIDs(bk)}}})
 	sa.Must(201, "POST", "/api/v1/golf/golf-cart-assignments", map[string]any{"flightId": fid, "auto": true})
 	checkIn(t, sa, day, bk)
 	sa.Must(200, "POST", "/api/v1/golf/rounds/"+fid+":start", map[string]any{"at": rfc(time.Now().Add(-4 * time.Hour))})

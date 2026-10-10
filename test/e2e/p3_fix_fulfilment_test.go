@@ -419,7 +419,9 @@ func TestP3FixFulfilmentNightAudit(t *testing.T) {
 		t.Fatalf("nightly stay: posting %v total %v charges %v deposit %v", stay["roomPosting"], in["total"], in["folio"].(map[string]any)["charges"],
 			in["depositRequired"])
 	}
-	na.Must(200, "POST", "/api/v1/stay/stays/"+sid+":check-in", map[string]any{"idType": "ktp", "idNumber": "3171020202020002"})
+	// before the check-in time the early check-in fee is waived: the folio shows the room night only
+	na.Must(200, "POST", "/api/v1/stay/stays/"+sid+":check-in", map[string]any{"idType": "ktp", "idNumber": "3171020202020002", "waiveEarlyFee": true,
+		"supervisorReason": "night audit test"})
 	ns := na.Must(201, "POST", "/api/v1/stay/stays", map[string]any{"kind": "bungalow", "bungalowTypeId": bt, "arrivalDate": day,
 		"departureDate": plus(1), "ratePlan": "NARO", "guest": guest("No Show", "+62828")}).JSON()["stay"].(map[string]any)
 

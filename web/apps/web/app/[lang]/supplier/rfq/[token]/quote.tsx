@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import { MoneyInput } from '@oneclub/ui';
+import { MoneyInput } from '@oneclub/ui/money-input'; // the barrel's .js re-exports do not resolve in the website build
 import type { Lang } from '../../../../lib';
 
 interface RFQLine { rfqLineId: string; description: string; quantity: string; uom?: string | null; neededBy?: string | null }

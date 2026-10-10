@@ -63,10 +63,6 @@ type NavContext struct {
 	WorkAreas []string
 }
 
-func live(module, label, icon, path string) Item {
-	return Item{Key: module, Label: label, Path: path, Icon: icon, Module: module, Permission: catalog.ModuleAccess(module)}
-}
-
 func m(module, label, icon, path, phase string) Item { //nolint:unused // Coming Soon modules of later phases
 	return Item{Key: module, Label: label, Path: path, Icon: icon, Module: module, Permission: catalog.ModuleAccess(module), ComingSoon: true, Phase: phase}
 }

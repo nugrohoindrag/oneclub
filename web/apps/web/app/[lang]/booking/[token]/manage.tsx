@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import { MoneyInput } from '@oneclub/ui';
+import { MoneyInput } from '@oneclub/ui/money-input'; // the barrel's .js re-exports do not resolve in the website build
 import type { Lang } from '../../../lib';
 import { checkoutHref } from '../../../pay-link';
 

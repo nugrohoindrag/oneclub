@@ -364,6 +364,15 @@ func (m *Module) registerFrontDesk(reg *route.Registry) {
 						out.Failed = append(out.Failed, s.StayNo+": "+msg)
 					}
 				}
+				// the group action itself is audited, also when every bungalow was skipped or refused
+				pid := handle.Property(ctx)
+				if err := db.WithTx(ctx, func(tx pgx.Tx) error {
+					return audit.Record(ctx, tx, audit.Entry{Module: "stay", Action: "group_" + strings.ReplaceAll(op, "-", "_"), EntityType: "stay.stay_group",
+						EntityID: id.String(), PropertyID: &pid, After: map[string]any{"done": out.Done, "failed": out.Failed}})
+				}); err != nil {
+					httpx.WriteError(w, r, err)
+					return
+				}
 				_ = db.WithReadTx(ctx, func(tx pgx.Tx) error {
 					var err error
 					out.Group, err = m.group(ctx, tx, id)
