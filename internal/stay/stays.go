@@ -89,7 +89,22 @@ type Stay struct {
 	UpdatedAt          time.Time  `json:"updatedAt" db:"updated_at"`
 	TotalDue           string     `json:"totalDue" db:"total_due" doc:"Folio charges plus the room nights not posted yet"`
 	Paid               string     `json:"paid" db:"paid"`
-	PaymentStatus      string     `json:"paymentStatus" db:"payment_status" enum:"unpaid,pending,paid,partially_paid,refund_pending,refunded,failed"`
+	PaymentStatus      string     `json:"paymentStatus" db:"payment_status" enum:"unpaid,pending,paid,partially_paid,overpaid,refund_pending,refunded,failed"`
+	// MGCC booking engine and front desk (docs/requirement-booking-hotel-mgcc.md)
+	BookingStatus string     `json:"bookingStatus" db:"booking_status" enum:"requested,awaiting_payment,confirmed,in_house,checked_out,cancelled,no_show,expired,void" doc:"Status of §12.3 for every screen"`
+	HoldExpiresAt *time.Time `json:"holdExpiresAt" db:"hold_expires_at" doc:"Awaiting payment: the bungalow is held until then"`
+	GroupID       *uuid.UUID `json:"groupId" db:"group_id"`
+	GroupNo       *string    `json:"groupNo" db:"group_no"`
+	PublicToken   *string    `json:"publicToken" db:"public_token" doc:"My Stay / e-voucher link of the guest"`
+	OccupantName  *string    `json:"occupantName" db:"occupant_name" doc:"Guest staying in the bungalow when not the booker"`
+	Nationality   *string    `json:"nationality" db:"nationality"`
+	RegisteredAt  *time.Time `json:"registeredAt" db:"registered_at" doc:"Registration card signed"`
+	HasIDPhoto    bool       `json:"hasIdPhoto" db:"has_id_photo"`
+	KeysIssued    int        `json:"keysIssued" db:"keys_issued"`
+	KeysReturned  int        `json:"keysReturned" db:"keys_returned"`
+	KeyNumbers    *string    `json:"keyNumbers" db:"key_numbers"`
+	VoidReason    *string    `json:"voidReason" db:"void_reason"`
+	TaxIncluded   *bool      `json:"taxIncluded" db:"tax_included" doc:"Room price includes tax & service (nett) — one label on every screen (FR-H80)"`
 }
 
 const staySelect = `SELECT s.id, s.property_id, s.stay_no, s.kind, s.reservation_id, r.code AS reservation_code, s.customer_id, c.name AS customer_name,
@@ -106,13 +121,23 @@ const staySelect = `SELECT s.id, s.property_id, s.stay_no, s.kind, s.reservation
 	trim_scale(coalesce(ef.paid, 0))::text AS paid,
 	CASE WHEN EXISTS (SELECT 1 FROM reporting.eng_refunds rf WHERE rf.folio_id = s.folio_id AND rf.status = 'pending') THEN 'refund_pending'
 	  WHEN coalesce(ef.paid, 0) <= 0 AND EXISTS (SELECT 1 FROM reporting.eng_refunds rf WHERE rf.folio_id = s.folio_id AND rf.status = 'completed') THEN 'refunded'
+	  WHEN coalesce(ef.paid, 0) > 0 AND coalesce(ef.paid, 0) > coalesce(ef.charges, 0) + CASE WHEN s.room_posting = 'nightly'
+	    THEN coalesce((s.room_quote->>'total')::numeric, 0) - coalesce((SELECT sum(np.total) FROM stay.night_postings np WHERE np.stay_id = s.id), 0) ELSE 0 END
+	    AND s.status IN ('checked_in', 'checked_out', 'cancelled', 'no_show') THEN 'overpaid'
 	  WHEN coalesce(ef.paid, 0) > 0 AND coalesce(ef.paid, 0) >= coalesce(ef.charges, 0) + CASE WHEN s.room_posting = 'nightly'
 	    THEN coalesce((s.room_quote->>'total')::numeric, 0) - coalesce((SELECT sum(np.total) FROM stay.night_postings np WHERE np.stay_id = s.id), 0) ELSE 0 END THEN 'paid'
 	  WHEN coalesce(ef.paid, 0) > 0 THEN 'partially_paid'
 	  WHEN EXISTS (SELECT 1 FROM reporting.eng_payments ep WHERE ep.folio_id = s.folio_id AND ep.status = 'pending') THEN 'pending'
 	  WHEN EXISTS (SELECT 1 FROM reporting.eng_payments ep WHERE ep.folio_id = s.folio_id AND ep.status = 'cancelled') THEN 'failed'
-	  ELSE 'unpaid' END AS payment_status
-	FROM stay.stays s JOIN reporting.reservations r ON r.reservation_id = s.reservation_id LEFT JOIN reporting.customer_directory c ON c.id = s.customer_id
+	  ELSE 'unpaid' END AS payment_status,
+	CASE WHEN s.status = 'reserved' AND r.status = 'expired' THEN 'expired'
+	  WHEN s.status = 'reserved' AND r.status IN ('draft', 'pending') THEN 'awaiting_payment'
+	  WHEN s.status = 'reserved' THEN 'confirmed' WHEN s.status = 'checked_in' THEN 'in_house' ELSE s.status END AS booking_status,
+	CASE WHEN r.status = 'draft' THEN rr.hold_expires_at END AS hold_expires_at, s.group_id, g.group_no, s.public_token, s.occupant_name, s.nationality,
+	s.registered_at, s.id_photo_file_id IS NOT NULL AS has_id_photo, s.keys_issued, s.keys_returned, s.key_numbers, s.void_reason,
+	(SELECT rp.pricing_mode = 'nett' FROM stay.rate_plans rp WHERE rp.property_id = s.property_id AND upper(rp.code) = upper(s.rate_plan) LIMIT 1) AS tax_included
+	FROM stay.stays s JOIN reporting.reservations r ON r.reservation_id = s.reservation_id JOIN reservation.reservations rr ON rr.id = s.reservation_id
+	LEFT JOIN stay.stay_groups g ON g.id = s.group_id LEFT JOIN reporting.customer_directory c ON c.id = s.customer_id
 	LEFT JOIN stay.bungalows b ON b.id = s.unit_id LEFT JOIN stay.vip_suites v ON v.id = s.unit_id LEFT JOIN stay.meeting_rooms mr ON mr.id = s.unit_id
 	LEFT JOIN stay.bungalow_types bt ON bt.id = s.unit_type_id LEFT JOIN reporting.eng_folios ef ON ef.folio_id = s.folio_id`
 
@@ -177,6 +202,19 @@ type StayInput struct {
 	VIP                bool         `json:"vip,omitempty"`
 	ExpectedArrival    string       `json:"expectedArrival,omitempty" doc:"Expected arrival time HH:MM"`
 	WaitlistID         *uuid.UUID   `json:"waitlistId,omitempty" doc:"Waitlist entry converted by this booking"`
+	// MGCC booking engine and front desk (docs/requirement-booking-hotel-mgcc.md)
+	OccupantName         string     `json:"occupantName,omitempty" doc:"Guest staying in the bungalow when not the booker"`
+	BookerTitle          string     `json:"bookerTitle,omitempty" enum:"mr,mrs,ms"`
+	Nationality          string     `json:"nationality,omitempty"`
+	MarketingConsent     bool       `json:"marketingConsent,omitempty" doc:"Opt-in to news and offers (UU PDP), never pre-ticked"`
+	GroupID              *uuid.UUID `json:"groupId,omitempty" doc:"Add the bungalow to a group reservation (rooming list)"`
+	OverrideRestrictions bool       `json:"overrideRestrictions,omitempty" doc:"Book although a restriction closes the dates (supervisor; reason required)"`
+	ManualDiscount       string     `json:"manualDiscount,omitempty" doc:"Discount on the room price (supervisor; reason required)"`
+	SupervisorReason     string     `json:"supervisorReason,omitempty" doc:"Why a restriction is passed or a manual discount given (audited)"`
+	// set by the booking engine (website / Member App cart)
+	hold        bool   // the bungalow is held (Draft) while the guest pays online
+	holdMinutes int    // how long
+	token       string // public link of the stay (My Stay, e-voucher)
 }
 
 // AddonInput is an add-on ordered with a stay.
@@ -320,6 +358,12 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 					qType = &t
 				}
 			}
+			if aerr == nil && derr == nil && d.After(a) && qType != nil {
+				// booking window, restrictions per date (FR-H09, FR-H65)
+				if err := m.checkStayRules(ctx, tx, property, pol, *qType, a, d, in); err != nil {
+					return StayResult{}, err
+				}
+			}
 			stayPlan := in.RatePlan == ""
 			if !stayPlan {
 				p, err := ratePlan(ctx, tx, property, in.RatePlan)
@@ -346,6 +390,11 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 		}
 		if sq != nil {
 			in.RatePlan = sq.RatePlan
+			if in.ManualDiscount != "" {
+				if err := m.applyManualDiscount(ctx, tx, property, sq, in); err != nil {
+					return StayResult{}, err
+				}
+			}
 			a, _ := time.ParseInLocation("2006-01-02", in.ArrivalDate, loc)
 			d, _ := time.ParseInLocation("2006-01-02", in.DepartureDate, loc)
 			start, end = clockOn(a, pol.CheckInTime, loc), clockOn(d, pol.CheckOutTime, loc)
@@ -460,7 +509,7 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 			return StayResult{}, err
 		}
 		res, err = m.Res.Book(ctx, sp, property, reservation.BookRequest{BusinessLine: "stay", Channel: in.Channel, CustomerID: cid, GuestName: name,
-			GuestPhone: phone, CorporateName: in.CorporateName, Confirm: false, SourceType: "stay.stay", Notes: in.SpecialRequests, Lines: lines,
+			GuestPhone: phone, CorporateName: in.CorporateName, Confirm: false, Hold: in.hold, SourceType: "stay.stay", Notes: in.SpecialRequests, Lines: lines,
 			Attributes: attrs, PolicyRefs: nil})
 		if err != nil {
 			_ = sp.Rollback(ctx)
@@ -477,6 +526,17 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 	}
 	if !booked {
 		return StayResult{}, errs.Conflict("sold_out", "no unit of this type is available for the dates")
+	}
+	if in.hold && in.holdMinutes > 0 {
+		// the bungalow is held while the guest pays online (FR-H35); the
+		// hold time is the server's (FR-H96)
+		until := clock.Now().Add(time.Duration(in.holdMinutes) * time.Minute)
+		if err := reservation.ExtendHold(ctx, tx, res.ID, until); err != nil {
+			return StayResult{}, err
+		}
+		if _, err := tx.Exec(ctx, `UPDATE reservation.reservations SET hold_expires_at = $2 WHERE id = $1`, res.ID, until); err != nil {
+			return StayResult{}, err
+		}
 	}
 	// rates and folio
 	f, err := m.Billing.OpenLineFolio(ctx, tx, billing.LineFolioInput{FolioInput: billing.FolioInput{Property: property, CustomerID: cid, HolderName: name, SourceType: "reservation", SourceID: &res.ID}, BusinessLine: billing.LineStay, ReservationID: &res.ID, CorporateName: in.CorporateName})
@@ -693,6 +753,14 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 	if err := m.Res.SetSource(ctx, tx, res.ID, sid); err != nil {
 		return StayResult{}, err
 	}
+	if in.token == "" {
+		in.token = publicToken()
+	}
+	if _, err := tx.Exec(ctx, `UPDATE stay.stays SET group_id = $2, public_token = $3, occupant_name = $4, booker_title = $5, nationality = $6,
+		marketing_consent = $7 WHERE id = $1`, sid, in.GroupID, in.token, nzs(strings.TrimSpace(in.OccupantName)), nzs(in.BookerTitle),
+		nzs(strings.TrimSpace(in.Nationality)), in.MarketingConsent); err != nil {
+		return StayResult{}, err
+	}
 	if quote != nil {
 		raw, _ := json.Marshal(quote)
 		if _, err := tx.Exec(ctx, `UPDATE stay.stays SET room_posting = 'nightly', room_quote = $2 WHERE id = $1`, sid, raw); err != nil {
@@ -742,11 +810,41 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 	if err != nil {
 		return out, err
 	}
+	out.Quote = sq
+	meta := map[string]any{"source": in.BookingSource}
+	if in.OverrideRestrictions || in.ManualDiscount != "" {
+		meta["supervisorReason"], meta["overrideRestrictions"], meta["manualDiscount"] = in.SupervisorReason, in.OverrideRestrictions, in.ManualDiscount
+	}
 	if err := audit.Record(ctx, tx, audit.Entry{Module: "stay", Action: audit.ActionCreate, EntityType: "stay.stay", EntityID: sid.String(),
-		EntityLabel: no + " · " + u.Name, PropertyID: &property, After: out.Stay, Metadata: map[string]any{"source": in.BookingSource}}); err != nil {
+		EntityLabel: no + " · " + u.Name, PropertyID: &property, After: out.Stay, Metadata: meta, Reason: in.SupervisorReason}); err != nil {
 		return out, err
 	}
+	if in.Kind == "bungalow" && (in.BookingSource == "website" || in.BookingSource == "member_app") {
+		// a new online reservation is seen by the reservation staff in-app (§12.5)
+		if err := m.notifyStaff(ctx, tx, property, "stay.stay.view", "stay.ops_reservation", map[string]any{
+			"title": "Reservasi baru " + out.Stay.StayNo + " · " + deref(out.Stay.TypeName),
+			"body": fmt.Sprintf("%s · %s – %s · %s", guestLabel(out.Stay), out.Stay.Start.In(loc).Format("02 Jan"), out.Stay.End.In(loc).Format("02 Jan 2006"),
+				sourceLabelID(in.BookingSource))}, "/accommodation/reservations"); err != nil {
+			return out, err
+		}
+	}
 	return out, m.notifyGuest(ctx, tx, out.Stay, "stay.reservation_created")
+}
+
+// guestLabel is the name of the guest of a stay.
+func guestLabel(s Stay) string {
+	for _, n := range []*string{s.CustomerName, s.GuestName, s.CorporateName} {
+		if n != nil && *n != "" {
+			return *n
+		}
+	}
+	return s.StayNo
+}
+
+// sourceLabelID names a booking source for the club staff (no OTA, §12.9).
+func sourceLabelID(s string) string {
+	return map[string]string{"website": "Website", "member_app": "Member App", "guest_app": "Guest App", "front_desk": "Front Desk", "phone": "Telepon",
+		"walk_in": "Walk-in", "corporate": "Korporat"}[s]
 }
 
 func guestEmail(g *GuestInput) *string {
@@ -888,8 +986,14 @@ type CheckInInput struct {
 	Adults         int        `json:"adults,omitempty"`
 	Children       int        `json:"children,omitempty"`
 	Notes          string     `json:"notes,omitempty"`
-	WaiveEarlyFee  bool       `json:"waiveEarlyFee,omitempty" doc:"Early check-in without the early check-in fee"`
-	OverrideStatus bool       `json:"overrideStatus,omitempty" doc:"Check in although the bungalow is not Ready (manager decision, audited)"`
+	WaiveEarlyFee  bool       `json:"waiveEarlyFee,omitempty" doc:"Early check-in without the early check-in fee (supervisor; reason required)"`
+	OverrideStatus bool       `json:"overrideStatus,omitempty" doc:"Check in although the bungalow is not Ready (supervisor; reason required)"`
+	// registration card and keys (docs/requirement-booking-hotel-mgcc.md FR-H47–H49)
+	Nationality      string `json:"nationality,omitempty"`
+	Signature        string `json:"signature,omitempty" doc:"Signature of the registration card: PNG data URL drawn on the tablet / phone"`
+	KeysIssued       *int   `json:"keysIssued,omitempty" doc:"Keys / key cards handed over (they must come back at check-out)"`
+	KeyNumbers       string `json:"keyNumbers,omitempty"`
+	SupervisorReason string `json:"supervisorReason,omitempty" doc:"Why a fee is waived, a bungalow not Ready or an unpaid deposit is accepted"`
 }
 
 // CheckIn verifies identity and unit readiness and starts the stay (FR-STY-06/09).
@@ -921,8 +1025,37 @@ func (m *Module) CheckIn(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Check
 		if err != nil {
 			return StayResult{}, err
 		}
-		if pol.RequireReadyUnit && u.Readiness != "ready" && !in.OverrideStatus {
-			return StayResult{}, errs.Conflict("unit_not_ready", u.Name+" is Not Ready; assign another unit or mark it Ready")
+		if pol.RequireReadyUnit && u.Readiness != "ready" {
+			if !in.OverrideStatus {
+				return StayResult{}, errs.Conflict("unit_not_ready", u.Name+" belum Ready: pilih bungalow lain, minta housekeeping menyelesaikannya, "+
+					"atau supervisor meng-override dengan alasan")
+			}
+			if err := supervised(ctx, s.PropertyID, in.SupervisorReason, "Checking in a bungalow that is not Ready"); err != nil {
+				return StayResult{}, err
+			}
+		}
+		if pol.DepositBeforeCheckIn && s.BookingStatus == "awaiting_payment" {
+			r, err := m.Res.Get(ctx, tx, s.ReservationID, false)
+			if err != nil {
+				return StayResult{}, err
+			}
+			now := decimal.Zero
+			if in.Deposit != nil {
+				now, _ = decimal.NewFromString(in.Deposit.Amount)
+			}
+			if decOf(s.Paid).Add(now).LessThan(decOf(r.DepositRequired)) && in.SupervisorReason == "" {
+				return StayResult{}, errs.Conflict("deposit_required", fmt.Sprintf("deposit Rp %s belum dibayar: terima pembayaran dulu",
+					decOf(r.DepositRequired).Sub(decOf(s.Paid)).StringFixed(0)))
+			} else if decOf(s.Paid).Add(now).LessThan(decOf(r.DepositRequired)) {
+				if err := supervised(ctx, s.PropertyID, in.SupervisorReason, "Checking in without the deposit"); err != nil {
+					return StayResult{}, err
+				}
+			}
+		}
+		if in.WaiveEarlyFee && clock.Now().Before(s.Start) && decOf(pol.EarlyCheckInFee).IsPositive() {
+			if err := supervised(ctx, s.PropertyID, in.SupervisorReason, "Waiving the early check-in fee"); err != nil {
+				return StayResult{}, err
+			}
 		}
 		if blk, err := m.activeBlock(ctx, tx, s.UnitID, clock.Now()); err != nil {
 			return StayResult{}, err
@@ -973,10 +1106,22 @@ func (m *Module) CheckIn(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Check
 	if _, err := m.Res.CheckIn(ctx, tx, r.ID); err != nil {
 		return StayResult{}, err
 	}
+	if s.Kind == "bungalow" {
+		if err := m.register(ctx, tx, s, in); err != nil {
+			return StayResult{}, err
+		}
+	}
 	out, err := m.setStatus(ctx, tx, s, "checked_in", `, checked_in_at = now(), id_type = $4, id_number_masked = $5, checked_in_by = $6,
 		notes = coalesce($7, notes)`, nzs(in.IDType), nzs(mask.Phone(in.IDNumber)), actor(ctx), nzs(in.Notes))
 	if err != nil {
 		return out, err
+	}
+	if in.SupervisorReason != "" {
+		if err := audit.Record(ctx, tx, audit.Entry{Module: "stay", Action: "supervisor_override", EntityType: "stay.stay", EntityID: s.ID.String(),
+			EntityLabel: s.StayNo, PropertyID: &s.PropertyID, Reason: in.SupervisorReason, After: map[string]any{"waiveEarlyFee": in.WaiveEarlyFee,
+				"overrideStatus": in.OverrideStatus, "step": "check_in"}}); err != nil {
+			return out, err
+		}
 	}
 	if _, err = m.Events.Publish(ctx, tx, "stay.checked_in", "stay.stay", &s.ID, &s.PropertyID, map[string]any{"stayId": s.ID, "kind": s.Kind,
 		"unit": s.UnitName, "customerId": s.CustomerID, "reservationId": s.ReservationID}); err != nil {
@@ -987,8 +1132,12 @@ func (m *Module) CheckIn(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Check
 
 type CheckOutInput struct {
 	At           *time.Time `json:"at,omitempty" doc:"Actual departure / end; default now"`
-	WaiveLateFee bool       `json:"waiveLateFee,omitempty" doc:"No late check-out fee (manager decision, audited)"`
+	WaiveLateFee bool       `json:"waiveLateFee,omitempty" doc:"No late check-out fee (supervisor; reason required)"`
 	Notes        string     `json:"notes,omitempty"`
+	// keys (FR-H49)
+	KeysReturned     *int   `json:"keysReturned,omitempty" doc:"Keys handed back; fewer than handed over stops the check-out"`
+	OverrideKeys     bool   `json:"overrideKeys,omitempty" doc:"Check out although keys are missing (supervisor; reason required)"`
+	SupervisorReason string `json:"supervisorReason,omitempty"`
 }
 
 // CheckOut charges late check-out per Stay Policies, requires the folio to
@@ -1009,6 +1158,30 @@ func (m *Module) CheckOut(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Chec
 	if in.At != nil {
 		at = *in.At
 	}
+	if s.Kind == "bungalow" {
+		// the keys come back (FR-H49); a supervisor may let the guest go with a reason
+		returned := s.KeysReturned
+		if in.KeysReturned != nil {
+			returned = max(*in.KeysReturned, 0)
+			if _, err := tx.Exec(ctx, `UPDATE stay.stays SET keys_returned = $2 WHERE id = $1`, s.ID, returned); err != nil {
+				return StayResult{}, err
+			}
+		}
+		if s.KeysIssued > returned {
+			if !in.OverrideKeys {
+				return StayResult{}, errs.Conflict("keys_outstanding", fmt.Sprintf("%d kunci belum dikembalikan: terima kuncinya, atau supervisor meng-override dengan alasan",
+					s.KeysIssued-returned))
+			}
+			if err := supervised(ctx, s.PropertyID, in.SupervisorReason, "Checking out with missing keys"); err != nil {
+				return StayResult{}, err
+			}
+		}
+	}
+	if in.WaiveLateFee {
+		if err := supervised(ctx, s.PropertyID, in.SupervisorReason, "Waiving the late check-out fee"); err != nil {
+			return StayResult{}, err
+		}
+	}
 	late := at.Sub(s.End) - time.Duration(pol.LateCheckoutGraceMinutes)*time.Minute
 	if s.Kind == "bungalow" && late > 0 && s.FolioID != nil && !in.WaiveLateFee {
 		if err := m.chargeLateCheckout(ctx, tx, s, pol, at, late); err != nil {
@@ -1022,6 +1195,10 @@ func (m *Module) CheckOut(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Chec
 		}
 	}
 	if s.FolioID != nil {
+		// the deposits held since the booking pay the bill first (a deposit is Paid, demo #17)
+		if err := m.Billing.ApplyDeposits(ctx, tx, *s.FolioID); err != nil {
+			return StayResult{}, err
+		}
 		f, err := billing.GetFolio(ctx, tx, *s.FolioID)
 		if err != nil {
 			return StayResult{}, err
@@ -1070,6 +1247,13 @@ func (m *Module) CheckOut(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Chec
 		at, actor(ctx), nzs(in.Notes))
 	if err != nil {
 		return out, err
+	}
+	if in.SupervisorReason != "" {
+		if err := audit.Record(ctx, tx, audit.Entry{Module: "stay", Action: "supervisor_override", EntityType: "stay.stay", EntityID: s.ID.String(),
+			EntityLabel: s.StayNo, PropertyID: &s.PropertyID, Reason: in.SupervisorReason, After: map[string]any{"waiveLateFee": in.WaiveLateFee,
+				"overrideKeys": in.OverrideKeys, "step": "check_out"}}); err != nil {
+			return out, err
+		}
 	}
 	if _, err = m.Events.Publish(ctx, tx, "stay.checked_out", "stay.stay", &s.ID, &s.PropertyID, map[string]any{"stayId": s.ID, "kind": s.Kind,
 		"unit": s.UnitName, "customerId": s.CustomerID, "total": out.Total}); err != nil {
@@ -1214,6 +1398,12 @@ func (m *Module) Cancel(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Cancel
 	}
 	if s.PackageBooking != nil {
 		return StayResult{}, errPackageStay()
+	}
+	if in.WaiveFee {
+		// a cancellation outside the policy is a supervisor decision (FR-H91)
+		if err := supervised(ctx, s.PropertyID, in.Reason, "Cancelling without the cancellation fee"); err != nil {
+			return StayResult{}, err
+		}
 	}
 	fee, policy, err := m.cancellationFee(ctx, tx, s, in.WaiveFee)
 	if err != nil {

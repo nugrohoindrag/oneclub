@@ -188,6 +188,8 @@ var Promotions = &resource.Def{
 		{Name: "usageLimit", Column: "usage_limit", Label: "Usage Limit", Kind: resource.Int, Min: resource.Min(1)},
 		{Name: "usedCount", Column: "used_count", Label: "Used", Kind: resource.Int, ReadOnly: true},
 		{Name: "priority", Column: "priority", Label: "Priority", Kind: resource.Int, Default: int64(100)},
+		{Name: "campaignId", Column: "campaign_id", Label: "CRM Campaign (promo code tracked to the reservation)", Kind: resource.UUID,
+			Ref: &resource.Ref{Table: "crm.campaigns", SameProperty: true, Label: "campaign"}},
 		resource.Status("active", "inactive")},
 	Hooks: resource.Hooks{BeforeWrite: func(_ context.Context, _ pgx.Tx, v, before map[string]any) error {
 		get := func(k string) any {
@@ -247,17 +249,42 @@ var PreventiveSchedules = &resource.Def{
 		resource.Status("active", "inactive")},
 }
 
+// RateRestrictions close the sale of a room type on some nights, close them
+// to arrival / departure or ask a minimum stay, for every channel or some
+// (docs/requirement-booking-hotel-mgcc.md FR-H65). The front desk may pass
+// a restriction with the supervisor permission (stay.stay.supervise).
+var RateRestrictions = &resource.Def{
+	Key: "stay.rate_restriction", SchemaName: "AccommodationRateRestriction", Module: "stay", Perm: "stay.rate_restriction", Path: "/api/v1/stay/rate-restrictions",
+	Table: "stay.rate_restrictions", Name: "Restriction", Plural: "Restrictions", Tag: tagAccommodation, PropertyScoped: true, Archive: true, CodeField: "code",
+	OrderBy: "start_date, code, id",
+	Fields: []resource.Field{codeField("Code"),
+		{Name: "bungalowTypeId", Column: "bungalow_type_id", Label: "Room Type (empty = every type)", Kind: resource.UUID, Filter: true,
+			Ref: &resource.Ref{Table: "stay.bungalow_types", SameProperty: true, Label: "room type"}},
+		{Name: "startDate", Column: "start_date", Label: "From (night)", Kind: resource.Date, Required: true},
+		{Name: "endDate", Column: "end_date", Label: "To (night)", Kind: resource.Date, Required: true},
+		{Name: "closed", Column: "closed", Label: "Stop sale (closed)", Kind: resource.Bool, Default: false},
+		{Name: "closedToArrival", Column: "closed_to_arrival", Label: "Closed to arrival", Kind: resource.Bool, Default: false},
+		{Name: "closedToDeparture", Column: "closed_to_departure", Label: "Closed to departure", Kind: resource.Bool, Default: false},
+		{Name: "minNights", Column: "min_nights", Label: "Minimum nights", Kind: resource.Int, Min: resource.Min(1)},
+		{Name: "bookingSources", Column: "booking_sources", Label: "Channels (empty = all)", Kind: resource.StringList, Enum: BookingSources, Default: []string{}},
+		{Name: "reason", Column: "reason", Label: "Reason", Kind: resource.String, Max: 200},
+		resource.Status("active", "inactive")},
+}
+
 // accommodationDefs carry their own permission prefix; accommodationShared
 // reuse one (rate plan prices, seasons and season prices: stay.rate_plan).
 var (
-	accommodationDefs   = []*resource.Def{Addons, StayPackages, RatePlans, Promotions, CorporateTerms, PreventiveSchedules}
+	accommodationDefs   = []*resource.Def{Addons, StayPackages, RatePlans, Promotions, CorporateTerms, PreventiveSchedules, RateRestrictions}
 	accommodationShared = []*resource.Def{RatePlanPrices, Seasons, SeasonPrices}
 )
 
 func accommodationPermissions() []catalog.Permission {
 	var out []catalog.Permission
 	for _, p := range [][]catalog.Permission{
-		catalog.P("stay", "stay", "reschedule", "charge"),
+		catalog.P("stay", "stay", "reschedule", "charge", "supervise", "charge_order"),
+		catalog.P("stay", "identity", "view"),
+		catalog.P("stay", "incident", "view", "create", "manage"),
+		catalog.P("stay", "night_audit", "view", "run"),
 		catalog.P("stay", "room_status", "view", "update"),
 		catalog.P("stay", "room_block", "view", "manage"),
 		catalog.P("stay", "housekeeping", "view", "work", "manage", "inspect"),
@@ -279,19 +306,23 @@ var (
 		"stay.room_block.view", "stay.room_block.manage", "stay.housekeeping.view", "stay.housekeeping.work", "stay.housekeeping.manage",
 		"stay.housekeeping.inspect", "stay.work_order.view", "stay.work_order.create", "stay.work_order.work", "stay.work_order.manage",
 		"stay.guest_request.view", "stay.guest_request.create", "stay.guest_request.work", "stay.waitlist.view", "stay.waitlist.manage",
-		"stay.guest.view", "stay.guest.update", "stay.dashboard.view"}
+		"stay.guest.view", "stay.guest.update", "stay.dashboard.view", "stay.stay.supervise", "stay.identity.view", "stay.incident.view",
+		"stay.incident.create", "stay.incident.manage", "stay.night_audit.view", "stay.night_audit.run", "stay.stay.charge_order"}
 	accommodationFrontOffice = []string{"stay.stay.reschedule", "stay.stay.charge", "stay.room_status.view", "stay.room_status.update",
 		"stay.room_block.view", "stay.housekeeping.view", "stay.work_order.view", "stay.work_order.create", "stay.guest_request.view",
 		"stay.guest_request.create", "stay.guest_request.work", "stay.waitlist.view", "stay.waitlist.manage", "stay.guest.view", "stay.guest.update",
-		"stay.dashboard.view", "stay.addon.view", "stay.package.view", "stay.rate_plan.view", "stay.promotion.view", "stay.corporate_term.view"}
+		"stay.dashboard.view", "stay.addon.view", "stay.package.view", "stay.rate_plan.view", "stay.promotion.view", "stay.corporate_term.view",
+		"stay.identity.view", "stay.incident.view", "stay.incident.create", "stay.night_audit.view", "stay.night_audit.run", "stay.rate_restriction.view",
+		"stay.bungalow_type.view", "stay.stay.charge_order"}
 	accommodationReservations = []string{"stay.stay.reschedule", "stay.room_status.view", "stay.room_block.view", "stay.waitlist.view",
 		"stay.waitlist.manage", "stay.guest.view", "stay.guest.update", "stay.guest_request.view", "stay.guest_request.create",
-		"stay.addon.view", "stay.package.view", "stay.rate_plan.view", "stay.promotion.view", "stay.corporate_term.view", "stay.dashboard.view"}
+		"stay.addon.view", "stay.package.view", "stay.rate_plan.view", "stay.promotion.view", "stay.corporate_term.view", "stay.dashboard.view",
+		"stay.rate_restriction.view", "stay.rate_restriction.create", "stay.rate_restriction.update", "stay.incident.view", "stay.bungalow_type.view"}
 	accommodationHousekeeping = []string{"stay.bungalow.view", "stay.bungalow_type.view", "stay.room_status.view", "stay.room_status.update",
 		"stay.housekeeping.view", "stay.housekeeping.work", "stay.housekeeping.inspect", "stay.guest_request.view", "stay.guest_request.work",
-		"stay.work_order.view", "stay.work_order.create"}
+		"stay.work_order.view", "stay.work_order.create", "stay.incident.create"}
 	accommodationMaintenance = []string{"stay.bungalow.view", "stay.bungalow_type.view", "stay.room_status.view", "stay.work_order.view",
-		"stay.work_order.create", "stay.work_order.work", "stay.guest_request.view", "stay.guest_request.work", "stay.preventive_schedule.view"}
+		"stay.work_order.create", "stay.work_order.work", "stay.guest_request.view", "stay.guest_request.work", "stay.preventive_schedule.view", "stay.incident.create"}
 	accommodationViewer = []string{"stay.dashboard.view", "stay.room_status.view", "stay.housekeeping.view", "stay.work_order.view",
-		"stay.guest_request.view", "stay.waitlist.view", "stay.guest.view", "stay.bungalow_type.view"}
+		"stay.guest_request.view", "stay.waitlist.view", "stay.guest.view", "stay.bungalow_type.view", "stay.incident.view", "stay.night_audit.view"}
 )

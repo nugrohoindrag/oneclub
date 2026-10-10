@@ -136,7 +136,7 @@ func Templates() []provision.Template {
 			"en": {"A {{.type}} is available", "Hello {{.name}},\n\nGood news: a {{.type}} is now available from {{.arrival}} for {{.nights}} night(s) (waitlist {{.waitlistNo}}). Contact us to confirm your reservation."},
 			"id": {"{{.type}} tersedia", "Halo {{.name}},\n\nKabar baik: {{.type}} kini tersedia mulai {{.arrival}} untuk {{.nights}} malam (waitlist {{.waitlistNo}}). Hubungi kami untuk konfirmasi reservasi."}},
 	}
-	staff := []string{"stay.ops_housekeeping", "stay.ops_work_order", "stay.ops_guest_request", "stay.ops_waitlist"}
+	staff := []string{"stay.ops_housekeeping", "stay.ops_work_order", "stay.ops_guest_request", "stay.ops_waitlist", "stay.ops_reservation"}
 	var out []provision.Template
 	for ev, locs := range guest {
 		for loc, c := range locs {
@@ -175,11 +175,33 @@ func (w *DailyWorker) Work(ctx context.Context, _ *river.Job[DailyArgs]) error {
 	return err
 }
 
-// RegisterJobs adds the accommodation job (07:00 every day).
+// ExpireArgs releases the bungalows whose online payment time ran out.
+type ExpireArgs struct{}
+
+func (ExpireArgs) Kind() string { return "stay_expire_holds" }
+func (ExpireArgs) InsertOpts() river.InsertOpts {
+	return river.InsertOpts{Queue: jobs.QueueMaintenance, MaxAttempts: 3}
+}
+
+// ExpireWorker runs ExpireHolds.
+type ExpireWorker struct {
+	river.WorkerDefaults[ExpireArgs]
+	M *Module
+}
+
+func (w *ExpireWorker) Work(ctx context.Context, _ *river.Job[ExpireArgs]) error {
+	_, err := w.M.ExpireHolds(ctx)
+	return err
+}
+
+// RegisterJobs adds the accommodation job (07:00 every day) and the expiry
+// of the unpaid holds (every minute, docs/requirement-booking-hotel-mgcc.md FR-H36).
 func (m *Module) RegisterJobs(reg *jobs.Registrar, loc func() *time.Location) {
 	river.AddWorker(reg.Workers, &DailyWorker{M: m})
+	river.AddWorker(reg.Workers, &ExpireWorker{M: m})
 	reg.Periodic = append(reg.Periodic,
-		river.NewPeriodicJob(jobs.DailyAt{Hour: 7, Minute: 0, Location: loc}, func() (river.JobArgs, *river.InsertOpts) { return DailyArgs{}, nil }, nil))
+		river.NewPeriodicJob(jobs.DailyAt{Hour: 7, Minute: 0, Location: loc}, func() (river.JobArgs, *river.InsertOpts) { return DailyArgs{}, nil }, nil),
+		river.NewPeriodicJob(river.PeriodicInterval(time.Minute), func() (river.JobArgs, *river.InsertOpts) { return ExpireArgs{}, nil }, nil))
 }
 
 // DailyResult reports a run of the daily job.

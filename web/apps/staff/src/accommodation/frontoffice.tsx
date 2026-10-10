@@ -4,8 +4,9 @@ import { qs, useGet, type Page } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import { DataTable, Empty, ErrorAlert, Icon, PageHeader, StatTile, StatusPill, TextField, useAuth } from '@oneclub/shell';
 import { Tabs } from '../p1/common';
+import { HandoverPanel, MoveModal, PrintMenu } from './mgcc';
 import {
-  CheckInModal, CheckOutModal, timeOf as formatTime, OCCUPANCY, PaymentStatus, RequestModal, RequestMove, RoomStatus, StayDrawer, guestOf, label, money, todayISO,
+  AssignModal, ChargeModal, PayModal, CheckInModal, CheckOutModal, timeOf as formatTime, OCCUPANCY, PaymentStatus, RequestModal, RequestMove, RoomStatus, StayDrawer, guestOf, label, money, todayISO,
   type GuestRequest, type RoomState, type Stay,
 } from './shared';
 import { RoomStatusBoard } from './rooms';
@@ -33,7 +34,11 @@ export function FrontOfficePage({ ops }: { ops?: boolean }) {
   const newLink = ops ? '/ops/stay-desk/new' : '/accommodation/reservations/new';
   const act = (s: Stay) => (
     <div className="oc-row">
+      {s.status === 'reserved' && !s.unitAssigned && can('stay.stay.update') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={(e) => { e.stopPropagation(); setDialog({ kind: 'assign', stay: s }); }}>Assign</button>}
+      {s.status === 'reserved' && s.paymentStatus !== 'paid' && s.folioId && can('billing.payment.create') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={(e) => { e.stopPropagation(); setDialog({ kind: 'pay', stay: s }); }}>Payment</button>}
       {s.status === 'reserved' && can('stay.stay.check_in') && <button className="oc-btn oc-btn-ink oc-btn-sm" onClick={(e) => { e.stopPropagation(); setDialog({ kind: 'in', stay: s }); }}>Check in</button>}
+      {s.status === 'checked_in' && can('stay.stay.charge') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={(e) => { e.stopPropagation(); setDialog({ kind: 'charge', stay: s }); }}>Charge</button>}
+      {s.status === 'checked_in' && can('stay.stay.update') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={(e) => { e.stopPropagation(); setDialog({ kind: 'move', stay: s }); }}>Move</button>}
       {s.status === 'checked_in' && can('stay.stay.check_out') && <button className="oc-btn oc-btn-primary oc-btn-sm" onClick={(e) => { e.stopPropagation(); setDialog({ kind: 'out', stay: s }); }}>Check out</button>}
       {s.status === 'checked_in' && can('stay.guest_request.create') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={(e) => { e.stopPropagation(); setDialog({ kind: 'req', stay: s }); }}>Request</button>}
     </div>
@@ -59,8 +64,10 @@ export function FrontOfficePage({ ops }: { ops?: boolean }) {
           </>
         )}
       </div>
-      <Tabs value={tab} onChange={setTab} tabs={[{ value: 'arrivals', label: "Today's Arrival" }, { value: 'departures', label: "Today's Departure" },
-        { value: 'in_house', label: 'In-house Guests' }, { value: 'rooms', label: 'Room Status' }, { value: 'requests', label: 'Guest Requests' }]} />
+      <HandoverPanel />
+      <PrintMenu date={date} />
+      <Tabs value={tab} onChange={setTab} tabs={[{ value: 'arrivals', label: `Kedatangan (${x?.counts.arrivals ?? 0})` }, { value: 'departures', label: `Keberangkatan (${x?.counts.departures ?? 0})` },
+        { value: 'in_house', label: `In-house (${x?.counts.inHouse ?? 0})` }, { value: 'rooms', label: 'Status Kamar' }, { value: 'requests', label: 'Permintaan' }]} />
       <ErrorAlert error={fo.error} />
       {tab === 'arrivals' && (
         <div className="oc-card">
@@ -81,8 +88,9 @@ export function FrontOfficePage({ ops }: { ops?: boolean }) {
             empty={<Empty title="No departures" icon="flight_takeoff" />} columns={[
               { key: 'unit', header: 'Bungalow', render: (s) => <strong>{s.unitCode ?? s.unitName}</strong> },
               { key: 'guest', header: 'Guest', render: (s) => <>{guestOf(s)}<div className="oc-small oc-muted">{s.stayNo}</div></> },
-              { key: 'end', header: 'Check-out', render: (s) => <>{formatDateTime(s.end)}{s.lateCheckOutUntil ? <div className="oc-small">late until {formatTime(s.lateCheckOutUntil)}</div> : null}</> },
+              { key: 'end', header: 'Check-out', render: (s) => <>{formatDateTime(s.end)}{new Date(s.lateCheckOutUntil ?? s.end).getTime() < Date.now() ? <div className="oc-small acc-full">overdue</div> : null}{s.lateCheckOutUntil ? <div className="oc-small">late until {formatTime(s.lateCheckOutUntil)}</div> : null}</> },
               { key: 'due', header: 'Balance', align: 'right', render: (s) => money(Math.max(Number(s.totalDue) - Number(s.paid), 0)) },
+              { key: 'keys', header: 'Keys', render: (s) => (s.keysIssued ? `${s.keysReturned}/${s.keysIssued}` : '—') },
               { key: 'pay', header: 'Payment', render: (s) => <PaymentStatus status={s.paymentStatus} /> }]} />
         </div>
       )}
@@ -103,6 +111,10 @@ export function FrontOfficePage({ ops }: { ops?: boolean }) {
       {dialog?.kind === 'in' && <CheckInModal stay={dialog.stay} onClose={() => setDialog(null)} />}
       {dialog?.kind === 'out' && <CheckOutModal stay={dialog.stay} onClose={() => setDialog(null)} />}
       {dialog?.kind === 'req' && <RequestModal stay={dialog.stay} onClose={() => setDialog(null)} />}
+      {dialog?.kind === 'assign' && <AssignModal stay={dialog.stay} onClose={() => setDialog(null)} />}
+      {dialog?.kind === 'pay' && <PayModal stay={dialog.stay} onClose={() => setDialog(null)} />}
+      {dialog?.kind === 'charge' && <ChargeModal stay={dialog.stay} onClose={() => setDialog(null)} />}
+      {dialog?.kind === 'move' && <MoveModal stay={dialog.stay} onClose={() => setDialog(null)} />}
       {x && <p className="oc-small oc-muted">Room status: {Object.entries(x.rooms).map(([k, n]) => `${label(k)} ${n}`).join(' · ')}. {OCCUPANCY.available[0]} bungalows can be sold.</p>}
     </div>
   );

@@ -59,7 +59,9 @@ func TestP2StayAndVenue(t *testing.T) {
 		t.Fatalf("check-in: %v", ci)
 	}
 	// the checked-in unit cannot be booked for the same night from any channel
-	if r := sa.Do("POST", "/api/v1/stay/stays", map[string]any{"kind": "bungalow", "unitId": stay["unitId"], "arrivalDate": arr, "departureDate": dep,
+	// (a website check-in is today at the earliest: docs/requirement-booking-hotel-mgcc.md FR-H09)
+	if r := sa.Do("POST", "/api/v1/stay/stays", map[string]any{"kind": "bungalow", "unitId": stay["unitId"],
+		"arrivalDate": time.Now().In(f.Loc).Format("2006-01-02"), "departureDate": dep,
 		"ratePlan": "STAY_RO", "guest": map[string]any{"name": "Web guest"}, "channel": "website"}); r.Status != 409 {
 		t.Fatalf("double booking of a checked-in unit: %s", r)
 	}

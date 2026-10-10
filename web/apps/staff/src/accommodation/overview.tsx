@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { qs, useGet } from '@oneclub/api-client';
 import { formatDate, formatNumber } from '@oneclub/i18n';
 import {
-  Amount, BreakdownList, ColumnChart, DashButton, DashCard, DashGrid, DashHead, DashTable, ErrorAlert, Gauge, MiniCard, Skeleton, useAuth,
+  Amount, BreakdownList, ColumnChart, DashButton, DashCard, DashGrid, DashHead, DashTable, ErrorAlert, Gauge, Icon, MiniCard, Skeleton, useAuth,
   type DashColumn,
 } from '@oneclub/shell';
 import { moneyShort } from '../p1/common';
@@ -23,6 +23,7 @@ interface Dash {
   inHouseGuests: number; revenue: string; adr: string; revpar: string; cancelled: number; noShows: number; roomStatus: Record<string, number>;
   arrivals: Stay[]; departures: Stay[]; expectedCheckIns: number; expectedCheckOuts: number; pendingPayment: Stay[]; pendingPreparation: Stay[]; vip: Stay[];
   requests: GuestRequest[]; housekeepingTasks: HKTask[]; maintenanceIssues: WorkOrder[]; week: NightStat[];
+  soldTonight: number; inHouseNow: number; outOfOrder: number; alerts: { kind: string; message: string; stayId: string | null; stayNo: string | null }[];
 }
 
 export function AccommodationOverviewPage() {
@@ -49,8 +50,10 @@ export function AccommodationOverviewPage() {
 
       <DashGrid>
         <MiniCard span={3} label="Occupancy tonight" value={<Amount text={`${x.occupancy}%`} size="md" />} delta={<span className="oc-dash-chip-suffix">{x.night.occupied} of {x.night.available}</span>} />
-        <MiniCard span={3} label="Available bungalows" value={<Amount text={formatNumber(x.availableBungalows)} size="md" />} to="/accommodation/bungalows" />
-        <MiniCard span={3} label="Occupied bungalows" value={<Amount text={formatNumber(x.occupiedBungalows)} size="md" />} to="/accommodation/front-office?tab=in_house" />
+        <MiniCard span={3} label="Sold tonight" value={<Amount text={formatNumber(x.soldTonight)} size="md" />} delta={<span className="oc-dash-chip-suffix">checked in or not</span>} to="/accommodation/reservations?tab=confirmed" />
+        <MiniCard span={3} label="In-house now" value={<Amount text={formatNumber(x.inHouseNow)} size="md" />} to="/accommodation/front-office?tab=in_house" />
+        <MiniCard span={3} label="Available tonight" value={<Amount text={formatNumber(x.availableBungalows)} size="md" />}
+          delta={<span className="oc-dash-chip-suffix">{x.night.units} active − {x.outOfOrder} out of order − {x.soldTonight} sold</span>} to="/accommodation/room-rack" />
         <MiniCard span={3} label="In-house guests" value={<Amount text={formatNumber(x.inHouseGuests)} size="md" />} />
         <MiniCard span={3} label="Today's arrivals" value={<Amount text={formatNumber(x.todaysArrivals)} size="md" />} to="/accommodation/front-office" />
         <MiniCard span={3} label="Today's departures" value={<Amount text={formatNumber(x.todaysDepartures)} size="md" />} to="/accommodation/front-office?tab=departures" />
@@ -61,6 +64,17 @@ export function AccommodationOverviewPage() {
         <MiniCard span={3} label="Bungalows ready" value={<Amount text={formatNumber(x.roomStatus.ready ?? 0)} size="md" />} to="/accommodation/housekeeping" />
         <MiniCard span={3} label="Dirty · cleaning · maintenance" value={<Amount text={`${x.roomStatus.dirty ?? 0} · ${(x.roomStatus.cleaning ?? 0) + (x.roomStatus.cleaned ?? 0)} · ${(x.roomStatus.maintenance ?? 0) + (x.roomStatus.out_of_order ?? 0)}`} size="md" />} to="/accommodation/housekeeping" />
       </DashGrid>
+
+      {x.alerts.length > 0 && (
+        <DashGrid>
+          <DashCard span={12} icon="warning" tone="red" title={`Attention (${x.alerts.length})`}>
+            <ul className="acc-alerts">{x.alerts.map((a, i) => (
+              <li key={i}><Icon name={a.kind === 'late_departure' ? 'schedule' : a.kind === 'ooo_reserved' ? 'build' : 'payments'} size={18} />
+                {a.stayId ? <button type="button" className="oc-btn oc-btn-text oc-btn-sm" onClick={() => setOpen(a.stayId)}>{a.message}</button> : a.message}</li>))}
+            </ul>
+          </DashCard>
+        </DashGrid>
+      )}
 
       <DashGrid>
         <DashCard span={8} icon="bar_chart" tone="blue" title="Next 7 nights" action={<DashButton to="/accommodation/room-rack" icon="calendar_view_week">Room rack</DashButton>}>

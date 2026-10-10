@@ -109,9 +109,11 @@ function BlockModal({ unit, onClose, from }: { unit: { id: string; code: string 
 
 // ── room rack (§7) ────────────────────────────────────────────────────────
 
-interface Segment { kind: 'stay' | 'block'; id: string; label: string; start: string; end: string; status: string; guest?: string; stayNo?: string; vip: boolean }
+interface Segment { kind: 'stay' | 'block'; id: string; label: string; start: string; end: string; status: string; guest?: string; stayNo?: string; vip: boolean; groupNo?: string }
 interface RackUnit { id: string; code: string; name: string; typeId: string; typeName: string; hkStatus: string; operationalStatus: string; segments: Segment[] }
-interface Rack { from: string; days: number; dates: string[]; units: RackUnit[]; unplaced: Segment[] }
+interface Restriction { id: string; code: string; bungalowTypeId: string | null; startDate: string; endDate: string; closed: boolean; closedToArrival: boolean;
+  closedToDeparture: boolean; minNights: number | null; bookingSources: string[]; reason: string | null }
+interface Rack { from: string; days: number; dates: string[]; units: RackUnit[]; unplaced: Segment[]; restrictions: Restriction[] }
 
 export function RoomRackPage() {
   const { can } = useAuth();
@@ -168,13 +170,23 @@ export function RoomRackPage() {
                       style={{ left: `calc(${(a / days) * 100}% + 2px)`, width: `calc(${((b - a) / days) * 100}% - 4px)` }}
                       title={s.kind === 'stay' ? `${s.stayNo} · ${s.guest} · ${formatDateTime(s.start)} → ${formatDateTime(s.end)}` : `${label(s.status)}: ${s.label}`}
                       onClick={() => (s.kind === 'stay' ? setOpen(s.id) : can('stay.room_block.manage') && window.confirm(`Release the block "${s.label}"?`) && release.mutate({ id: s.id }))}>
-                      {s.vip ? '★ ' : ''}{s.kind === 'stay' ? s.guest : `${label(s.status)} · ${s.label}`}
+                      {s.vip ? '★ ' : ''}{s.groupNo ? `[${s.groupNo}] ` : ''}{s.kind === 'stay' ? s.guest : `${label(s.status)} · ${s.label}`}
                     </button>
                   );
                 })}
               </div>
             </div>
           ))}
+          {x.restrictions.length > 0 && (
+            <div className="acc-rack-unplaced">
+              <strong>Restrictions:</strong>{' '}
+              {x.restrictions.map((r) => (
+                <span key={r.id} className="oc-chip">{formatDate(r.startDate).slice(0, 6)}–{formatDate(r.endDate).slice(0, 6)} · {(types.data?.items ?? []).find((t) => t.id === r.bungalowTypeId)?.name as string ?? 'all types'} ·{' '}
+                  {[r.closed && 'closed', r.closedToArrival && 'no arrival', r.closedToDeparture && 'no departure', r.minNights && `min ${r.minNights} nights`].filter(Boolean).join(', ')}
+                  {r.bookingSources.length ? ` (${r.bookingSources.join(', ')})` : ''}{r.reason ? ` — ${r.reason}` : ''}</span>
+              ))}
+            </div>
+          )}
           {x.unplaced.length > 0 && (
             <div className="acc-rack-unplaced">
               <strong>Booked by type, no bungalow yet:</strong>{' '}

@@ -96,3 +96,9 @@
 .acc-checklist legend { font-weight: 600; font-size: 13px; padding: 0 4px; }
 .acc-history { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .acc-history li { padding-left: 12px; border-left: 3px solid var(--dash-blue, #2563eb); }
+.acc-signature canvas { width: 100%; max-width: 600px; height: auto; aspect-ratio: 3 / 1; border: 1px dashed var(--md-sys-color-outline, #9ca3af); border-radius: 8px; background: #fff; }
+.acc-idphoto { width: 120px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid var(--md-sys-color-outline-variant, #e5e7eb); }
+.acc-notes { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 6px; }
+.acc-notes li { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.acc-alerts { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.acc-alerts li { display: flex; gap: 8px; align-items: center; padding: 8px 12px; border-radius: 8px; background: var(--md-sys-color-error-container, #fde8e8); color: var(--md-sys-color-on-error-container, #7f1d1d); }

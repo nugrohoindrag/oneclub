@@ -12,6 +12,7 @@ import { StayMaintenancePage } from './maintenance';
 import { GuestProfilePage, GuestsPage, WaitlistPage } from './guests';
 import { RatesPage } from './rates';
 import { AccommodationReportsPage } from './reports';
+import { GroupDetailPage, GroupsPage, IncidentsPage, NewGroupPage, NightAuditPage, RateCheckPage, StayCashierPage } from './mgcc';
 import { PaymentStatus, StayStatus, dayOf, guestOf, money, type Stay } from './shared';
 
 // Routes of the Accommodation module (requirements §2): Back Office
@@ -31,7 +32,7 @@ function StayBillingPage() {
     <div className="oc-stack">
       <PageHeader title="Accommodation Billing" help="Guest folios of the stays: room nights, add-ons, services, charges, payments, deposits and refunds. Open a folio to take a payment or refund." />
       <Tabs value={tab} onChange={setTab} tabs={[{ value: 'checked_in', label: 'In-house' }, { value: 'pending_payment', label: 'Pending payment' },
-        { value: 'confirmed', label: 'Confirmed (deposits)' }, { value: 'checked_out', label: 'Checked-out with a balance' }]} />
+        { value: 'confirmed', label: 'Confirmed (deposits)' }, { value: 'balance', label: 'Balance ≠ 0' }, { value: 'checked_out', label: 'Checked-out with a balance' }]} />
       <ErrorAlert error={list.error} />
       <div className="oc-card">
         <DataTable rows={rows} loading={list.isLoading} rowKey={(s) => s.id} onRowClick={(s) => s.folioId && can('billing.folio.view') && setFolio(s.folioId)}
@@ -72,6 +73,13 @@ export const ACCOMMODATION_ROUTES = [
   { path: 'accommodation/rates', element: rp('stay.rate_plan.view', <RatesPage />) },
   { path: 'accommodation/billing', element: rp('stay.stay.view', <StayBillingPage />) },
   { path: 'accommodation/reports', element: rp('stay.dashboard.view', <AccommodationReportsPage />) },
+  { path: 'accommodation/groups', element: rp('stay.stay.view', <GroupsPage />) },
+  { path: 'accommodation/groups/new', element: rp('stay.stay.create', <NewGroupPage />) },
+  { path: 'accommodation/groups/:id', element: rp('stay.stay.view', <GroupDetailPage />) },
+  { path: 'accommodation/restrictions', element: rp('stay.rate_restriction.view', <AutoResourcePage resourceKey="stay.rate_restriction" />) },
+  { path: 'accommodation/rate-check', element: rp('stay.stay.view', <RateCheckPage />) },
+  { path: 'accommodation/night-audit', element: rp('stay.night_audit.view', <NightAuditPage />) },
+  { path: 'accommodation/incidents', element: rp('stay.incident.view', <IncidentsPage />) },
 ];
 
 /** Ops routes (Stay Front Desk, Housekeeping, Maintenance). */
@@ -82,6 +90,12 @@ export const ACCOMMODATION_OPS_ROUTES = [
   { path: 'stay-desk/requests', element: <RequestsPage /> },
   { path: 'stay-desk/rooms', element: <RoomsOpsPage /> },
   { path: 'stay-desk/waitlist', element: <WaitlistPage /> },
+  { path: 'stay-desk/cashier', element: rp('billing.cashier_shift.operate', <StayCashierPage />) },
+  { path: 'stay-desk/groups', element: rp('stay.stay.view', <GroupsPage ops />) },
+  { path: 'stay-desk/groups/new', element: rp('stay.stay.create', <NewGroupPage ops />) },
+  { path: 'stay-desk/groups/:id', element: rp('stay.stay.view', <GroupDetailPage ops />) },
+  { path: 'stay-desk/incidents', element: rp('stay.incident.view', <IncidentsPage />) },
+  { path: 'stay-desk/night-audit', element: rp('stay.night_audit.view', <NightAuditPage />) },
   { path: 'housekeeping', element: <HousekeepingPage ops /> },
   { path: 'stay-maintenance', element: <StayMaintenancePage ops /> },
 ];

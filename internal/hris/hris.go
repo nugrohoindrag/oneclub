@@ -47,7 +47,7 @@ var EmploymentStatuses = []string{StatusProbation, StatusContract, StatusPermane
 // WorkforceRoles are the roles a certification can be mandatory for
 // (PRD P5 §16 #9). Caddies and instructors may be partners (non-employees).
 var WorkforceRoles = []string{"lifeguard", "caddy", "instructor", "food_handler", "engineering", "course_maintenance", "security", "sport_staff",
-	"starter", "other"}
+	"starter", "housekeeping", "front_office", "other"}
 
 // Publisher publishes domain events (outbox.Bus).
 type Publisher interface {

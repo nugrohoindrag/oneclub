@@ -153,23 +153,6 @@ export function ClassRegistration({ propertyId, programs, lang = 'en' }: { prope
   );
 }
 
-export function BungalowBooking({ propertyId, types }: { propertyId: string; types: Opt[] }) {
-  return (
-    <BookingForm title="Book Bungalow" path="/api/v1/public/stays" propertyId={propertyId} voucher
-      fields={[
-        { name: 'bungalowTypeId', label: 'Bungalow type', type: 'select', options: opts(types), required: true, initial: types[0]?.id },
-        { name: 'arrivalDate', label: 'Arrival', type: 'date', required: true },
-        { name: 'departureDate', label: 'Departure', type: 'date', required: true },
-        { name: 'ratePlan', label: 'Rate plan (e.g. room only, with breakfast)', initial: '' },
-        { name: 'adults', label: 'Adults', type: 'number', initial: '2' },
-        { name: 'children', label: 'Children', type: 'number', initial: '0' },
-        { name: 'specialRequests', label: 'Additional services / requests', type: 'textarea' },
-      ]}
-      build={(v) => ({ kind: 'bungalow', bungalowTypeId: v.bungalowTypeId, arrivalDate: v.arrivalDate, departureDate: v.departureDate, ratePlan: v.ratePlan,
-        adults: Number(v.adults || 2), children: Number(v.children || 0), specialRequests: v.specialRequests })} />
-  );
-}
-
 export function VIPRequest({ propertyId, suites }: { propertyId: string; suites: Opt[] }) {
   return (
     <BookingForm title="Request VIP Suite" path="/api/v1/public/stays" propertyId={propertyId} pay={false} submitLabel="Send request"

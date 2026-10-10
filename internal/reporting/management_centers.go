@@ -54,7 +54,7 @@ func init() {
 		"property_admin", "general_manager", "club_manager", "resort_manager", "golf_manager", "banquet_manager")
 }
 
-var incidentSources = []string{"caddy", "golf_cart", "banquet", "sportclub"}
+var incidentSources = []string{"caddy", "golf_cart", "banquet", "sportclub", "stay"}
 
 // profitCenterOrder lists the profit centers of the club in display order
 // (product owner, 9 Oct 2026), the shared overhead last.

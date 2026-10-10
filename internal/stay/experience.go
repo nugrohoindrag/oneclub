@@ -64,6 +64,9 @@ type StayExperience struct {
 	FolioPaid       string         `json:"folioPaid"`
 	FolioBalance    string         `json:"folioBalance"`
 	CanRequest      bool           `json:"canRequest"`
+	BookingToken    *string        `json:"bookingToken" doc:"Link of the whole booking (group or bungalow): status, e-voucher, payment, cancellation"`
+	HouseRulesEn    string         `json:"houseRulesEn"`
+	Contact         BookingContact `json:"contact"`
 }
 
 // Experience builds My Stay of a stay.
@@ -73,7 +76,14 @@ func (m *Module) Experience(ctx context.Context, tx pgx.Tx, s Stay) (StayExperie
 		return StayExperience{}, err
 	}
 	out := StayExperience{Stay: s, CheckInTime: pol.CheckInTime, CheckOutTime: pol.CheckOutTime, HouseRules: pol.HouseRules, PropertyInfo: pol.PropertyInfo,
-		Photos: []string{}, Amenities: []string{}, Folio: []FolioItem{}, CanRequest: s.Status == "checked_in" || s.Status == "reserved"}
+		Photos: []string{}, Amenities: []string{}, Folio: []FolioItem{}, CanRequest: s.Status == "checked_in" || s.BookingStatus == "confirmed"}
+	out.HouseRulesEn, out.Contact, out.BookingToken = pol.HouseRulesEn, m.contactOf(ctx, tx, s.PropertyID, pol), s.PublicToken
+	if s.GroupID != nil {
+		var t *string
+		if err := tx.QueryRow(ctx, `SELECT public_token FROM stay.stay_groups WHERE id = $1`, *s.GroupID).Scan(&t); err == nil && t != nil {
+			out.BookingToken = t
+		}
+	}
 	if s.UnitTypeID != nil {
 		if err := tx.QueryRow(ctx, `SELECT name, description, photos, facilities, bed_configuration, view FROM stay.bungalow_types WHERE id = $1`, *s.UnitTypeID).
 			Scan(&out.TypeName, &out.Description, &out.Photos, &out.Amenities, &out.BedConfig, &out.View); err != nil {
@@ -117,9 +127,11 @@ type MyRequestInput struct {
 
 // PublicStayLookup opens My Stay without an account.
 type PublicStayLookup struct {
-	PropertyID uuid.UUID `json:"propertyId"`
-	Reference  string    `json:"reference" doc:"Stay or reservation number"`
-	Contact    string    `json:"contact" doc:"E-mail or phone of the booking"`
+	PropertyID uuid.UUID  `json:"propertyId"`
+	Reference  string     `json:"reference,omitempty" doc:"Stay or reservation number"`
+	Contact    string     `json:"contact,omitempty" doc:"E-mail or phone of the booking"`
+	Token      string     `json:"token,omitempty" doc:"Link of the booking or of one bungalow instead of reference + contact"`
+	StayID     *uuid.UUID `json:"stayId,omitempty" doc:"With a group link: which bungalow"`
 }
 
 // PublicStayRequest is a request from the public My Stay.
@@ -130,6 +142,26 @@ type PublicStayRequest struct {
 
 // publicStay finds a stay by its reference and the contact of the booking.
 func (m *Module) publicStay(ctx context.Context, tx pgx.Tx, in PublicStayLookup) (Stay, error) {
+	if strings.TrimSpace(in.Token) != "" {
+		stays, _, err := m.staysOfToken(ctx, tx, in.PropertyID, in.Token)
+		if err != nil {
+			return Stay{}, err
+		}
+		for _, s := range stays {
+			if in.StayID != nil && s.ID == *in.StayID {
+				return s, nil
+			}
+		}
+		// the bungalow in-house, else the next one, else the first
+		for _, want := range []string{"in_house", "confirmed", "awaiting_payment"} {
+			for _, s := range stays {
+				if s.BookingStatus == want {
+					return s, nil
+				}
+			}
+		}
+		return stays[0], nil
+	}
 	ref, contact := strings.TrimSpace(in.Reference), strings.ToLower(strings.TrimSpace(in.Contact))
 	if ref == "" || contact == "" {
 		return Stay{}, handle.Invalid("reference", "required", "reference and e-mail or phone are required")

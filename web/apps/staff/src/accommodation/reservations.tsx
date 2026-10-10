@@ -8,7 +8,7 @@ import {
 } from '@oneclub/shell';
 import { KV, Tabs } from '../p1/common';
 import {
-  INV, SOURCES, StayDrawer, addDays, label, money, sourceLabel, todayISO, useStayColumns, type Row, type Stay, type StayResult,
+  CheckInModal, INV, SOURCES, StayDrawer, addDays, label, money, sourceLabel, todayISO, useStayColumns, type Row, type Stay, type StayResult,
 } from './shared';
 import './accommodation.css';
 
@@ -17,8 +17,8 @@ import './accommodation.css';
 // payment → confirmation. The availability is validated again when the
 // reservation is made (the database refuses overlapping stays).
 
-const TABS = [['all', 'All Reservations'], ['confirmed', 'Confirmed'], ['pending_payment', 'Pending Payment'], ['checked_in', 'Checked-in'],
-  ['checked_out', 'Checked-out'], ['cancelled', 'Cancelled'], ['no_show', 'No-show'], ['requested', 'Requested']];
+const TABS = [['all', 'All Reservations'], ['confirmed', 'Confirmed'], ['awaiting_payment', 'Awaiting Payment'], ['pending_payment', 'Unpaid'], ['checked_in', 'In-house'],
+  ['checked_out', 'Checked-out'], ['cancelled', 'Cancelled'], ['no_show', 'No-show'], ['expired', 'Expired'], ['void', 'Void'], ['requested', 'Requested']];
 
 export function ReservationsPage({ ops }: { ops?: boolean }) {
   const [params, setParams] = useSearchParams();
@@ -81,6 +81,8 @@ export function NewReservationPage({ ops }: { ops?: boolean }) {
   const [pay, setPay] = useState({ mode: 'deposit', methodType: 'bank_transfer', reference: '', amount: '' });
   const [done, setDone] = useState<StayResult | null>(null);
   const [waitlist, setWaitlist] = useState<SearchType | null>(null);
+  const [sup, setSup] = useState({ override: false, reason: '', discount: '' });
+  const [checkIn, setCheckIn] = useState(false);
   const searchPath = step >= 1 ? `/api/v1/stay/search${qs({ arrival: s.arrival, departure: s.departure, adults: s.adults, children: s.children, promoCode: s.promoCode,
     corporateAccountId: s.corporateAccountId, customerId: cust?.id, source: s.source })}` : null;
   const search = useGet<Page<SearchType>>(searchPath);
@@ -93,6 +95,7 @@ export function NewReservationPage({ ops }: { ops?: boolean }) {
     customerId: cust?.id, guest: cust ? undefined : { name: guest.name, phone: guest.phone || undefined, email: guest.email || undefined },
     addons: Object.entries(addons).filter(([, n]) => n > 0).map(([addonId, quantity]) => ({ addonId, quantity })),
     specialRequests: extra.specialRequests || undefined, notes: extra.notes || undefined, vip: extra.vip || undefined, expectedArrival: extra.expectedArrival || undefined,
+    overrideRestrictions: sup.override || undefined, manualDiscount: sup.discount || undefined, supervisorReason: sup.override || sup.discount ? sup.reason : undefined,
   });
   const quote = useSend<Row, StayResult>('POST', '/api/v1/stay/stays:quote');
   const book = useSend<Row, StayResult>('POST', '/api/v1/stay/stays', INV);
@@ -125,6 +128,8 @@ export function NewReservationPage({ ops }: { ops?: boolean }) {
               options={(corps.data?.items ?? []).map((c) => ({ value: String(c.id), label: String(c.name) }))} />
             <TextField label="Promo code" value={s.promoCode} onChange={(x) => setS({ ...s, promoCode: x.toUpperCase() })} />
           </div>
+          {can('stay.stay.supervise') && <Checkbox label="Pass a closed date (restriction) — supervisor" checked={sup.override} onChange={(x) => setSup({ ...sup, override: x })} />}
+          {sup.override && <TextField label="Supervisor reason" value={sup.reason} onChange={(x) => setSup({ ...sup, reason: x })} />}
           <div className="oc-row" style={{ marginTop: 12 }}>
             <button className="oc-btn oc-btn-primary" disabled={s.departure <= s.arrival} onClick={() => next(1)}><Icon name="search" size={18} /> Search {nights} night(s)</button>
           </div>
@@ -237,6 +242,13 @@ export function NewReservationPage({ ops }: { ops?: boolean }) {
             { key: 'total', header: 'Total', align: 'right', render: (l) => money(l.total) }]} empty={<span className="oc-muted">The room is charged per night.</span>} />
           <KV items={[['Room nights + add-ons', <strong key="t">{money(quote.data.total)}</strong>], ['Promotion', quote.data.stay.promotionCode ? `${quote.data.stay.promotionCode} −${money(quote.data.stay.discount)}` : '—'],
             ['Deposit required', money(quote.data.depositRequired)], ['Tax & service', 'included per the rate plan']]} />
+          {can('stay.stay.supervise') && (
+            <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
+              <MoneyField label="Manual discount on the room (supervisor)" value={sup.discount} onChange={(x) => setSup({ ...sup, discount: x })} />
+              <TextField label="Reason" value={sup.reason} onChange={(x) => setSup({ ...sup, reason: x })} />
+              <button className="oc-btn oc-btn-neutral oc-btn-sm" disabled={!!sup.discount && !sup.reason} onClick={() => quote.mutate(body())}>Apply</button>
+            </div>
+          )}
           {quote.data.addons.filter((a) => a.included).length > 0 && <p className="oc-small">Included: {quote.data.addons.filter((a) => a.included).map((a) => a.name).join(', ')}</p>}
           <div className="oc-row" style={{ marginTop: 12 }}>
             <button className="oc-btn oc-btn-neutral" onClick={() => setStep(3)}>Back</button>
@@ -275,11 +287,14 @@ export function NewReservationPage({ ops }: { ops?: boolean }) {
             ['Bungalow', `${done.stay.unitName} (${done.stay.typeName ?? ''})`], ['Stay', `${formatDate(done.stay.start)} → ${formatDate(done.stay.end)}`],
             ['Total', money(done.total)], ['Paid', money(done.stay.paid)]]} />
           <div className="oc-row-wrap" style={{ marginTop: 12 }}>
+            {done.stay.status === 'reserved' && done.stay.start.slice(0, 10) <= todayISO() && can('stay.stay.check_in') && (
+              <button className="oc-btn oc-btn-ink" onClick={() => setCheckIn(true)}><Icon name="login" size={18} /> Check in now (walk-in)</button>)}
             <button className="oc-btn oc-btn-primary" onClick={() => nav(`${list}?id=${done.stay.id}`)}>Open reservation</button>
             <button className="oc-btn oc-btn-neutral" onClick={() => { setDone(null); setPick(null); setCust(null); setGuest({ name: '', phone: '', email: '' }); setAddons({}); setStep(0); }}>New reservation</button>
           </div>
         </Card>
       )}
+      {checkIn && done && <CheckInModal stay={done.stay} onClose={() => { setCheckIn(false); nav(`${list}?id=${done.stay.id}`); }} />}
       {waitlist && <WaitlistModal type={waitlist} search={s} customer={cust} onClose={() => setWaitlist(null)} />}
     </div>
   );

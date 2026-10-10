@@ -53,18 +53,22 @@ func (m *Module) nightStats(ctx context.Context, q dbtx.Querier, property uuid.U
 		var n NightStat
 		var rev string
 		if err := q.QueryRow(ctx, `SELECT
-			(SELECT count(*) FROM stay.bungalows b WHERE b.property_id = $1 AND b.status = 'active' AND b.archived_at IS NULL AND b.created_at <= $2)::int,
+			(SELECT count(*) FROM stay.bungalows b WHERE b.property_id = $1 AND b.status = 'active' AND b.archived_at IS NULL)::int,
 			(SELECT count(DISTINCT k.bungalow_id) FROM stay.room_blocks k WHERE k.property_id = $1 AND k.kind IN ('maintenance', 'out_of_order')
 			  AND k.start_at <= $2 AND k.end_at > $2 AND (k.status = 'active' OR k.released_at > $2))::int,
-			(SELECT count(*) FROM stay.stays s WHERE s.property_id = $1 AND s.kind = 'bungalow' AND s.status IN ('reserved', 'checked_in', 'checked_out')
+			(SELECT count(DISTINCT s.unit_id) FROM stay.stays s JOIN reporting.reservations r ON r.reservation_id = s.reservation_id
+			  WHERE s.property_id = $1 AND s.kind = 'bungalow' AND s.status IN ('reserved', 'checked_in', 'checked_out') AND r.status <> 'expired'
 			  AND s.start_at <= $2 AND coalesce(s.actual_end_at, s.end_at) > $2)::int,
-			(SELECT coalesce(sum(`+roomNetSQL+`), 0) FROM stay.stays s WHERE s.property_id = $1 AND s.kind = 'bungalow'
-			  AND s.status IN ('reserved', 'checked_in', 'checked_out') AND s.start_at <= $2 AND coalesce(s.actual_end_at, s.end_at) > $2)::text`,
+			(SELECT coalesce(sum(`+roomNetSQL+`), 0) FROM stay.stays s JOIN reporting.reservations r ON r.reservation_id = s.reservation_id
+			  WHERE s.property_id = $1 AND s.kind = 'bungalow' AND s.status IN ('reserved', 'checked_in', 'checked_out') AND r.status <> 'expired'
+			  AND s.start_at <= $2 AND coalesce(s.actual_end_at, s.end_at) > $2)::text`,
 			property, at).Scan(&n.Units, &n.OutOfOrder, &n.Occupied, &rev); err != nil {
 			return nil, err
 		}
 		n.Date = d.Format(time.DateOnly)
 		n.Available = max(n.Units-n.OutOfOrder, 0)
+		// invariant: a night never sells more bungalows than it has (FR-H03)
+		n.Occupied = min(n.Occupied, n.Available)
 		r := decOf(rev).Round(0)
 		n.RoomRevenue = r.String()
 		n.Occupancy, n.ADR, n.RevPAR = kpis(r, n.Occupied, n.Available)
@@ -91,8 +95,12 @@ type Dashboard struct {
 	Night NightStat `json:"night"`
 	// KPI
 	Occupancy          string         `json:"occupancy"`
-	AvailableBungalows int            `json:"availableBungalows"`
-	OccupiedBungalows  int            `json:"occupiedBungalows"`
+	AvailableBungalows int            `json:"availableBungalows" doc:"Active bungalows − out of order − sold tonight (FR-H04)"`
+	OccupiedBungalows  int            `json:"occupiedBungalows" doc:"In-house now (kept for older clients)"`
+	SoldTonight        int            `json:"soldTonight" doc:"Room nights sold tonight, checked in or not"`
+	InHouseNow         int            `json:"inHouseNow" doc:"Bungalows whose guest has checked in"`
+	OutOfOrder         int            `json:"outOfOrder"`
+	Alerts             []Alert        `json:"alerts" doc:"Unpaid stays close to arrival, Out of Order bungalows with a reservation, guests past their check-out"`
 	TodaysArrivals     int            `json:"todaysArrivals"`
 	TodaysDepartures   int            `json:"todaysDepartures"`
 	InHouseGuests      int            `json:"inHouseGuests"`
@@ -136,10 +144,12 @@ func (m *Module) DashboardFor(ctx context.Context, q dbtx.Querier, property uuid
 	}
 	out.Week, out.Night = week, week[0]
 	out.Occupancy, out.ADR, out.RevPAR = out.Night.Occupancy, out.Night.ADR, out.Night.RevPAR
-	out.OccupiedBungalows = len(fo.InHouse)
-	out.AvailableBungalows = fo.Rooms["ready"] + fo.Rooms["dirty"] + fo.Rooms["cleaning"] + fo.Rooms["cleaned"] + fo.Rooms["inspected"] - out.OccupiedBungalows
-	if out.AvailableBungalows < 0 {
-		out.AvailableBungalows = 0
+	out.OccupiedBungalows, out.InHouseNow = len(fo.InHouse), len(fo.InHouse)
+	// one set of numbers on the page (FR-H04): available = active − out of order − sold
+	out.SoldTonight, out.OutOfOrder = out.Night.Occupied, out.Night.OutOfOrder
+	out.AvailableBungalows = max(out.Night.Available-out.Night.Occupied, 0)
+	if out.Alerts, err = m.alerts(ctx, q, property, from); err != nil {
+		return out, err
 	}
 	var other string
 	if err := q.QueryRow(ctx, `SELECT coalesce(sum(l.net_amount), 0)::text FROM reporting.eng_folio_lines l JOIN stay.stays s ON s.folio_id = l.folio_id

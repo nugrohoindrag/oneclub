@@ -994,7 +994,7 @@ func (m *Module) billFolio(ctx context.Context, tx pgx.Tx, o Order, b Bill, cust
 
 // chargeLines posts the order lines to a folio (once) and issues vouchers
 // for products that sell vouchers (e.g. a ball package at the range counter).
-func (m *Module) chargeLines(ctx context.Context, tx pgx.Tx, o Order, folioID uuid.UUID, lines []OrderLine) error {
+func (m *Module) chargeLines(ctx context.Context, tx pgx.Tx, o Order, folioID uuid.UUID, lines []OrderLine, label ...string) error {
 	ou, err := loadOutlet(ctx, tx, o.OutletID)
 	if err != nil {
 		return err
@@ -1032,7 +1032,7 @@ func (m *Module) chargeLines(ctx context.Context, tx pgx.Tx, o Order, folioID uu
 				}
 			}
 		}
-		if _, err := m.Billing.AddLineCharge(ctx, tx, billing.LineCharge{Charge: billing.Charge{FolioID: folioID, ReferenceType: "commercial.order_line", ReferenceID: &lid, Description: l.Name, Quantity: qty, Net: net, Service: svc, Tax: tax, SnapshotID: snap, Liability: liability}, BusinessLine: line, RevenueComponent: comp}); err != nil {
+		if _, err := m.Billing.AddLineCharge(ctx, tx, billing.LineCharge{Charge: billing.Charge{FolioID: folioID, ReferenceType: "commercial.order_line", ReferenceID: &lid, Description: l.Name + strings.Join(label, ""), Quantity: qty, Net: net, Service: svc, Tax: tax, SnapshotID: snap, Liability: liability}, BusinessLine: line, RevenueComponent: comp}); err != nil {
 			return err
 		}
 		if _, err := tx.Exec(ctx, `UPDATE commercial.order_lines SET charged_folio_id = $2 WHERE id = $1`, l.ID, folioID); err != nil {
@@ -1186,6 +1186,48 @@ func (m *Module) ChargeToFolio(ctx context.Context, tx pgx.Tx, oid, folioID uuid
 		return o, errs.Conflict("folio_closed", "the target folio is not open")
 	}
 	if err := m.chargeLines(ctx, tx, o, folioID, o.Lines); err != nil {
+		return o, err
+	}
+	if _, err := tx.Exec(ctx, `UPDATE commercial.orders SET charge_folio_id = $2 WHERE id = $1`, oid, folioID); err != nil {
+		return o, err
+	}
+	if _, err := tx.Exec(ctx, `UPDATE commercial.order_bills SET status = 'paid', folio_id = $2 WHERE order_id = $1`, oid, folioID); err != nil {
+		return o, err
+	}
+	return m.complete(ctx, tx, oid, "charged")
+}
+
+// ChargeToRoom posts an order to the folio of an in-house bungalow guest:
+// the order, every item and every folio line carry the guest, the bungalow
+// and the outlet — never "Walk-in guest" (docs/requirement-booking-hotel-
+// mgcc.md FR-H82, demo feedback #34, #35).
+func (m *Module) ChargeToRoom(ctx context.Context, tx pgx.Tx, oid, folioID uuid.UUID, guest, unit string) (Order, error) {
+	o, err := m.lockOrder(ctx, tx, oid)
+	if err != nil {
+		return o, err
+	}
+	if o.Status != "open" {
+		return o, errs.Conflict("order_closed", "order is "+o.Status)
+	}
+	f, err := billing.GetFolio(ctx, tx, folioID)
+	if err != nil {
+		return o, err
+	}
+	if f.Status != "open" {
+		return o, errs.Conflict("folio_closed", "the guest has checked out: the folio is closed")
+	}
+	ou, err := loadOutlet(ctx, tx, o.OutletID)
+	if err != nil {
+		return o, err
+	}
+	ref := strings.TrimSpace("Bungalow " + unit)
+	if _, err := tx.Exec(ctx, `UPDATE commercial.orders SET guest_name = $2, reference = $3 WHERE id = $1`, oid, nullStr(guest), nullStr(ref)); err != nil {
+		return o, err
+	}
+	if _, err := tx.Exec(ctx, `UPDATE commercial.order_lines SET guest_name = $2 WHERE order_id = $1 AND guest_name IS NULL`, oid, nullStr(guest)); err != nil {
+		return o, err
+	}
+	if err := m.chargeLines(ctx, tx, o, folioID, o.Lines, " · "+ou.Name+" · "+unit+" "+guest); err != nil {
 		return o, err
 	}
 	if _, err := tx.Exec(ctx, `UPDATE commercial.orders SET charge_folio_id = $2 WHERE id = $1`, oid, folioID); err != nil {

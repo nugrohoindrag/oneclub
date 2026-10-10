@@ -63,6 +63,8 @@ type StayCatalog struct {
 	BungalowTypes []CatalogBungalowType `json:"bungalowTypes"`
 	RatePlans     []CatalogRatePlan     `json:"ratePlans"`
 	MeetingRooms  []CatalogMeetingRoom  `json:"meetingRooms"`
+	Addons        []GuestAddon          `json:"addons" doc:"Add-ons bookable with a bungalow (docs/requirement-booking-hotel-mgcc.md FR-H87)"`
+	PropertyID    uuid.UUID             `json:"propertyId"`
 }
 
 // BusySlot is a booked period of a meeting room.
@@ -105,10 +107,28 @@ func (m *Module) registerMemberJourney(reg *route.Registry) {
 				FROM stay.bungalow_types WHERE property_id = $1 AND status = 'active' AND archived_at IS NULL ORDER BY name`, p.PropertyID)); err != nil {
 				return out, err
 			}
-			if out.RatePlans, err = handle.List[CatalogRatePlan](tx.Query(ctx, `SELECT code, name, description, min_nights, includes_breakfast FROM commercial.rate_plans
-				WHERE property_id = $1 AND (service_type = 'bungalow' OR (business_line = 'stay' AND service_type IS NULL)) AND NOT day_use AND status = 'active'
-				AND archived_at IS NULL AND effective_from <= billing.local_date($1) AND (effective_to IS NULL OR effective_to >= billing.local_date($1)) ORDER BY min_nights, name`,
-				p.PropertyID)); err != nil {
+			// one source of prices: the accommodation rate plans the Member App may sell (FR-H01, FR-H88)
+			seg, _ := memberSegment(ctx, tx, p.PropertyID, p.ID)
+			plans, err := channelPlans(ctx, tx, p.PropertyID, "member_app", seg)
+			if err != nil {
+				return out, err
+			}
+			out.RatePlans = []CatalogRatePlan{}
+			for _, rp := range plans {
+				out.RatePlans = append(out.RatePlans, CatalogRatePlan{Code: rp.Code, Name: rp.Name, MinNights: rp.MinNights, IncludesBreakfast: rp.IncludesBreakfast})
+			}
+			if len(out.RatePlans) == 0 {
+				// a property still pricing its bungalows in Commercial pricing (P2)
+				if out.RatePlans, err = handle.List[CatalogRatePlan](tx.Query(ctx, `SELECT code, name, description, min_nights, includes_breakfast
+					FROM commercial.rate_plans WHERE property_id = $1 AND (service_type = 'bungalow' OR (business_line = 'stay' AND service_type IS NULL))
+					AND NOT day_use AND status = 'active' AND archived_at IS NULL AND effective_from <= billing.local_date($1)
+					AND (effective_to IS NULL OR effective_to >= billing.local_date($1)) ORDER BY min_nights, name`, p.PropertyID)); err != nil {
+					return out, err
+				}
+			}
+			out.PropertyID = p.PropertyID
+			if out.Addons, err = handle.List[GuestAddon](tx.Query(ctx, `SELECT id, name, category, description, trim_scale(price)::text AS price, unit FROM stay.addons
+				WHERE property_id = $1 AND status = 'active' AND archived_at IS NULL AND availability IN ('booking', 'both') ORDER BY category, name`, p.PropertyID)); err != nil {
 				return out, err
 			}
 			out.MeetingRooms, err = handle.List[CatalogMeetingRoom](tx.Query(ctx, `SELECT r.id, r.code, r.name, trim_scale(r.size_sqm)::text AS size_sqm, r.facilities,

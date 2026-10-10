@@ -349,6 +349,7 @@ type RackSegment struct {
 	StayNo        *string    `json:"stayNo,omitempty"`
 	PaymentStatus *string    `json:"paymentStatus,omitempty"`
 	VIP           bool       `json:"vip"`
+	GroupNo       *string    `json:"groupNo,omitempty" doc:"Group reservation of the stay"`
 	TypeID        *uuid.UUID `json:"-"`
 }
 
@@ -366,11 +367,12 @@ type RackUnit struct {
 
 // RoomRack is the reservation calendar of the bungalows.
 type RoomRack struct {
-	From     string        `json:"from"`
-	Days     int           `json:"days"`
-	Dates    []string      `json:"dates"`
-	Units    []RackUnit    `json:"units"`
-	Unplaced []RackSegment `json:"unplaced" doc:"Stays booked by type without a bungalow in the period"`
+	From         string        `json:"from"`
+	Days         int           `json:"days"`
+	Dates        []string      `json:"dates"`
+	Units        []RackUnit    `json:"units"`
+	Unplaced     []RackSegment `json:"unplaced" doc:"Stays booked by type without a bungalow in the period"`
+	Restrictions []Restriction `json:"restrictions" doc:"Restrictions of the period (stop sale, closed to arrival / departure, minimum nights; FR-H66)"`
 }
 
 // Rack builds the room rack of days from a local date.
@@ -393,7 +395,8 @@ func (m *Module) Rack(ctx context.Context, q dbtx.Querier, property uuid.UUID, f
 			OperationalStatus: s.OperationalStatus, Segments: []RackSegment{}})
 	}
 	rows, err := q.Query(ctx, `SELECT s.id, s.unit_id, s.unit_type_id, s.unit_assigned, s.stay_no, coalesce(c.name, s.guest_name, s.corporate_name, ''), s.start_at,
-		coalesce(s.actual_end_at, s.end_at), s.status, s.vip FROM stay.stays s LEFT JOIN reporting.customer_directory c ON c.id = s.customer_id
+		coalesce(s.actual_end_at, s.end_at), s.status, s.vip, g.group_no FROM stay.stays s LEFT JOIN reporting.customer_directory c ON c.id = s.customer_id
+		LEFT JOIN stay.stay_groups g ON g.id = s.group_id
 		WHERE s.property_id = $1 AND s.kind = 'bungalow' AND s.status IN ('requested', 'reserved', 'checked_in', 'checked_out')
 		AND s.start_at < $3 AND coalesce(s.actual_end_at, s.end_at) > $2 AND ($4 = '' OR s.status = ANY(string_to_array($4, ','))) ORDER BY s.start_at`,
 		property, start, end, status)
@@ -410,7 +413,7 @@ func (m *Module) Rack(ctx context.Context, q dbtx.Querier, property uuid.UUID, f
 		var r stayRow
 		var guest, no string
 		var typ *uuid.UUID
-		if err := rows.Scan(&r.seg.ID, &r.unit, &typ, &r.assigned, &no, &guest, &r.seg.Start, &r.seg.End, &r.seg.Status, &r.seg.VIP); err != nil {
+		if err := rows.Scan(&r.seg.ID, &r.unit, &typ, &r.assigned, &no, &guest, &r.seg.Start, &r.seg.End, &r.seg.Status, &r.seg.VIP, &r.seg.GroupNo); err != nil {
 			rows.Close()
 			return out, err
 		}
@@ -437,6 +440,10 @@ func (m *Module) Rack(ctx context.Context, q dbtx.Querier, property uuid.UUID, f
 		if i, ok := idx[b.BungalowID]; ok && (status == "" || slices.Contains([]string{"blocked", "maintenance", "out_of_order"}, status)) {
 			out.Units[i].Segments = append(out.Units[i].Segments, RackSegment{Kind: "block", ID: b.ID, Label: b.Reason, Start: b.Start, End: b.End, Status: b.Kind})
 		}
+	}
+	// the restrictions of the period on the same rack (docs/requirement-booking-hotel-mgcc.md FR-H66)
+	if out.Restrictions, err = restrictions(ctx, q, property, typeID, start, end.AddDate(0, 0, -1)); err != nil {
+		return out, err
 	}
 	return out, nil
 }

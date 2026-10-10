@@ -7,14 +7,14 @@ import { PosDialog, money, type Order, type Row } from './shared';
 
 // Payment Method, the shift it needs, and Order Successful (POS design).
 
-type Method = 'qris' | 'card' | 'member_account' | 'golfer_bill' | 'court_bill' | 'voucher_prepaid' | 'loyalty_points' | 'cash';
+type Method = 'qris' | 'card' | 'member_account' | 'golfer_bill' | 'court_bill' | 'room_bill' | 'voucher_prepaid' | 'loyalty_points' | 'cash';
 const REST: Method[] = ['qris', 'card', 'cash'];
-const LABEL: Record<Method, string> = { qris: 'QRIS', card: 'Credit Card', member_account: 'Member Account', golfer_bill: 'Golfer Bill', court_bill: 'Court Bill (Sport Club)', voucher_prepaid: 'Voucher', loyalty_points: 'Redeem Points', cash: 'Cash' };
+const LABEL: Record<Method, string> = { qris: 'QRIS', card: 'Credit Card', member_account: 'Member Account', golfer_bill: 'Golfer Bill', court_bill: 'Court Bill (Sport Club)', room_bill: 'Charge to Room (Bungalow)', voucher_prepaid: 'Voucher', loyalty_points: 'Redeem Points', cash: 'Cash' };
 
 export function Brand({ m }: { m: Method }) {
   if (m === 'qris') return <span className="pos-brand-qris" aria-hidden="true">QRIS</span>;
   if (m === 'card') return <span className="pos-brand-card" aria-hidden="true"><i /><i /></span>;
-  const icon = m === 'cash' ? 'payments' : m === 'member_account' ? 'card_membership' : m === 'golfer_bill' ? 'sports_golf' : m === 'court_bill' ? 'sports_tennis' : m === 'voucher_prepaid' ? 'redeem' : 'loyalty';
+  const icon = m === 'cash' ? 'payments' : m === 'member_account' ? 'card_membership' : m === 'golfer_bill' ? 'sports_golf' : m === 'court_bill' ? 'sports_tennis' : m === 'room_bill' ? 'hotel' : m === 'voucher_prepaid' ? 'redeem' : 'loyalty';
   return <span className="pos-brand-icon" aria-hidden="true"><Icon name={icon} size={16} /></span>;
 }
 
@@ -46,7 +46,7 @@ export function PaymentDialog({ order, shiftId, outletId, onClose, onPaid, onShi
   const acct = acctQ.data?.items.find((a) => a.status === 'active');
   const pointValue = Number(acct?.redemptionValue ?? 0);
   const maxPoints = acct && pointValue > 0 ? Math.min(Number(acct.balance ?? 0), Math.floor(due / pointValue)) : 0;
-  const methods: Method[] = ['qris', 'card', ...(order.customerId ? ['member_account' as Method] : []), ...(can('commercial.order.pay') && due === Number(order.total) ? ['golfer_bill' as Method, 'court_bill' as Method] : []),
+  const methods: Method[] = ['qris', 'card', ...(order.customerId ? ['member_account' as Method] : []), ...(can('commercial.order.pay') && due === Number(order.total) ? ['golfer_bill' as Method, 'court_bill' as Method, ...(can('stay.stay.charge_order') ? ['room_bill' as Method] : [])] : []),
     'voucher_prepaid', ...(maxPoints > 0 ? ['loyalty_points' as Method] : []), 'cash'];
   const [method, setMethod] = useState<Method>('qris');
   const [ref, setRef] = useState('');
@@ -56,12 +56,13 @@ export function PaymentDialog({ order, shiftId, outletId, onClose, onPaid, onShi
   const [received, setReceived] = useState('');
   const [golfer, setGolfer] = useState<Row | null>(null);
   const [court, setCourt] = useState<Row | null>(null);
+  const [room, setRoom] = useState<Row | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const pts = Math.min(Number(points || maxPoints), maxPoints);
   const change = method === 'cash' && received ? Number(received) - due : 0;
   const ready = !!shiftId && due > 0 && !(method === 'voucher_prepaid' && !voucher.trim()) && !(method === 'cash' && received !== '' && Number(received) < due)
-    && !(method === 'loyalty_points' && pts <= 0) && !(method === 'golfer_bill' && !golfer) && !(method === 'court_bill' && !court);
+    && !(method === 'loyalty_points' && pts <= 0) && !(method === 'golfer_bill' && !golfer) && !(method === 'court_bill' && !court) && !(method === 'room_bill' && !room);
   const pay = async () => {
     setBusy(true);
     setError(null);
@@ -73,6 +74,13 @@ export function PaymentDialog({ order, shiftId, outletId, onClose, onPaid, onShi
         // the whole order goes on the golfer's booking folio, settled at the Golfer Check-out
         const o = await request<Order>('POST', `/api/v1/commercial/orders/${order.id}:charge`, { folioId: golfer.folioId });
         onPaid(o, `${LABEL.golfer_bill} · ${String(golfer.playerName)} (${String(golfer.bookingCode)})`);
+        return;
+      }
+      if (method === 'room_bill' && room) {
+        // the order goes on the folio of the in-house guest, every item with the guest and the bungalow (accommodation FR-H82)
+        await request('POST', `/api/v1/stay/stays/${String(room.stayId)}:charge-order`, { orderId: order.id });
+        const o = await request<Order>('GET', `/api/v1/commercial/orders/${order.id}`);
+        onPaid(o, `${LABEL.room_bill} · ${String(room.bungalow)} · ${String(room.guest)}`);
         return;
       }
       if (method === 'court_bill' && court) {
@@ -110,6 +118,7 @@ export function PaymentDialog({ order, shiftId, outletId, onClose, onPaid, onShi
           )}
           {method === m && m === 'golfer_bill' && <GolferPicker value={golfer} onChange={setGolfer} />}
           {method === m && m === 'court_bill' && <CourtPicker value={court} onChange={setCourt} />}
+          {method === m && m === 'room_bill' && <RoomPicker value={room} onChange={setRoom} />}
           {method === m && m === 'voucher_prepaid' && (
             <div className="pos-method-body"><input className="pos-input" placeholder="Voucher code" value={voucher} onChange={(e) => setVoucher(e.target.value)} autoFocus /></div>
           )}
@@ -249,6 +258,26 @@ export function SuccessDialog({ order, method, onClose, offline }: { order: Orde
         <button className="pos-btn" onClick={onClose}>Done</button>
       </div>
     </PosDialog>
+  );
+}
+
+/** An in-house bungalow guest (name or bungalow) whose folio takes the order; refused after check-out or over the charge limit. */
+function RoomPicker({ value, onChange }: { value: Row | null; onChange: (r: Row | null) => void }) {
+  const [q, setQ] = useState('');
+  const list = useGet<Page<Row>>(`/api/v1/stay/in-house${qs({ q: q.trim() || undefined })}`, { retry: false });
+  return (
+    <div className="pos-method-body">
+      <input className="pos-input" placeholder="Nama tamu atau nomor bungalow" value={q} onChange={(e) => setQ(e.target.value)} />
+      <ErrorAlert error={list.error} />
+      <div className="pos-guests">
+        {(list.data?.items ?? []).map((r) => (
+          <button key={String(r.stayId)} type="button" className="pos-guest" data-wide aria-pressed={value?.stayId === r.stayId} onClick={() => onChange(r)}>
+            {String(r.bungalow)} · {String(r.guest)}<br /><small>{String(r.stayNo)}{r.limitLeft != null ? ` · sisa limit ${money(Number(r.limitLeft))}` : ''}</small></button>
+        ))}
+        {list.data && list.data.items.length === 0 && <span className="pos-muted">Tidak ada tamu in-house.</span>}
+      </div>
+      <span className="pos-muted">Masuk folio tamu dan terlihat di My Stay serta saat check-out.</span>
+    </div>
   );
 }
 

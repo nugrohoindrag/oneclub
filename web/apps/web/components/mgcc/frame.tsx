@@ -17,6 +17,8 @@ const COVER = '/themes/modern-golf/assets/images/banks/';
 const PAGES: [string, string, string, string][] = [
   ['/book-golf', 'Book Tee Time', 'Pesan Tee Time', 'golf-course-cover.jpg'],
   ['/book/bungalow', 'Book Bungalow', 'Pesan Bungalow', 'bungalow-cover.jpg'],
+  ['/bungalow', 'Bungalow', 'Bungalow', 'bungalow-cover.jpg'],
+  ['/my-stay', 'My Stay', 'My Stay', 'bungalow-cover.jpg'],
   ['/book/vip-suite', 'Book VIP Suite', 'Pesan VIP Suite', 'vip-suite-cover.jpg'],
   ['/book/meeting-room', 'Book Meeting Room', 'Pesan Meeting Room', 'wedding-cover.jpg'],
   ['/book/sport-club', 'Book Sport Club', 'Pesan Sport Club', 'sports-club-cover.jpg'],

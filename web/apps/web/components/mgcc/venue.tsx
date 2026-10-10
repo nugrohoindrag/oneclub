@@ -13,8 +13,8 @@ const FLYER: Record<string, string> = {
   'meeting-room': '/storage/app/uploads/public/631/88f/a3b/63188fa3b8356133011351.jpg',
 };
 
-export function VenueLayout({ venue, title, intro, rates, lang, children }: {
-  venue: keyof typeof FLYER; title: string; intro: ReactNode; rates?: Rate[]; lang: string; children: ReactNode;
+export function VenueLayout({ venue, title, intro, rates, rateTable, lang, children }: {
+  venue: keyof typeof FLYER; title: string; intro: ReactNode; rates?: Rate[]; rateTable?: ReactNode; lang: string; children: ReactNode;
 }) {
   return (
     <div className="columns is-rtl oc-venue">
@@ -28,7 +28,8 @@ export function VenueLayout({ venue, title, intro, rates, lang, children }: {
       <div className="column is-4 left-sidebar">
         <div className="wi-title">Fees &amp; Rates</div>
         <figure><img src={FLYER[venue]} alt="Fees & Rates" /></figure>
-        {rates && rates.length > 0 && (
+        {rateTable}
+        {!rateTable && rates && rates.length > 0 && (
           <table className="oc-rates">
             <tbody>
               {rates.map((r, i) => (

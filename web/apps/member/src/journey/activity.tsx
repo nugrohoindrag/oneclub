@@ -161,7 +161,7 @@ export function StayHistoryPage() {
                   {' · '}{s.stayNo}
                 </span>
               </div>
-              <StatusChip status={s.status} />
+              <StatusChip status={s.bookingStatus ?? s.status} />
             </Link>
           ))}
         </div>

@@ -8,6 +8,7 @@ import {
 } from '@oneclub/shell';
 import { FolioDrawer } from '../p1/business';
 import { KV, Tabs } from '../p1/common';
+import { IdentityPhoto, MoveModal, SignaturePad, UpgradeModal, VoidModal, openPdf } from './mgcc';
 
 // Accommodation & Bungalow Management (docs/oneclub-accommodation-bungalow-
 // management-requirements.md): the types of the accommodation API and the
@@ -27,6 +28,9 @@ export interface Stay extends Row {
   billingArrangement: string | null; promotionCode: string | null; discount: string; notes: string | null; vip: boolean; expectedArrival: string | null;
   earlyCheckIn: boolean; lateCheckOutUntil: string | null; cancelReason: string | null; noShowFee: string | null; totalDue: string; paid: string;
   paymentStatus: string; idNumberMasked: string | null;
+  bookingStatus: string; holdExpiresAt: string | null; groupId: string | null; groupNo: string | null; publicToken: string | null; occupantName: string | null;
+  nationality: string | null; registeredAt: string | null; hasIdPhoto: boolean; keysIssued: number; keysReturned: number; keyNumbers: string | null;
+  voidReason: string | null; taxIncluded: boolean | null;
 }
 export interface StayAddon { id: string; addonId: string; name: string; category: string; quantity: number; units: number; unitPrice: string; total: string;
   included: boolean; source: string; voidedAt: string | null }
@@ -80,13 +84,18 @@ export const dayOf = (iso: string | null | undefined) => (iso ? formatDate(iso) 
 
 /** Reservation status of a stay (§4): Confirmed, Pending Payment, Checked-in … */
 export function stayStatus(s: Stay): [string, StatusTone] {
-  switch (s.status) {
+  // one status table for every screen (docs/requirement-booking-hotel-mgcc.md §12.3)
+  switch (s.bookingStatus ?? s.status) {
     case 'requested': return ['Requested', 'warning'];
-    case 'reserved': return s.reservationStatus === 'confirmed' ? ['Confirmed', 'info'] : ['Pending Payment', 'warning'];
-    case 'checked_in': return ['Checked-in', 'success'];
+    case 'awaiting_payment': return ['Awaiting Payment', 'warning'];
+    case 'confirmed': return ['Confirmed', 'info'];
+    case 'reserved': return s.reservationStatus === 'confirmed' ? ['Confirmed', 'info'] : ['Awaiting Payment', 'warning'];
+    case 'in_house': case 'checked_in': return ['In-house', 'success'];
     case 'checked_out': return ['Checked-out', 'neutral'];
     case 'cancelled': return ['Cancelled', 'neutral'];
     case 'no_show': return ['No-show', 'error'];
+    case 'expired': return ['Expired', 'neutral'];
+    case 'void': return ['Void', 'neutral'];
   }
   return [label(s.status), 'neutral'];
 }
@@ -97,7 +106,8 @@ export function StayStatus({ s }: { s: Stay }) {
 
 /** Payment status (§25). */
 export const PAYMENT: Record<string, [string, StatusTone]> = {
-  unpaid: ['Unpaid', 'error'], pending: ['Pending', 'warning'], paid: ['Paid', 'success'], partially_paid: ['Partially Paid', 'warning'],
+  unpaid: ['Unpaid', 'error'], pending: ['Pending', 'warning'], paid: ['Paid', 'success'], partially_paid: ['Deposit Paid', 'warning'],
+  overpaid: ['Overpaid', 'info'],
   refund_pending: ['Refund Pending', 'warning'], refunded: ['Refunded', 'neutral'], failed: ['Failed', 'error'],
 };
 export function PaymentStatus({ status }: { status: string }) {
@@ -169,10 +179,23 @@ export function StayDrawer({ id, onClose }: { id: string; onClose: () => void })
                 ['Corporate', s.corporateName ? `${s.corporateName}${s.billingArrangement ? ` · ${label(s.billingArrangement)}` : ''}` : '—'],
                 ['Total', <strong key="t">{money(s.totalDue)}</strong>], ['Paid', money(s.paid)], ['Deposit required', money(x.depositRequired)],
                 ['Special request', s.specialRequests ?? '—'], ['Notes', s.notes ?? '—'], ['Expected arrival', s.expectedArrival ?? '—'],
+                ['Group', s.groupNo ?? '—'], ['Guest staying', s.occupantName ?? '—'], ['Nationality', s.nationality ?? '—'],
+                ['Keys', s.keysIssued ? `${s.keysIssued} handed over · ${s.keysReturned} back${s.keyNumbers ? ` (${s.keyNumbers})` : ''}` : '—'],
+                ['Registration card', s.registeredAt ? `signed ${formatDateTime(s.registeredAt)}` : '—'],
+                ...(s.holdExpiresAt ? [['Held until', formatDateTime(s.holdExpiresAt)] as [string, React.ReactNode]] : []),
+                ...(s.voidReason ? [['Void reason', s.voidReason] as [string, React.ReactNode]] : []),
                 ['Identity', s.idNumberMasked ?? '—'], ['Created', `${formatDateTime(s.createdAt)} · ${label(s.channel)}`],
                 ...(s.cancelReason ? [['Cancel / no-show reason', s.cancelReason] as [string, React.ReactNode]] : []),
                 ...(s.noShowFee ? [['No-show charge', money(s.noShowFee)] as [string, React.ReactNode]] : []),
               ]} />
+              <div className="oc-row-wrap">
+                {s.status !== 'cancelled' && s.status !== 'expired' && s.status !== 'void' && (
+                  <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => void openPdf(`/api/v1/stay/stays/${s.id}/registration-card.pdf`, `registration-${s.stayNo}.pdf`)}>
+                    <Icon name="badge" size={16} /> Registration card</button>)}
+                {s.folioId && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => void openPdf(`/api/v1/stay/stays/${s.id}/invoice.pdf`, `invoice-${s.stayNo}.pdf`)}>
+                  <Icon name="receipt" size={16} /> Invoice / folio</button>}
+              </div>
+              {(s.status === 'reserved' || s.status === 'checked_in') && can('stay.stay.check_in') && <IdentityPhoto stay={s} onDone={() => void r.refetch()} />}
               {x.addons.length > 0 && (
                 <DataTable rows={x.addons as unknown as Row[]} rowKey={(a) => String(a.id)} columns={[
                   { key: 'name', header: 'Add-on', render: (a) => <>{String(a.name)}{a.included ? <span className="oc-small oc-muted"> · included</span> : null}</> },
@@ -208,6 +231,9 @@ export function StayDrawer({ id, onClose }: { id: string; onClose: () => void })
       {s && dialog === 'late' && <LateCheckoutModal stay={s} onClose={() => setDialog(null)} />}
       {s && dialog === 'edit' && <EditStayModal stay={s} onClose={() => setDialog(null)} />}
       {s && dialog === 'pay' && <PayModal stay={s} onClose={() => setDialog(null)} />}
+      {s && dialog === 'move' && <MoveModal stay={s} onClose={() => setDialog(null)} />}
+      {s && dialog === 'upgrade' && <UpgradeModal stay={s} onClose={() => setDialog(null)} />}
+      {s && dialog === 'void' && <VoidModal stay={s} onClose={() => setDialog(null)} />}
       {folio && s?.folioId && <FolioDrawer id={s.folioId} onClose={() => setFolio(false)} />}
     </Drawer>
   );
@@ -228,7 +254,7 @@ export function StayActions({ s, onDialog, compact }: { s: Stay; onDialog: (d: s
   const btn = (d: string, text: string, icon: string, kind = 'oc-btn-neutral') => (
     <button key={d} className={`oc-btn oc-btn-sm ${kind}`} onClick={() => onDialog(d)}><Icon name={icon} size={16} /> {text}</button>
   );
-  const pre = s.status === 'reserved' || s.status === 'requested';
+  const pre = (s.status === 'reserved' && s.bookingStatus !== 'expired') || s.status === 'requested';
   const items: React.ReactNode[] = [];
   if (s.status === 'requested' && can('stay.stay.update')) {
     items.push(<button key="confirm" className="oc-btn oc-btn-sm oc-btn-ink" disabled={confirm.isPending}
@@ -242,9 +268,12 @@ export function StayActions({ s, onDialog, compact }: { s: Stay; onDialog: (d: s
   if ((pre || s.status === 'checked_in') && can('stay.stay.charge') && !compact) items.push(btn('charge', 'Charge to room', 'add_card'), btn('addon', 'Add-on', 'add_shopping_cart'));
   if ((pre || s.status === 'checked_in') && can('stay.guest_request.create') && !compact) items.push(btn('request', 'Guest request', 'support_agent'));
   if (s.status === 'checked_in' && can('stay.stay.update') && !compact) items.push(btn('late', 'Late check-out', 'more_time'));
+  if (s.status === 'checked_in' && can('stay.stay.update') && !compact) items.push(btn('move', 'Room move', 'swap_horiz'));
+  if (s.status === 'reserved' && can('stay.stay.update') && !compact) items.push(btn('upgrade', 'Upgrade', 'upgrade'));
   if ((pre || s.status === 'checked_in') && can('stay.stay.update') && !compact) items.push(btn('edit', 'Edit details', 'edit'));
   if (s.status === 'reserved' && can('stay.stay.update') && !compact) items.push(btn('no-show', 'No-show', 'person_off'));
   if (pre && can('stay.stay.cancel') && !compact) items.push(btn('cancel', 'Cancel', 'cancel', 'oc-btn-text'));
+  if (pre && can('stay.stay.supervise') && !compact) items.push(btn('void', 'Void', 'block', 'oc-btn-text'));
   if (!items.length) return null;
   return <div className="oc-row-wrap">{items}<ErrorAlert error={confirm.error} /></div>;
 }
@@ -363,60 +392,93 @@ export function AssignModal({ stay, onClose }: { stay: Stay; onClose: () => void
 const ID_TYPES = [{ value: 'ktp', label: 'KTP' }, { value: 'passport', label: 'Passport' }, { value: 'sim', label: 'SIM' }, { value: 'kitas', label: 'KITAS' },
   { value: 'other', label: 'Other' }];
 
-/** Check-in (§17): guest verification, payment / deposit, room assignment. */
+/** Check-in (§17; docs/requirement-booking-hotel-mgcc.md FR-H47–H50): identity with nationality and photo, deposit, the bungalow, the registration
+ * card signed on the tablet and the keys handed over. A refusal names the reason and the next step (FR-H98). */
 export function CheckInModal({ stay, onClose }: { stay: Stay; onClose: () => void }) {
   const toast = useToast();
   const { can } = useAuth();
-  const [v, setV] = useState({ idType: 'ktp', idNumber: '', unitId: stay.unitAssigned ? stay.unitId : '', adults: String(stay.adults), children: String(stay.children),
-    deposit: '', method: 'cash', notes: '', waiveEarlyFee: false, overrideStatus: false });
+  const [v, setV] = useState({ idType: 'ktp', idNumber: '', nationality: stay.nationality ?? 'Indonesia', unitId: stay.unitAssigned ? stay.unitId : '',
+    adults: String(stay.adults), children: String(stay.children), deposit: '', method: 'cash', notes: '', waiveEarlyFee: false, overrideStatus: false,
+    keys: '2', keyNumbers: '', signature: '', reason: '' });
+  const [done, setDone] = useState<StayResult | null>(null);
   const early = new Date(stay.start).getTime() > Date.now();
-  const send = useSend<Row>('POST', `/api/v1/stay/stays/${stay.id}:check-in`, INV);
+  const send = useSend<Row, StayResult>('POST', `/api/v1/stay/stays/${stay.id}:check-in`, INV);
   const due = Number(stay.totalDue) - Number(stay.paid);
+  const supervisor = v.waiveEarlyFee || v.overrideStatus;
+  const code = (send.error as { code?: string } | null)?.code;
+  if (done) {
+    return (
+      <Modal open onClose={onClose} title={`Checked in · ${done.stay.unitName}`} actions={<button className="oc-btn oc-btn-ink" onClick={onClose}>Done</button>}>
+        <p>{guestOf(done.stay)} is in {done.stay.unitName} until {formatDateTime(done.stay.end)}. Keys: {done.stay.keysIssued}.</p>
+        <button className="oc-btn oc-btn-neutral" onClick={() => void openPdf(`/api/v1/stay/stays/${stay.id}/registration-card.pdf`, `registration-${stay.stayNo}.pdf`)}>
+          <Icon name="print" size={18} /> Print the registration card</button>
+      </Modal>
+    );
+  }
   return (
     <Modal open wide onClose={onClose} title={`Check in · ${guestOf(stay)} · ${stay.stayNo}`}
-      actions={<DialogActions onClose={onClose} ok="Check in" busy={send.isPending} disabled={!v.idNumber}
-        onOk={() => send.mutate({ idType: v.idType, idNumber: v.idNumber, unitId: v.unitId || undefined, adults: Number(v.adults) || undefined,
-          children: Number(v.children), notes: v.notes || undefined, waiveEarlyFee: v.waiveEarlyFee || undefined, overrideStatus: v.overrideStatus || undefined,
+      actions={<DialogActions onClose={onClose} ok="Check in" busy={send.isPending} disabled={!v.idNumber || (supervisor && !v.reason)}
+        onOk={() => send.mutate({ idType: v.idType, idNumber: v.idNumber, nationality: v.nationality || undefined, unitId: v.unitId || undefined,
+          adults: Number(v.adults) || undefined, children: Number(v.children), notes: v.notes || undefined, waiveEarlyFee: v.waiveEarlyFee || undefined,
+          overrideStatus: v.overrideStatus || undefined, supervisorReason: v.reason || undefined, signature: v.signature || undefined,
+          keysIssued: Number(v.keys) || 0, keyNumbers: v.keyNumbers || undefined,
           deposit: v.deposit && Number(v.deposit) > 0 ? { methodType: v.method, amount: v.deposit } : undefined },
-        { onSuccess: () => { toast('Checked in'); onClose(); } })} />}>
+        { onSuccess: (r) => { toast('Checked in'); setDone(r); } })} />}>
       <div className="oc-stack">
-        {early && <div className="oc-alert oc-alert-info"><Icon name="schedule" size={18} /> Early check-in: allowed on the arrival day from the Stay Policies time; the early check-in fee goes to the folio.</div>}
-        <strong>1 · Guest verification</strong>
+        {early && <div className="oc-alert oc-alert-info"><Icon name="schedule" size={18} /> Early check-in: possible from the Stay Policies time when the bungalow is Ready; the early check-in fee goes to the folio.</div>}
+        <strong>1 · Guest identity</strong>
         <div className="oc-form">
           <SelectField label="Identity" value={v.idType} onChange={(x) => setV({ ...v, idType: x })} options={ID_TYPES} />
           <TextField label="ID number" value={v.idNumber} onChange={(x) => setV({ ...v, idNumber: x })} required help="Stored masked (UU PDP)" />
+          <TextField label="Nationality" value={v.nationality} onChange={(x) => setV({ ...v, nationality: x })} />
           <TextField label="Adults" type="number" value={v.adults} onChange={(x) => setV({ ...v, adults: x })} />
           <TextField label="Children" type="number" value={v.children} onChange={(x) => setV({ ...v, children: x })} />
         </div>
-        <strong>2 · Payment validation</strong>
+        <IdentityPhoto stay={stay} />
+        <strong>2 · Deposit / guarantee</strong>
         <div className="oc-row-wrap" style={{ alignItems: 'center' }}>
           <PaymentStatus status={stay.paymentStatus} /><span>Total {money(stay.totalDue)} · paid {money(stay.paid)} · open {money(Math.max(due, 0))}</span>
         </div>
         {can('billing.payment.create') && (
           <div className="oc-form">
-            <MoneyField label="Deposit now (optional)" value={v.deposit} onChange={(x) => setV({ ...v, deposit: x })} placeholder="0" />
-            <SelectField label="Method" value={v.method} onChange={(x) => setV({ ...v, method: x })} options={['cash', 'card', 'bank_transfer', 'qris'].map((m) => ({ value: m, label: label(m) }))} />
+            <MoneyField label="Deposit now" value={v.deposit} onChange={(x) => setV({ ...v, deposit: x })} placeholder="0" />
+            <SelectField label="Method" value={v.method} onChange={(x) => setV({ ...v, method: x })} options={['cash', 'card', 'qris', 'bank_transfer'].map((m) => ({ value: m, label: label(m) }))} />
           </div>
         )}
-        <strong>3 · Room assignment</strong>
+        <strong>3 · Bungalow</strong>
         <UnitPicker stay={stay} value={v.unitId} onChange={(x) => setV({ ...v, unitId: x })} />
+        <strong>4 · Registration card and keys</strong>
+        <SignaturePad onChange={(x) => setV({ ...v, signature: x })} />
+        <div className="oc-form">
+          <TextField label="Keys / key cards handed over" type="number" value={v.keys} onChange={(x) => setV({ ...v, keys: x })} />
+          <TextField label="Key numbers" value={v.keyNumbers} onChange={(x) => setV({ ...v, keyNumbers: x })} />
+        </div>
         <TextArea label="Notes" rows={2} value={v.notes} onChange={(x) => setV({ ...v, notes: x })} />
-        {early && <Checkbox label="Waive the early check-in fee" checked={v.waiveEarlyFee} onChange={(x) => setV({ ...v, waiveEarlyFee: x })} />}
-        {can('stay.room_status.update') && <Checkbox label="Check in although the bungalow is not Ready (manager decision)" checked={v.overrideStatus} onChange={(x) => setV({ ...v, overrideStatus: x })} />}
+        {can('stay.stay.supervise') && early && <Checkbox label="Waive the early check-in fee (supervisor)" checked={v.waiveEarlyFee} onChange={(x) => setV({ ...v, waiveEarlyFee: x })} />}
+        {can('stay.stay.supervise') && <Checkbox label="Check in although the bungalow is not Ready (supervisor)" checked={v.overrideStatus} onChange={(x) => setV({ ...v, overrideStatus: x })} />}
+        {(supervisor || code === 'deposit_required') && can('stay.stay.supervise') && <TextField label="Supervisor reason" value={v.reason} onChange={(x) => setV({ ...v, reason: x })} required />}
+        {code === 'unit_not_ready' && <div className="oc-alert oc-alert-warning">Choose another Ready bungalow above, or ask housekeeping to finish this one (Housekeeping board).</div>}
+        {code === 'deposit_required' && <div className="oc-alert oc-alert-warning">Take the deposit above, or a supervisor accepts it later with a reason.</div>}
+        {code === 'too_early' && <div className="oc-alert oc-alert-warning">Too early for the early check-in: wait until the time of Stay Policies, or reschedule.</div>}
         <ErrorAlert error={send.error} />
       </div>
     </Modal>
   );
 }
 
-/** Check-out (§18): review folio, additional charges, payment, check-out. */
+/** Check-out (§18; FR-H56–H59): folio, extra charges, keys back, payment on the payment screen (cash, card, QRIS, transfer, city ledger), invoice. */
 export function CheckOutModal({ stay: s, onClose }: { stay: Stay; onClose: () => void }) {
   const toast = useToast();
   const { can } = useAuth();
   const [late, setLate] = useState(false);
   const [notes, setNotes] = useState('');
   const [method, setMethod] = useState('card');
+  const [amount, setAmount] = useState('');
+  const [keys, setKeys] = useState(String(s.keysIssued));
+  const [overrideKeys, setOverrideKeys] = useState(false);
+  const [reason, setReason] = useState('');
   const [charging, setCharging] = useState(false);
+  const [done, setDone] = useState(false);
   const r = useGet<StayResult>(`/api/v1/stay/stays/${s.id}`);
   const stay = r.data?.stay ?? s;
   const balance = Number(stay.totalDue) - Number(stay.paid);
@@ -424,38 +486,66 @@ export function CheckOutModal({ stay: s, onClose }: { stay: Stay; onClose: () =>
   const company = useSend<Row>('POST', `/api/v1/billing/folios/${s.folioId}:charge-to-account`, INV);
   const out = useSend<Row>('POST', `/api/v1/stay/stays/${s.id}:check-out`, INV);
   const lines = (r.data?.folio?.lines ?? []).filter((l) => !l.voidedAt);
+  const code = (out.error as { code?: string } | null)?.code;
+  if (done) {
+    return (
+      <Modal open onClose={onClose} title={`Checked out · ${s.unitName}`} actions={<button className="oc-btn oc-btn-ink" onClick={onClose}>Done</button>}>
+        <p>The folio is closed and {s.unitName} is Dirty with a cleaning task for housekeeping.</p>
+        <button className="oc-btn oc-btn-neutral" onClick={() => void openPdf(`/api/v1/stay/stays/${s.id}/invoice.pdf`, `invoice-${s.stayNo}.pdf`)}><Icon name="print" size={18} /> Invoice / receipt</button>
+      </Modal>
+    );
+  }
+  const take = () => {
+    const amt = amount || String(balance);
+    if (method === 'city_ledger') {
+      company.mutate({ corporateAccountId: stay.corporateAccountId, amount: amt }, { onSuccess: () => { toast('Charged to the company (city ledger)'); setAmount(''); void r.refetch(); } });
+      return;
+    }
+    pay.mutate({ folioId: s.folioId, amount: amt, methodType: method, channel: method === 'member_account' ? 'member_account' : ['qris', 'virtual_account'].includes(method) ? 'online' : 'venue' },
+      { onSuccess: () => { toast('Payment taken'); setAmount(''); void r.refetch(); } });
+  };
+  const methods = [['cash', 'Cash'], ['card', 'Card / EDC'], ['qris', 'QRIS'], ['bank_transfer', 'Transfer'], ['member_account', 'Member charge'],
+    ...(stay.corporateAccountId ? [['city_ledger', `City ledger · ${stay.corporateName ?? 'company'}`]] : [])];
   return (
     <Modal open wide onClose={onClose} title={`Check out · ${guestOf(s)} · ${s.unitName}`}
-      actions={<DialogActions onClose={onClose} ok="Check out" busy={out.isPending}
-        onOk={() => out.mutate({ waiveLateFee: late || undefined, notes: notes || undefined }, { onSuccess: () => { toast('Checked out — the bungalow is Dirty for housekeeping'); onClose(); } })} />}>
+      actions={<DialogActions onClose={onClose} ok="Check out" busy={out.isPending} disabled={(late || overrideKeys) && !reason}
+        onOk={() => out.mutate({ waiveLateFee: late || undefined, notes: notes || undefined, keysReturned: stay.keysIssued ? Number(keys) || 0 : undefined,
+          overrideKeys: overrideKeys || undefined, supervisorReason: reason || undefined }, { onSuccess: () => { toast('Checked out'); setDone(true); } })} />}>
       <div className="oc-stack">
-        <strong>1 · Review folio</strong>
-        <DataTable rows={lines as Row[]} rowKey={(l) => String(l.id)} empty={<span className="oc-muted">Only the room nights (posted at check-out).</span>} columns={[
-          { key: 'description', header: 'Charge' }, { key: 'total', header: 'Total', align: 'right', render: (l) => money(l.total) }]} />
-        <KV items={[['Total (with the nights posted at check-out)', <strong key="t">{money(stay.totalDue)}</strong>], ['Paid', money(stay.paid)],
-          ['To pay', <strong key="b">{money(Math.max(balance, 0))}</strong>]]} />
-        <strong>2 · Additional charges</strong>
+        <strong>1 · Minibar and damage</strong>
         <div className="oc-row-wrap">
           {can('stay.stay.charge') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setCharging(true)}><Icon name="add_card" size={16} /> Charge to room (minibar, damage …)</button>}
           {stay.lateCheckOutUntil && <span className="oc-small">Late check-out approved until {formatDateTime(stay.lateCheckOutUntil)}</span>}
         </div>
+        <strong>2 · Folio</strong>
+        <DataTable rows={lines as Row[]} rowKey={(l) => String(l.id)} empty={<span className="oc-muted">Only the room nights (posted at check-out).</span>} columns={[
+          { key: 'description', header: 'Charge' }, { key: 'total', header: 'Total', align: 'right', render: (l) => money(l.total) }]} />
+        <KV items={[['Total (with the nights posted at check-out)', <strong key="t">{money(stay.totalDue)}</strong>], ['Paid (deposits included)', money(stay.paid)],
+          ['To pay', <strong key="b">{money(Math.max(balance, 0))}</strong>], ...(balance < 0 ? [['Deposit / overpayment to return', money(-balance)] as [string, React.ReactNode]] : [])]} />
         <strong>3 · Payment</strong>
-        {balance > 0 ? (
+        {balance > 0 && can('billing.payment.create') ? (
           <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
-            <SelectField label="Method" value={method} onChange={setMethod} options={['cash', 'card', 'bank_transfer', 'qris', 'virtual_account'].map((m) => ({ value: m, label: label(m) }))} />
-            <button className="oc-btn oc-btn-primary" disabled={pay.isPending || !can('billing.payment.create')}
-              onClick={() => pay.mutate({ folioId: s.folioId, amount: String(balance), methodType: method, channel: ['qris', 'virtual_account'].includes(method) ? 'online' : 'venue' },
-                { onSuccess: () => { toast('Payment taken'); void r.refetch(); } })}>Take payment {money(balance)}</button>
-            {stay.corporateAccountId && stay.billingArrangement !== 'guest_pays' && can('billing.customer_account.charge') && (
-              <button className="oc-btn oc-btn-neutral" disabled={company.isPending}
-                onClick={() => company.mutate({ corporateAccountId: stay.corporateAccountId, amount: String(balance) }, { onSuccess: () => { toast('Charged to the company'); void r.refetch(); } })}>
-                Charge to {stay.corporateName}</button>
-            )}
+            <SelectField label="Method" value={method} onChange={setMethod} options={methods.map(([value, l]) => ({ value, label: l }))} />
+            <MoneyField label="Amount" value={amount} onChange={setAmount} placeholder={String(balance)} />
+            <button className="oc-btn oc-btn-primary" disabled={pay.isPending || company.isPending} onClick={take}>Take {money(amount || balance)}</button>
           </div>
-        ) : <span className="oc-muted">The folio is settled.</span>}
-        <p className="oc-small oc-muted" style={{ margin: 0 }}>Late check-out follows Stay Policies (grace period, fee until the cut-off, an additional night after it). The late fee is added at check-out — take the payment again if one is shown.</p>
-        <Checkbox label="Waive the late check-out fee" checked={late} onChange={setLate} />
+        ) : balance > 0 ? <span className="oc-muted">A cashier takes the payment.</span> : <span className="oc-muted">The folio is settled.</span>}
+        {stay.keysIssued > 0 && (
+          <>
+            <strong>4 · Keys</strong>
+            <div className="oc-form">
+              <TextField label={`Keys back (of ${stay.keysIssued})`} type="number" value={keys} onChange={setKeys} />
+            </div>
+          </>
+        )}
+        {can('stay.stay.supervise') && <Checkbox label="Waive the late check-out fee (supervisor)" checked={late} onChange={setLate} />}
+        {(code === 'keys_outstanding' || overrideKeys) && can('stay.stay.supervise') && (
+          <Checkbox label="Check out with keys missing (supervisor)" checked={overrideKeys} onChange={setOverrideKeys} />
+        )}
+        {(late || overrideKeys) && <TextField label="Supervisor reason" value={reason} onChange={setReason} required />}
+        <p className="oc-small oc-muted" style={{ margin: 0 }}>Late check-out follows Stay Policies (grace, fee until the cut-off, one more night after it): the fee is added at check-out — take the payment again if one shows.</p>
         <TextArea label="Notes" rows={2} value={notes} onChange={setNotes} />
+        {code === 'folio_unsettled' && <div className="oc-alert oc-alert-warning">Take the payment above first: the folio must be settled.</div>}
         <ErrorAlert error={pay.error ?? company.error ?? out.error} />
       </div>
       {charging && <ChargeModal stay={stay} onClose={() => { setCharging(false); void r.refetch(); }} />}

@@ -47,8 +47,8 @@ func (m *Module) FrontOfficeDay(ctx context.Context, q dbtx.Querier, property uu
 	to := from.AddDate(0, 0, 1)
 	out := FrontOffice{Date: from.Format(time.DateOnly), Counts: map[string]int{}, Rooms: map[string]int{}}
 	var err error
-	if out.Arrivals, err = handle.List[Stay](q.Query(ctx, staySelect+` WHERE s.property_id = $1 AND s.kind = 'bungalow' AND s.status IN ('reserved', 'requested')
-		AND s.start_at < $3 AND s.end_at > $2 ORDER BY s.vip DESC, s.start_at, s.stay_no`, property, from, to)); err != nil {
+	if out.Arrivals, err = handle.List[Stay](q.Query(ctx, staySelect+` WHERE s.property_id = $1 AND s.kind = 'bungalow' AND s.status = 'reserved'
+		AND r.status IN ('draft', 'pending', 'confirmed') AND s.start_at < $3 AND s.end_at > $2 ORDER BY s.vip DESC, s.start_at, s.stay_no`, property, from, to)); err != nil {
 		return out, err
 	}
 	if out.Departures, err = handle.List[Stay](q.Query(ctx, staySelect+` WHERE s.property_id = $1 AND s.kind = 'bungalow' AND s.status = 'checked_in'
@@ -151,6 +151,12 @@ func (m *Module) Reschedule(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Re
 		return StayResult{}, errs.Conflict("no_line", "the reservation has no line")
 	}
 	main := r.Lines[0]
+	if s.Status == "checked_in" {
+		// after a room move the guest is on the line of the current bungalow
+		if cu, err := m.unit(ctx, tx, "bungalow", s.UnitID); err == nil {
+			main = currentLine(r, cu.ResourceID)
+		}
+	}
 	segment := "guest"
 	if s.CustomerID != nil {
 		if seg, err := memberSegment(ctx, tx, s.PropertyID, *s.CustomerID); err == nil && seg != "" {
@@ -523,7 +529,11 @@ func (m *Module) LateCheckout(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in 
 		cur = *s.LateCheckOutUntil
 	}
 	if until.After(cur) && len(r.Lines) > 0 {
-		if err := m.Res.ExtendLine(ctx, tx, r.Lines[0].ID, until); err != nil {
+		line := r.Lines[0]
+		if cu, err := m.unit(ctx, tx, "bungalow", s.UnitID); err == nil {
+			line = currentLine(r, cu.ResourceID)
+		}
+		if err := m.Res.ExtendLine(ctx, tx, line.ID, until); err != nil {
 			return StayResult{}, err
 		}
 	}

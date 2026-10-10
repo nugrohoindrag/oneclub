@@ -96,7 +96,7 @@ func (a *App) buildP2(reg *route.Registry, cfg *config.Config, db *dbtx.DB, file
 	a.SportClub.Register(reg, a.Engine)
 	a.Approvals.RegisterDocumentType(sportclub.InstructorFeeType, a.SportClub.FeeDecision)
 	a.Sync.Handle("sportclub.access_validate", a.SportClub.SyncAccess)
-	a.Stay = &stay.Module{DB: db, Res: a.Reservations, Billing: a.Billing, POS: a.POS, Vouchers: a.Vouchers, Events: a.Bus, Notify: a.Notification}
+	a.Stay = &stay.Module{DB: db, Res: a.Reservations, Billing: a.Billing, POS: a.POS, Vouchers: a.Vouchers, Events: a.Bus, Notify: a.Notification, Files: files}
 	a.Stay.Register(reg, a.Engine)
 	a.Inventory = &inventory.Module{DB: db, Products: a.POS}
 	a.Inventory.Register(reg, a.Engine)
@@ -116,6 +116,7 @@ func (a *App) buildP2(reg *route.Registry, cfg *config.Config, db *dbtx.DB, file
 	a.CRM.Sections = map[string]crm.SectionFunc{
 		"membership": membership.CustomerSection, "golf": a.Experience.CustomerSection, "sportclub": a.SportClub.CustomerSection,
 		"bookings": a.Reservations.CustomerSection, "pos": a.POS.CustomerSection, "payments": a.Billing.CustomerSection,
+		"stay": a.Stay.CustomerSection, // Customer 360 › Stay (docs/requirement-booking-hotel-mgcc.md FR-H77)
 	}
 	a.CRM.Behavior = map[string]crm.BehaviorFunc{
 		"golf": a.Experience.CustomerBehavior, "sportclub": a.SportClub.CustomerBehavior, "booking": a.Reservations.CustomerBehavior, "pos": a.POS.CustomerBehavior,
@@ -196,6 +197,16 @@ func segmentFacts(ctx context.Context, q dbtx.Querier, property uuid.UUID, since
 	for c, x := range courts {
 		f := out[c]
 		f.CourtBookings, f.Sports, f.LastCourtPlay = x.CourtBookings, x.Sports, x.LastCourtPlay
+		out[c] = f
+	}
+	// bungalow stays (docs/requirement-booking-hotel-mgcc.md FR-H78)
+	stays, err := stay.SegmentFacts(ctx, q, property, since)
+	if err != nil {
+		return nil, err
+	}
+	for c, x := range stays {
+		f := out[c]
+		f.Stays, f.LastStay = x.Stays, x.LastStay
 		out[c] = f
 	}
 	return out, nil

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router';
-import { useGet, useSend } from '@oneclub/api-client';
+import { useGet, useSend, type Schemas } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import { Empty, ErrorAlert, Icon, Skeleton, TextArea, useToast } from '@oneclub/shell';
 import { Head, Rows, StatusChip, dayLabel, money } from './ui';
@@ -14,10 +14,10 @@ interface Request { id: string; requestNo: string; requestType: string; quantity
 interface Addon { id: string; name: string; category: string; description: string | null; price: string; unit: string }
 interface Experience {
   stay: { id: string; stayNo: string; reservationCode: string; unitName: string; typeName: string | null; start: string; end: string; status: string; nights: number;
-    adults: number; children: number; ratePlan: string | null; specialRequests: string | null; lateCheckOutUntil: string | null };
+    adults: number; children: number; ratePlan: string | null; specialRequests: string | null; lateCheckOutUntil: string | null; bookingStatus?: string; propertyId: string };
   typeName: string; description: string | null; photos: string[]; amenities: string[]; bedConfiguration: string | null; view: string | null;
   checkInTime: string; checkOutTime: string; houseRules: string; propertyInfo: string; requests: Request[]; orderableAddons: Addon[];
-  folio: { description: string; quantity: string; total: string; postedAt: string }[]; folioTotal: string; folioPaid: string; folioBalance: string; canRequest: boolean;
+  folio: { description: string; quantity: string; total: string; postedAt: string }[]; folioTotal: string; folioPaid: string; folioBalance: string; canRequest: boolean; bookingToken: string | null;
 }
 
 const SERVICES: [string, string, string][] = [['extra_towel', 'Extra towel', 'dry_cleaning'], ['room_cleaning', 'Room cleaning', 'cleaning_services'],
@@ -39,7 +39,8 @@ export function MyStayPage() {
   const ask = (body: Record<string, unknown>) => send.mutate(body, { onSuccess: () => { toast('Request sent to the front office'); setType(null); setNote(''); } });
   return (
     <div className="mj-page">
-      <Head title="My Stay" back={['/activity/stays', 'Stays']} help={`${s.stayNo} · ${s.reservationCode}`} actions={<StatusChip status={s.status} />} />
+      <Head title="My Stay" back={['/activity/stays', 'Stays']} help={`${s.stayNo} · ${s.reservationCode}`} actions={<StatusChip status={s.bookingStatus ?? s.status} />} />
+      {e.bookingToken && <BookingLinks token={e.bookingToken} stayId={s.id} propertyId={s.propertyId} />}
       <section className="mj-card">
         {e.photos[0] && <img src={e.photos[0]} alt="" style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: 16, marginBottom: 12 }} />}
         <h2 style={{ margin: 0 }}>{s.unitName}</h2>
@@ -114,5 +115,36 @@ export function MyStayPage() {
         <h4>Property Information</h4><p style={{ whiteSpace: 'pre-wrap' }}>{e.propertyInfo}</p>
       </section>
     </div>
+  );
+}
+
+/** The booking of the stay (docs/requirement-booking-hotel-mgcc.md FR-H89): e-voucher, calendar and the cancellation allowed by the rate plan. */
+function BookingLinks({ token, stayId, propertyId }: { token: string; stayId: string; propertyId: string }) {
+  const toast = useToast();
+  const v = useGet<Schemas['BookingView']>(`/api/v1/member/stay-bookings/${token}`);
+  const cancel = useSend<Record<string, unknown>>('POST', `/api/v1/member/stay-bookings/${token}:cancel`, ['/api/v1/member/stay']);
+  const [ask, setAsk] = useState(false);
+  const me = v.data?.stays.find((x) => x.id === stayId);
+  const file = (f: string) => `/api/v1/public/stay-bookings/${token}/${f}?propertyId=${propertyId}`;
+  return (
+    <section className="mj-card">
+      <div className="mj-actions" style={{ justifyContent: 'flex-start' }}>
+        <a className="oc-btn oc-btn-outline oc-btn-sm" href={file('e-voucher.pdf')}><Icon name="download" size={16} /> E-voucher</a>
+        <a className="oc-btn oc-btn-outline oc-btn-sm" href={file('calendar.ics')}><Icon name="event" size={16} /> Calendar</a>
+        {me?.canCancel && <button className="oc-btn oc-btn-text oc-btn-sm" onClick={() => setAsk(true)}>Cancel this stay</button>}
+      </div>
+      {me && <p className="mj-small mj-muted">{me.nonRefundable ? 'Non-refundable rate.' : `Free cancellation until ${me.freeCancelHours} h before arrival, then ${Number(me.cancelFeePercent)}%.`}
+        {' '}Want other dates? Contact the front desk.</p>}
+      {ask && me && (
+        <div className="oc-stack">
+          <p>Cancellation fee now: <strong>{money(me.cancelFee)}</strong>. Any refund is processed by Finance.</p>
+          <div className="mj-actions">
+            <button className="oc-btn oc-btn-neutral" onClick={() => setAsk(false)}>Keep it</button>
+            <button className="oc-btn oc-btn-primary" disabled={cancel.isPending} onClick={() => cancel.mutate({ stayIds: [stayId] }, { onSuccess: () => { toast('Cancelled'); setAsk(false); void v.refetch(); } })}>Yes, cancel</button>
+          </div>
+          <ErrorAlert error={cancel.error} />
+        </div>
+      )}
+    </section>
   );
 }

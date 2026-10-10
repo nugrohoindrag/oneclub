@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getProperty, pub } from '../../app/lib-p2';
 import { ContactForms, WeatherScript } from './client';
+import { StaySearchBar } from './stay-search';
 import { MgccPage } from './site';
 
 // Route components of the live site's pages (app/[lang]/<path>/page.tsx).
@@ -55,6 +56,20 @@ async function sportLinks(lang: string): Promise<[string, string][]> {
       `/${lang}/book/sport-club/${f.content?.slug || f.code.toLowerCase()}`]);
 }
 
+/** The bungalow search of the booking engine (docs/requirement-booking-hotel-mgcc.md FR-H07) on the Bungalow page and the Home. */
+function StaySearchBlock({ lang }: { lang: string }) {
+  const id = lang === 'id';
+  return (
+    <section className="book oc-stay-search">
+      <div className="container">
+        <div className="section-title has-text-centered"><h3 className="has-text-white">{id ? 'Pesan Bungalow' : 'Book a Bungalow'}</h3></div>
+        <StaySearchBar lang={id ? 'id' : 'en'} />
+        <p className="has-text-centered"><a href={`/${lang}/book/bungalow/check`}>{id ? 'Cek Booking' : 'Check Booking'}</a></p>
+      </div>
+    </section>
+  );
+}
+
 /** A captured page of the live site as a route component. */
 export function livePage(name: string) {
   return async function Page({ params }: Props) {
@@ -63,7 +78,8 @@ export function livePage(name: string) {
     const links = name === 'sport-club' ? await sportLinks(lang) : [];
     const page = (
       <MgccPage lang={lang} name={name}>
-        {book && <BookBlock title={book.title} text={book.text} href={`/${lang}${book.path}`} label={book.label} links={links} />}
+        {name === 'bungalow' || name === 'home' ? <StaySearchBlock lang={lang} />
+          : book && <BookBlock title={book.title} text={book.text} href={`/${lang}${book.path}`} label={book.label} links={links} />}
       </MgccPage>
     );
     if (name === 'home') return <>{page}<WeatherScript /></>;

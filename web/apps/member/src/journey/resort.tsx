@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { qs, request, useGet, uuidv7, type Page, type Schemas } from '@oneclub/api-client';
 import { ErrorAlert, Icon, SelectField, Skeleton, TextArea, TextField } from '@oneclub/shell';
-import { MethodPicker, PaymentPanel, type PayMethod } from './pay';
+import { MethodPicker, PaymentPanel, SandboxGateway, type PayMethod } from './pay';
 import { DateStrip } from './teetime';
 import { Chip, dayLabel, downloadICS, Head, isoDay, money, Rows, Steps } from './ui';
 
@@ -112,40 +112,94 @@ function StayConfirmed({ result, title, paid }: { result: StayResult; title: str
 }
 
 // ── Book Bungalow ─────────────────────────────────────────────────────────
+// The same search, quote and booking as the website (docs/requirement-
+// booking-hotel-mgcc.md FR-H87): the Member rate next to the public rates
+// (FR-H88), several bungalows in one cart with their add-ons, the
+// cancellation policy, then member charge or the online payment held for
+// the hold time; the booking with its e-voucher (FR-H89).
 
-const B_STEPS = ['Dates', 'Bungalow', 'Guests', 'Review', 'Payment', 'Confirmed'];
+type PubSearch = Schemas['PublicSearch'];
+type PubType = Schemas['PublicSearchType'];
+type PubRate = Schemas['PublicRate'];
+type CartQuote = Schemas['CartQuote'];
+type BookingView = Schemas['BookingView'];
+interface CartItem { key: string; typeId: string; typeName: string; ratePlan: string; ratePlanName: string; kind: string; adults: number; children: number;
+  maxAdults: number; maxChildren: number; total: string; includesBreakfast: boolean; addons: Record<string, number> }
+
+const B_STEPS = ['Dates', 'Bungalows', 'Add-ons', 'Review', 'Payment', 'Booked'];
+
+function cancelLine(r: { nonRefundable: boolean; freeCancelHours: number; cancelFeePercent: string }) {
+  if (r.nonRefundable) return 'Non-refundable';
+  return r.freeCancelHours > 0 ? `Free cancellation until ${r.freeCancelHours} h before arrival, then ${Number(r.cancelFeePercent)}%` : `Cancellation fee ${Number(r.cancelFeePercent)}%`;
+}
 
 export function BungalowWizard() {
+  const qc = useQueryClient();
   const [step, setStep] = useState(0);
   const [from, setFrom] = useState(isoDay(1));
   const [nights, setNights] = useState(1);
-  const catalog = useGet<Catalog>('/api/v1/member/stay-catalog');
-  const avail = useGet<Page<Schemas['TypeAvailability']>>(step >= 1 ? `/api/v1/member/bungalow-availability${qs({ from, nights })}` : null);
-  const [typeId, setType] = useState('');
-  const [ratePlan, setRatePlan] = useState('');
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
+  const [promo, setPromo] = useState('');
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [requests, setRequests] = useState('');
   const [method, setMethod] = useState<PayMethod>('member_charge');
-  const type = catalog.data?.bungalowTypes.find((t) => t.id === typeId);
-  const plans = (catalog.data?.ratePlans ?? []).filter((p) => p.minNights <= nights);
-  const plan = ratePlan || plans[0]?.code || '';
+  const [booking, setBooking] = useState<BookingView | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<unknown>(null);
   const departure = isoDay(nights, from);
-  const body = { kind: 'bungalow', bungalowTypeId: typeId, arrivalDate: from, departureDate: departure, ratePlan: plan || undefined, adults, children, specialRequests: requests || undefined };
-  const q = useQuote(step === 3 ? body : null);
-  const bk = useStayBooking();
-  const [paid, setPaid] = useState(false);
-  const confirm = async () => {
-    await bk.book(body, method);
-  };
+  const catalog = useGet<Catalog>('/api/v1/member/stay-catalog');
+  const search = useGet<PubSearch>(step >= 1 ? `/api/v1/member/stay/search${qs({ checkin: from, checkout: departure, adults, children, promo: promo || undefined })}` : null);
+  const body = { arrivalDate: from, departureDate: departure, promoCode: promo || undefined, items: cart.map((i) => ({ bungalowTypeId: i.typeId,
+    ...(i.kind === 'package' ? { stayPackage: i.ratePlan } : { ratePlan: i.ratePlan }), adults: i.adults, children: i.children,
+    addons: Object.entries(i.addons).filter(([, n]) => n > 0).map(([addonId, quantity]) => ({ addonId, quantity })) })) };
+  const [quote, setQuote] = useState<CartQuote | null>(null);
+  const [qErr, setQErr] = useState<unknown>(null);
   React.useEffect(() => {
-    if (bk.result && !bk.payment) { setPaid(method === 'member_charge'); setStep(5); } else if (bk.payment) setStep(4);
-  }, [bk.result, bk.payment]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (step !== 3) return;
+    let live = true;
+    setQuote(null);
+    setQErr(null);
+    request<CartQuote>('POST', '/api/v1/member/stays:quote-cart', body).then((q) => live && setQuote(q), (e) => live && setQErr(e));
+    return () => { live = false; };
+  }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
+  const count = (typeId: string) => cart.filter((i) => i.typeId === typeId).length;
+  const add = (t: PubType, r: PubRate) => setCart([...cart, { key: `${t.id}-${Date.now()}`, typeId: t.id, typeName: t.name, ratePlan: r.code, ratePlanName: r.name, kind: r.kind,
+    adults: Math.min(adults, t.maxAdults), children: Math.min(children, t.maxChildren), maxAdults: t.maxAdults, maxChildren: t.maxChildren, total: r.total,
+    includesBreakfast: r.includesBreakfast, addons: {} }]);
+  const removeOne = (typeId: string) => { const i = cart.map((c) => c.typeId).lastIndexOf(typeId); if (i >= 0) setCart(cart.filter((_, k) => k !== i)); };
+  const book = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const v = await request<BookingView>('POST', '/api/v1/member/stay-bookings', { ...body, specialRequests: requests || undefined,
+        payMethod: Number(quote?.depositNow ?? 0) > 0 ? method : undefined }, { 'Idempotency-Key': uuidv7() });
+      void qc.invalidateQueries({ queryKey: ['/api/v1/member/stays'] });
+      setBooking(v);
+      setStep(v.status === 'awaiting_payment' ? 4 : 5);
+    } catch (e) {
+      setError(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const reload = async () => {
+    if (!booking) return;
+    const v = await request<BookingView>('GET', `/api/v1/member/stay-bookings/${booking.token}`);
+    setBooking(v);
+    if (v.status !== 'awaiting_payment') setStep(5);
+  };
+  const failed = async () => {
+    if (!booking) return;
+    setBooking(await request<BookingView>('POST', `/api/v1/member/stay-bookings/${booking.token}:abandon`, {}));
+    setStep(1); // back to the cart, still filled (FR-H36)
+  };
+  const types = search.data?.types ?? [];
   return (
     <div className="mj-page mj-narrow">
       <Head title="Book Bungalow" back={['/book', 'Book']} />
       <Steps steps={B_STEPS} current={step} />
-      <ErrorAlert error={bk.error} />
+      <ErrorAlert error={error} />
       {step === 0 && (
         <div className="mj-card oc-stack">
           <h2><Icon name="calendar_month" size={20} /> Arrival</h2>
@@ -153,94 +207,160 @@ export function BungalowWizard() {
           <div className="oc-row-wrap">
             <strong>Nights</strong>
             <div className="mj-seg" role="group" aria-label="Nights">
-              {[1, 2, 3, 4, 5, 7].map((n) => <button key={n} type="button" aria-pressed={nights === n} onClick={() => setNights(n)}>{n}</button>)}
+              {[1, 2, 3, 4, 5, 7, 14].map((n) => <button key={n} type="button" aria-pressed={nights === n} onClick={() => setNights(n)}>{n}</button>)}
             </div>
           </div>
+          <div className="oc-row-wrap">
+            <strong style={{ width: 90 }}>Adults</strong>
+            <div className="mj-seg" role="group" aria-label="Adults">{[1, 2, 3, 4, 5, 6].map((n) => <button key={n} type="button" aria-pressed={adults === n} onClick={() => setAdults(n)}>{n}</button>)}</div>
+          </div>
+          <div className="oc-row-wrap">
+            <strong style={{ width: 90 }}>Children</strong>
+            <div className="mj-seg" role="group" aria-label="Children">{[0, 1, 2, 3].map((n) => <button key={n} type="button" aria-pressed={children === n} onClick={() => setChildren(n)}>{n}</button>)}</div>
+          </div>
+          <TextField label="Promo code (optional)" value={promo} onChange={(x) => setPromo(x.toUpperCase())} />
           <div className="mj-small mj-muted">{dayLabel(from)} → {dayLabel(departure)}</div>
-          <div className="mj-actions mj-sticky"><button className="oc-btn oc-btn-primary" onClick={() => setStep(1)}>Continue <Icon name="arrow_forward" size={18} /></button></div>
+          <div className="mj-actions mj-sticky"><button className="oc-btn oc-btn-primary" onClick={() => { setCart([]); setStep(1); }}>Check availability <Icon name="arrow_forward" size={18} /></button></div>
         </div>
       )}
       {step === 1 && (
-        <div className="mj-card oc-stack">
-          <h2><Icon name="cottage" size={20} /> Select bungalow</h2>
-          {(catalog.isLoading || avail.isLoading) && <Skeleton rows={3} />}
-          <div className="mj-choices" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
-            {(catalog.data?.bungalowTypes ?? []).map((t) => {
-              const a = avail.data?.items.find((x) => x.typeId === t.id);
-              const left = a ? Math.min(...a.nights.map((n) => n.available)) : 0;
-              return (
-                <button key={t.id} type="button" className="mj-choice" aria-pressed={typeId === t.id} disabled={left <= 0} onClick={() => { setType(t.id); setAdults(Math.min(adults, t.maxAdults)); }}>
-                  <span className="mj-icon"><Icon name="cottage" size={20} /></span>
-                  <span>
-                    <strong>{t.name}</strong>
-                    <small>{t.bedrooms} bedroom{t.bedrooms === 1 ? '' : 's'} · up to {t.maxAdults} adults{t.facilities.length ? ` · ${t.facilities.slice(0, 3).join(', ')}` : ''}</small>
-                    <Chip tone={left > 0 ? (left < 2 ? 'warn' : 'ok') : 'bad'}>{left > 0 ? `${left} available` : 'Full'}</Chip>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          {plans.length > 0 && (
-            <div className="oc-stack" style={{ gap: 8 }}>
-              <strong>Rate plan</strong>
-              <div className="mj-seg" role="group" aria-label="Rate plan">
-                {plans.map((p) => <button key={p.code} type="button" aria-pressed={plan === p.code} onClick={() => setRatePlan(p.code)}>{p.name}{p.includesBreakfast ? ' · breakfast' : ''}</button>)}
+        <div className="oc-stack">
+          {search.isLoading && <Skeleton rows={4} />}
+          <ErrorAlert error={search.error} />
+          {search.data?.promoError && <div className="mj-card mj-small"><Chip tone="warn">Promo</Chip> {search.data.promoError}</div>}
+          {types.length > 0 && types.every((t) => t.full || t.closedReason) && <div className="mj-card mj-muted">No bungalow is free on these dates — try other dates.</div>}
+          {types.map((t) => (
+            <div key={t.id} className="mj-card oc-stack" style={{ gap: 8 }}>
+              <div className="oc-row-wrap" style={{ alignItems: 'center' }}>
+                <strong>{t.name}</strong>
+                {t.full ? <Chip tone="bad">Full</Chip> : t.lowAvailability ? <Chip tone="warn">{`${t.available} left`}</Chip> : <Chip tone="ok">{`${t.available} available`}</Chip>}
+                {count(t.id) > 0 && <Chip tone="info">{`${count(t.id)} in your cart`}</Chip>}
               </div>
+              <small className="mj-muted">{t.bedrooms} bedroom{t.bedrooms === 1 ? '' : 's'} · up to {t.maxAdults} adults{t.views.length ? ` · ${t.views.join(' / ')} view` : ''}</small>
+              {t.capacityNote && <small className="mj-muted">{t.capacityNote}</small>}
+              {t.closedReason && <small className="mj-muted">{t.closedReason}</small>}
+              {!t.full && !t.closedReason && t.fitsGuests && [...t.rates, ...t.packages].map((r) => (
+                <div key={r.code} className="mj-rate">
+                  <span>
+                    <strong>{r.name}</strong>{r.eligibility === 'member' && <> <Chip tone="ok">Member</Chip></>}
+                    <small className="mj-muted" style={{ display: 'block' }}>{r.includesBreakfast ? 'Breakfast included' : 'Room only'} · {r.taxIncluded ? 'tax & service included' : 'excl. tax & service'} · {cancelLine(r)}</small>
+                  </span>
+                  <span style={{ textAlign: 'right' }}>
+                    {r.savePercent > 0 && <s className="mj-muted mj-small">{money(r.listTotal)}</s>}
+                    <strong className="mj-num" style={{ display: 'block' }}>{money(r.total)}</strong>
+                    <small className="mj-muted">{money(r.averagePerNight)} / night</small>
+                    <span className="oc-row" style={{ justifyContent: 'flex-end', marginTop: 4 }}>
+                      {count(t.id) > 0 && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => removeOne(t.id)}>−</button>}
+                      <button className="oc-btn oc-btn-primary oc-btn-sm" disabled={count(t.id) >= t.available} onClick={() => add(t, r)}>{count(t.id) ? '+' : 'Select'}</button>
+                    </span>
+                  </span>
+                </div>
+              ))}
             </div>
-          )}
+          ))}
           <div className="mj-actions mj-sticky">
             <button className="oc-btn oc-btn-neutral" onClick={() => setStep(0)}>Back</button>
-            <button className="oc-btn oc-btn-primary" disabled={!typeId} onClick={() => setStep(2)}>Continue <Icon name="arrow_forward" size={18} /></button>
+            <button className="oc-btn oc-btn-primary" disabled={!cart.length} onClick={() => setStep(2)}>{cart.length ? `Continue (${cart.length})` : 'Choose a bungalow'} <Icon name="arrow_forward" size={18} /></button>
           </div>
         </div>
       )}
-      {step === 2 && type && (
-        <div className="mj-card oc-stack">
-          <h2><Icon name="group" size={20} /> Guest details</h2>
-          <div className="oc-row-wrap">
-            <strong style={{ width: 90 }}>Adults</strong>
-            <div className="mj-seg" role="group" aria-label="Adults">
-              {Array.from({ length: type.maxAdults }, (_, i) => i + 1).map((n) => <button key={n} type="button" aria-pressed={adults === n} onClick={() => setAdults(n)}>{n}</button>)}
-            </div>
-          </div>
-          {type.maxChildren > 0 && (
-            <div className="oc-row-wrap">
-              <strong style={{ width: 90 }}>Children</strong>
-              <div className="mj-seg" role="group" aria-label="Children">
-                {Array.from({ length: type.maxChildren + 1 }, (_, i) => i).map((n) => <button key={n} type="button" aria-pressed={children === n} onClick={() => setChildren(n)}>{n}</button>)}
+      {step === 2 && (
+        <div className="oc-stack">
+          {cart.map((i, n) => (
+            <div key={i.key} className="mj-card oc-stack" style={{ gap: 8 }}>
+              <div className="oc-row-wrap" style={{ alignItems: 'center' }}>
+                <strong>{n + 1}. {i.typeName}</strong><small className="mj-muted">{i.ratePlanName}</small>
+                <button className="oc-btn oc-btn-text oc-btn-sm" onClick={() => setCart(cart.filter((c) => c.key !== i.key))}>Remove</button>
               </div>
+              <div className="oc-row-wrap">
+                <SelectField label="Adults" value={String(i.adults)} onChange={(x) => setCart(cart.map((c) => (c.key === i.key ? { ...c, adults: Number(x) } : c)))}
+                  options={Array.from({ length: i.maxAdults }, (_, k) => ({ value: String(k + 1), label: String(k + 1) }))} />
+                <SelectField label="Children" value={String(i.children)} onChange={(x) => setCart(cart.map((c) => (c.key === i.key ? { ...c, children: Number(x) } : c)))}
+                  options={Array.from({ length: i.maxChildren + 1 }, (_, k) => ({ value: String(k), label: String(k) }))} />
+              </div>
+              {(catalog.data?.addons ?? []).filter((a) => !(i.includesBreakfast && a.category === 'breakfast')).map((a) => {
+                const q = i.addons[a.id] ?? 0;
+                const set = (v: number) => setCart(cart.map((c) => (c.key === i.key ? { ...c, addons: { ...c.addons, [a.id]: Math.max(v, 0) } } : c)));
+                return (
+                  <div key={a.id} className="mj-rate">
+                    <span><strong>{a.name}</strong><small className="mj-muted" style={{ display: 'block' }}>{money(a.price)} {a.unit.replace(/_/g, ' ')}</small></span>
+                    <span className="oc-row"><button className="oc-btn oc-btn-neutral oc-btn-sm" disabled={q <= 0} onClick={() => set(q - 1)}>−</button>
+                      <strong className="mj-num">{q}</strong><button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => set(q + 1)}>+</button></span>
+                  </div>
+                );
+              })}
             </div>
-          )}
-          <TextArea label="Special requests (optional)" value={requests} onChange={setRequests} rows={3} />
+          ))}
+          <div className="mj-card"><TextArea label="Special requests (optional)" value={requests} onChange={setRequests} rows={2} /></div>
           <div className="mj-actions mj-sticky">
             <button className="oc-btn oc-btn-neutral" onClick={() => setStep(1)}>Back</button>
-            <button className="oc-btn oc-btn-primary" onClick={() => setStep(3)}>Review <Icon name="arrow_forward" size={18} /></button>
+            <button className="oc-btn oc-btn-primary" disabled={!cart.length} onClick={() => setStep(3)}>Review <Icon name="arrow_forward" size={18} /></button>
           </div>
         </div>
       )}
-      {step === 3 && type && (
+      {step === 3 && (
         <>
           <div className="mj-card">
             <h2><Icon name="receipt_long" size={20} /> Review</h2>
-            <Rows rows={[['Bungalow', type.name], ['Check-in', dayLabel(from)], ['Check-out', dayLabel(departure)], ['Nights', nights],
-              ['Guests', `${adults} adult${adults === 1 ? '' : 's'}${children ? `, ${children} child${children === 1 ? '' : 'ren'}` : ''}`],
-              ['Rate plan', plans.find((p) => p.code === plan)?.name ?? 'Room Only']]} />
+            <ErrorAlert error={qErr} />
+            {!quote && !qErr && <Skeleton rows={3} />}
+            {quote && (
+              <>
+                <Rows rows={quote.items.map((l) => [`${l.typeName} · ${l.ratePlanName}`, l.error ? <Chip tone="bad">{l.error}</Chip> : <span className="mj-num">{money(l.total)}</span>])} />
+                <Rows rows={[['Check-in', dayLabel(from)], ['Check-out', dayLabel(departure)], ['Tax & service', money(Number(quote.tax) + Number(quote.service))],
+                  ['Pay now', money(quote.depositNow)], ['At the hotel', money(quote.payAtHotel)]]} />
+                <div className="mj-total"><span>Total</span><strong className="mj-num">{money(quote.total)}</strong></div>
+                {quote.items.map((l) => <p key={l.index} className="mj-small mj-muted">{l.typeName}: {cancelLine(l)}</p>)}
+              </>
+            )}
           </div>
-          <QuoteCard quote={q.quote} error={q.error} />
           <div className="mj-actions mj-sticky">
             <button className="oc-btn oc-btn-neutral" onClick={() => setStep(2)}>Back</button>
-            <button className="oc-btn oc-btn-primary" disabled={!q.quote} onClick={() => setStep(4)}>Continue to payment <Icon name="arrow_forward" size={18} /></button>
+            <button className="oc-btn oc-btn-primary" disabled={!quote?.ok} onClick={() => setStep(4)}>Continue to payment <Icon name="arrow_forward" size={18} /></button>
           </div>
         </>
       )}
-      {step === 4 && !bk.result && <PayCard method={method} setMethod={setMethod} busy={bk.busy} onBack={() => setStep(3)} onConfirm={() => void confirm()} label="Confirm Booking" />}
-      {step === 4 && bk.payment && (
-        <div className="mj-card">
-          <PaymentPanel payment={bk.payment} onPaid={() => { setPaid(true); setStep(5); }} />
-          <div className="mj-actions" style={{ marginTop: 14 }}><Link className="oc-btn oc-btn-neutral" to="/activity/stays">Pay later</Link></div>
+      {step === 4 && !booking && (
+        <div className="mj-card oc-stack">
+          <h2><Icon name="payments" size={20} /> Payment</h2>
+          {Number(quote?.depositNow ?? 0) > 0 ? <MethodPicker value={method} onChange={setMethod} /> : <p className="mj-muted">The chosen rates are paid at the hotel.</p>}
+          <div className="mj-actions mj-sticky">
+            <button className="oc-btn oc-btn-neutral" onClick={() => setStep(3)}>Back</button>
+            <button className="oc-btn oc-btn-primary" disabled={busy} onClick={() => void book()}><Icon name="check" size={18} /> Confirm booking</button>
+          </div>
         </div>
       )}
-      {step === 5 && bk.result && <StayConfirmed result={bk.result} title="Bungalow Booked" paid={paid} />}
+      {step === 4 && booking && (
+        <div className="mj-card oc-stack">
+          <h2><Icon name="schedule" size={20} /> Pay {money(booking.depositDue)}</h2>
+          <p className="mj-small mj-muted">The bungalows are held for {Math.ceil(booking.holdSeconds / 60)} minutes.</p>
+          {(booking.payment?.numbers ?? []).map((n) => <SandboxGateway key={n} number={n} onDone={() => void reload()} />)}
+          <div className="mj-actions">
+            <button className="oc-btn oc-btn-neutral" onClick={() => void reload()}>I have paid</button>
+            <button className="oc-btn oc-btn-text" onClick={() => void failed()}>The payment failed — back to my cart</button>
+          </div>
+        </div>
+      )}
+      {step === 5 && booking && <StayBooked booking={booking} />}
+    </div>
+  );
+}
+
+function StayBooked({ booking }: { booking: BookingView }) {
+  const nav = useNavigate();
+  const file = (f: string) => `/api/v1/public/stay-bookings/${booking.token}/${f}?propertyId=${booking.propertyId}`;
+  return (
+    <div className="mj-card mj-success">
+      <span className="mj-success-mark"><Icon name="check" size={36} /></span>
+      <h1>{booking.status === 'confirmed' ? 'Bungalow Booked' : 'Booking received'}</h1>
+      <div className="oc-stack" style={{ alignItems: 'center', gap: 4 }}><span className="mj-small mj-muted">Reservation</span><span className="mj-code">{booking.code}</span></div>
+      <Rows rows={booking.stays.map((s) => [`${s.typeName} · ${s.ratePlanName}`, `${dayLabel(s.arrival, { day: 'numeric', month: 'short' })} – ${dayLabel(s.departure, { day: 'numeric', month: 'short' })}`])} />
+      <div className="mj-total"><span>Paid · total</span><strong className="mj-num">{money(booking.paid)} · {money(booking.total)}</strong></div>
+      <div className="mj-actions" style={{ justifyContent: 'center' }}>
+        <button className="oc-btn oc-btn-primary" onClick={() => nav('/activity/stays')}>My Stays</button>
+        <a className="oc-btn oc-btn-outline" href={file('e-voucher.pdf')}><Icon name="download" size={18} /> E-voucher</a>
+        <a className="oc-btn oc-btn-outline" href={file('calendar.ics')}><Icon name="event" size={18} /> Add to Calendar</a>
+      </div>
     </div>
   );
 }

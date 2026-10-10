@@ -21,6 +21,7 @@ import (
 	"oneclub/internal/platform/outbox"
 	"oneclub/internal/platform/resource"
 	"oneclub/internal/platform/rules"
+	"oneclub/internal/platform/storage"
 	"oneclub/internal/reservation"
 )
 
@@ -32,7 +33,8 @@ type Module struct {
 	POS      commercial.POS      // restaurant orders charged to the stay
 	Vouchers commercial.Vouchers // voucher & prepaid redemption
 	Events   *outbox.Bus
-	Notify   notify.Sender // guest and staff notifications (accommodation)
+	Notify   notify.Sender  // guest and staff notifications (accommodation)
+	Files    *storage.Files // identity photos and signatures of the registration card (FR-H47, FR-H48)
 }
 
 func codeField(label string) resource.Field { return resource.Code(label) }
@@ -54,6 +56,14 @@ var BungalowTypes = &resource.Def{
 		{Name: "weekendRate", Column: "weekend_rate", Label: "Weekend Rate per Night", Kind: resource.Decimal, Min: resource.Min(0)},
 		{Name: "sortOrder", Column: "sort_order", Label: "Sort Order", Kind: resource.Int, Default: int64(0)},
 		{Name: "priceItem", Column: "price_item", Label: "Pricing Item (default: code)", Kind: resource.String, Max: 60, Upper: true},
+		// website content (docs/requirement-booking-hotel-mgcc.md FR-H68, FR-H73)
+		{Name: "nameEn", Column: "name_en", Label: "Name (English)", Kind: resource.String, Max: 120},
+		{Name: "descriptionEn", Column: "description_en", Label: "Description (English)", Kind: resource.Text, Max: 2000},
+		{Name: "slug", Column: "slug", Label: "Website Page (slug, e.g. eagle)", Kind: resource.String, Max: 60},
+		{Name: "amenities", Column: "amenities", Label: "Amenities by group (bathroom, entertainment, internet, kitchen, general)", Kind: resource.JSONList, Default: "[]"},
+		{Name: "faq", Column: "faq", Label: "FAQ", Kind: resource.JSONList, Default: "[]"},
+		{Name: "houseRules", Column: "house_rules", Label: "House Rules of the type", Kind: resource.Text, Max: 2000},
+		{Name: "onWebsite", Column: "on_website", Label: "Bookable on the Website", Kind: resource.Bool, Default: true},
 		resource.Status("active", "inactive")},
 }
 
@@ -69,6 +79,7 @@ var Bungalows = &resource.Def{
 		{Name: "location", Column: "location", Label: "Location", Kind: resource.String, Max: 120},
 		{Name: "capacity", Column: "capacity", Label: "Capacity (default: room type)", Kind: resource.Int, Min: resource.Min(1)},
 		{Name: "hkStatus", Column: "hk_status", Label: "Housekeeping Status", Kind: resource.Enum, Enum: HKStatuses, ReadOnly: true, Filter: true},
+		{Name: "smoking", Column: "smoking", Label: "Smoking allowed", Kind: resource.Bool, Default: false},
 		{Name: "notes", Column: "notes", Label: "Notes", Kind: resource.Text, Max: 1000},
 		{Name: "resourceId", Column: "resource_id", Label: "Bookable Resource", Kind: resource.UUID, ReadOnly: true},
 		resource.Status("active", "inactive")},
@@ -228,14 +239,36 @@ type Policy struct {
 	StayoverCleaning     bool   `json:"stayoverCleaning" doc:"The daily housekeeping plan adds a stayover cleaning for every occupied bungalow"`
 	HouseRules           string `json:"houseRules" doc:"House rules shown to the guest (My Stay)"`
 	PropertyInfo         string `json:"propertyInfo" doc:"Property information shown to the guest (My Stay): Wi-Fi, facilities, contacts"`
+	// Booking engine of the website and Member App (docs/requirement-booking-hotel-mgcc.md §9)
+	WebsiteHoldMinutes   int    `json:"websiteHoldMinutes" doc:"Website / Member App: the bungalows are held this long while the guest pays online (FR-H35)"`
+	BookingWindowDays    int    `json:"bookingWindowDays" doc:"How far ahead a guest may book on the website / Member App (days)"`
+	OnlineMethods        string `json:"onlineMethods" doc:"Online payment methods offered on the website, comma separated: qris, virtual_account, card (mock gateway while the real one is on hold)"`
+	Terms                string `json:"terms" doc:"Terms & Conditions of a bungalow booking (Bahasa Indonesia)"`
+	TermsEn              string `json:"termsEn" doc:"Terms & Conditions (English)"`
+	HouseRulesEn         string `json:"houseRulesEn" doc:"House rules (English)"`
+	ChildPolicy          string `json:"childPolicy" doc:"Children: free age, extra bed"`
+	ContactAddress       string `json:"contactAddress" doc:"Property address on the website footer, e-voucher and registration card (FR-H06); default: the property address"`
+	ContactPhone         string `json:"contactPhone"`
+	ContactEmail         string `json:"contactEmail"`
+	ContactWhatsApp      string `json:"contactWhatsApp"`
+	MapURL               string `json:"mapUrl" doc:"Map link of the club on the confirmation"`
+	KeysPerBungalow      int    `json:"keysPerBungalow" doc:"Keys / key cards handed over at check-in (FR-H49)"`
+	DepositBeforeCheckIn bool   `json:"depositBeforeCheckIn" doc:"Check-in needs the deposit of the rate plan paid (a supervisor may accept it later with a reason)"`
+	RoomChargeLimit      string `json:"roomChargeLimit" doc:"Charge to room (POS, front desk) is refused when the unpaid folio would exceed this amount (0 = no limit)"`
 }
 
 var defaultPolicy = Policy{CheckInTime: "14:00", CheckOutTime: "12:00", DepositPercent: "50", LateCheckoutFeePerHour: "100000",
 	LateCheckoutGraceMinutes: 30, RequireReadyUnit: true, RoomChargePosting: "nightly", AutoNoShow: true,
 	WeekendNights: "5,6", LateCheckoutMode: "tiered", LateCheckoutUntil: "15:00", LateCheckoutFee: "250000", AfterCutoffCharge: "night",
 	EarlyCheckInFrom: "10:00", EarlyCheckInFee: "150000", InspectionRequired: true, ReadyAfterInspection: true, StayoverCleaning: true,
-	HouseRules:   "Check-in from 14:00, check-out until 12:00. No smoking inside the bungalow. Quiet hours 22:00-06:00. Pets are not allowed.",
-	PropertyInfo: "Front Office is open 24 hours. Breakfast 06:30-10:00 at the clubhouse restaurant."}
+	HouseRules:         "Check-in from 14:00, check-out until 12:00. No smoking inside the bungalow. Quiet hours 22:00-06:00. Pets are not allowed.",
+	PropertyInfo:       "Front Office is open 24 hours. Breakfast 06:30-10:00 at the clubhouse restaurant.",
+	WebsiteHoldMinutes: 15, BookingWindowDays: 365, OnlineMethods: "qris,virtual_account,card", KeysPerBungalow: 2, RoomChargeLimit: "0",
+	Terms: "Check-in mulai pukul 14:00 dan check-out paling lambat pukul 12:00. Early check-in dan late check-out mengikuti ketersediaan dan dikenai biaya. " +
+		"Deposit/jaminan diambil saat check-in. Tamu wajib menunjukkan KTP/paspor yang berlaku. Dilarang merokok di dalam bungalow dan membawa hewan peliharaan. " +
+		"Pembatalan mengikuti kebijakan rate plan yang dipilih.",
+	TermsEn: "Check-in from 14:00, check-out until 12:00. Early check-in and late check-out depend on availability and are charged. A deposit is taken at " +
+		"check-in. A valid ID card or passport is required. No smoking inside the bungalow and no pets. Cancellation follows the policy of the chosen rate plan."}
 
 func (m *Module) policy(ctx context.Context, q dbtx.Querier, property uuid.UUID) (Policy, rules.PolicyRef, error) {
 	return rules.PolicyAt(ctx, q, "stay.policy", property, defaultPolicy)
@@ -265,9 +298,9 @@ func Contribution() catalog.Contribution {
 			"accountant":            {"stay.stay.view", "stay.dashboard.view"},
 			"banquet_manager":       {"stay.meeting_room.view", "stay.equipment.view", "stay.stay.view", "stay.stay.create", "stay.stay.update"},
 			"banquet_sales":         {"stay.meeting_room.view", "stay.equipment.view", "stay.stay.view", "stay.stay.create"},
-			"cashier":               {"stay.stay.view", "stay.stay.charge", "stay.addon.view", "stay.module.access"},
-			"pos_staff":             {"stay.stay.view"},
-			"outlet_manager":        {"stay.stay.view"},
+			"cashier":               {"stay.stay.view", "stay.stay.charge", "stay.addon.view", "stay.module.access", "stay.stay.charge_order"},
+			"pos_staff":             {"stay.stay.view", "stay.stay.charge_order"},
+			"outlet_manager":        {"stay.stay.view", "stay.stay.charge_order"},
 		},
 	}
 }

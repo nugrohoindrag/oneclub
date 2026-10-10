@@ -172,7 +172,7 @@ func (m *Module) Defs() []*resource.Def {
 				ReadOnly: true, Filter: true},
 			text("legacyRef", "legacy_ref", "Legacy Reference", 60),
 			// front desk areas the employee may open (golf, sportclub; empty = as the role allows — docs/requirement-booking-sportclub-mgcc.md FR-99)
-			{Name: "workAreas", Column: "work_areas", Label: "Front Desk Areas (golf, sportclub)", Kind: resource.StringList, Enum: []string{"golf", "sportclub"}, Default: []string{}, Filter: true},
+			{Name: "workAreas", Column: "work_areas", Label: "Front Desk Areas (golf, sportclub, stay)", Kind: resource.StringList, Enum: []string{"golf", "sportclub", "stay"}, Default: []string{}, Filter: true},
 			// draft: prepared, not yet hired (HRIS phase B §34); activated with :activate
 			{Name: "status", Column: "status", Label: "Status (draft = not yet hired)", Kind: resource.Enum, Enum: []string{"active", "draft", "inactive"},
 				Default: "active", CreateOnly: true, Filter: true},

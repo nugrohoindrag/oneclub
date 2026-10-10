@@ -28768,6 +28768,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/stay-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Book my cart: online deposit (mock) or member charge */
+        post: operations["postMemberStayBookings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/stay-bookings/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My booking: status, bungalows, payment, policies */
+        get: operations["getMemberStayBookingsByToken"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/stay-bookings/{token}:abandon": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** My online payment failed: release the bungalows */
+        post: operations["postMemberStayBookingsByTokenAbandon"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/stay-bookings/{token}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel my bungalows under the policy of the rate plan */
+        post: operations["postMemberStayBookingsByTokenCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/stay-bookings/{token}:pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Continue paying my booking while it is held */
+        post: operations["postMemberStayBookingsByTokenPay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/stay-catalog": {
         parameters: {
             query?: never;
@@ -28777,6 +28862,23 @@ export interface paths {
         };
         /** Bungalow types, rate plans and meeting rooms I can book */
         get: operations["getMemberStayCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/stay/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bungalows and rates for my stay (member rates included) */
+        get: operations["getMemberStaySearch"];
         put?: never;
         post?: never;
         delete?: never;
@@ -28848,6 +28950,23 @@ export interface paths {
         put?: never;
         /** Price my bungalow / meeting room booking (review step, nothing is kept) */
         post: operations["postMemberStaysQuote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/stays:quote-cart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Price my cart of bungalows (nothing is kept) */
+        post: operations["postMemberStaysQuoteCart"];
         delete?: never;
         options?: never;
         head?: never;
@@ -34423,6 +34542,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/sport-club/tickets/{token}/qr.png": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** QR of an entry ticket shared with a guest (PNG) */
+        get: operations["getPublicSportClubTicketsByTokenQrPng"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/stay": {
         parameters: {
             query?: never;
@@ -34432,6 +34568,210 @@ export interface paths {
         };
         /** Bungalow, VIP Suite and Meeting & MICE pages */
         get: operations["getPublicStay"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/stay-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Book the cart: the bungalows are held and the deposit opened on the payment gateway (mock); pay-at-hotel rates are confirmed at once */
+        post: operations["postPublicStayBookings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/stay-bookings/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Booking page of the link: status, bungalows, payment, policies */
+        get: operations["getPublicStayBookingsByToken"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/stay-bookings/{token}/calendar.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Add the stay to a calendar (.ics) */
+        get: operations["getPublicStayBookingsByTokenCalendarIcs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/stay-bookings/{token}/e-voucher.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** E-voucher of the booking (PDF) */
+        get: operations["getPublicStayBookingsByTokenEVoucherPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/stay-bookings/{token}:abandon": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The online payment failed: the bungalows are released (Expired) and the guest goes back to the cart */
+        post: operations["postPublicStayBookingsByTokenAbandon"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/stay-bookings/{token}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel by the guest under the policy of the rate plan (non-refundable rates cannot be cancelled) */
+        post: operations["postPublicStayBookingsByTokenCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/stay-bookings/{token}:pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Continue the payment while the bungalows are held */
+        post: operations["postPublicStayBookingsByTokenPay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/stay-bookings:lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cek Booking: reservation code + phone or e-mail → the link */
+        post: operations["postPublicStayBookingsLookup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/stay-waitlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Join the waitlist of a full bungalow type (website) */
+        post: operations["postPublicStayWaitlist"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/stay/rate-card": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rate table of the bungalows from the Stay prices (website sidebar) */
+        get: operations["getPublicStayRateCard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/stay/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search: room types with the bungalows left and the price of every website rate plan for the stay */
+        get: operations["getPublicStaySearch"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/stay/types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bungalow types with their website content, policies and contact */
+        get: operations["getPublicStayTypes"];
         put?: never;
         post?: never;
         delete?: never;
@@ -34451,6 +34791,23 @@ export interface paths {
         put?: never;
         /** Book Bungalow / Meeting Room, or request a VIP Suite (non-member; additional services; online deposit) */
         post: operations["postPublicStays"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/stays:quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Price summary of a website cart (nothing is kept) */
+        post: operations["postPublicStaysQuote"];
         delete?: never;
         options?: never;
         head?: never;
@@ -37149,6 +37506,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stay/flash": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Manager Flash Report of a day (frozen after the night audit) */
+        get: operations["getStayFlash"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stay/front-office": {
         parameters: {
             query?: never;
@@ -37160,6 +37534,92 @@ export interface paths {
         get: operations["getStayFrontOffice"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Group reservations */
+        get: operations["getStayGroups"];
+        put?: never;
+        /** Book a group: several bungalows, rooming list, combined or per-bungalow folio */
+        post: operations["postStayGroups"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/groups/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Group reservation with its rooming list */
+        get: operations["getStayGroupsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/groups/{id}:check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check in every reserved bungalow of the group (identity of the booker) */
+        post: operations["postStayGroupsByIdCheckIn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/groups/{id}:check-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check out every in-house bungalow of the group (each folio settled) */
+        post: operations["postStayGroupsByIdCheckOut"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/groups/{id}:settle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pay the balance of every bungalow of the group (combined bill) */
+        post: operations["postStayGroupsByIdSettle"];
         delete?: never;
         options?: never;
         head?: never;
@@ -37303,6 +37763,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stay/handover-notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Shift handover of the front desk (last days, open first) */
+        get: operations["getStayHandoverNotes"];
+        put?: never;
+        /** Write a note for the next shift */
+        post: operations["postStayHandoverNotes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/handover-notes/{id}:done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark a handover note done */
+        post: operations["postStayHandoverNotesByIdDone"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stay/housekeeping": {
         parameters: {
             query?: never;
@@ -37422,6 +37917,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stay/housekeeping/on-duty": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Room attendants on the roster of a day (fewest open tasks first) */
+        get: operations["getStayHousekeepingOnDuty"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stay/housekeeping:plan-day": {
         parameters: {
             query?: never;
@@ -37433,6 +37945,58 @@ export interface paths {
         put?: never;
         /** Plan the stayover cleaning of the occupied bungalows */
         post: operations["postStayHousekeepingPlanDay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/in-house": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** In-house guests for Charge to Room (name or bungalow) */
+        get: operations["getStayInHouse"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bungalow incidents (damage, complaint, lost item …) */
+        get: operations["getStayIncidents"];
+        put?: never;
+        /** Report a bungalow incident (shown on Management › Incidents) */
+        post: operations["postStayIncidents"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/incidents/{id}:close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close an incident with the action taken */
+        post: operations["postStayIncidentsByIdClose"];
         delete?: never;
         options?: never;
         head?: never;
@@ -37504,6 +38068,24 @@ export interface paths {
         get: operations["getStayMeetingRoomsExport"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/night-audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Front office night audit of a business day: checklist and Manager Flash */
+        get: operations["getStayNightAudit"];
+        put?: never;
+        /** Close the business day: post the nights, mark the no-shows, freeze the figures */
+        post: operations["postStayNightAudit"];
         delete?: never;
         options?: never;
         head?: never;
@@ -37635,6 +38217,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stay/print/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Printed list of the day: arrivals, departures, in-house, foreign-guests (PDF) */
+        get: operations["getStayPrintByKind"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/profit-center": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Accommodation profit center by room type: revenue, costs, margin and KPI */
+        get: operations["getStayProfitCenter"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stay/promotions": {
         parameters: {
             query?: never;
@@ -37681,6 +38297,23 @@ export interface paths {
         };
         /** Export Promotions (CSV/XLSX) */
         get: operations["getStayPromotionsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/rate-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rate check: room types and rate plans priced as the website / Member App shows them */
+        get: operations["getStayRateCheck"];
         put?: never;
         post?: never;
         delete?: never;
@@ -37789,6 +38422,145 @@ export interface paths {
         };
         /** Export Rate Plans (CSV/XLSX) */
         get: operations["getStayRatePlansExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/rate-restrictions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Restrictions */
+        get: operations["getStayRateRestrictions"];
+        put?: never;
+        /** Add Restriction */
+        post: operations["postStayRateRestrictions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/rate-restrictions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Restriction */
+        get: operations["getStayRateRestrictionsById"];
+        put?: never;
+        post?: never;
+        /** Delete Restriction (only when unused; otherwise set Inactive) */
+        delete: operations["deleteStayRateRestrictionsById"];
+        options?: never;
+        head?: never;
+        /** Edit Restriction */
+        patch: operations["patchStayRateRestrictionsById"];
+        trace?: never;
+    };
+    "/api/v1/stay/rate-restrictions:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Restrictions (CSV/XLSX) */
+        get: operations["getStayRateRestrictionsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/reports/deposits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Deposits held and city ledger of the stays (format=csv for Excel) */
+        get: operations["getStayReportsDeposits"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/reports/promotions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stay promotions with their CRM campaign and the reservations made with them */
+        get: operations["getStayReportsPromotions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/reports/reservations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reservations of a period (export) (format=csv for Excel) */
+        get: operations["getStayReportsReservations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/reports/settlement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Settlement of the online payments of the stays (mock gateway) (format=csv for Excel) */
+        get: operations["getStayReportsSettlement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/reports/tax": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Hotel tax report (PB1) per day and component (format=csv for Excel) */
+        get: operations["getStayReportsTax"];
         put?: never;
         post?: never;
         delete?: never;
@@ -38148,6 +38920,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stay/stays/{id}/identity-photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Photo of the identity (authorised staff only) */
+        get: operations["getStayStaysByIdIdentityPhoto"];
+        put?: never;
+        /** Upload the photo of the identity card / passport (multipart: file) */
+        post: operations["postStayStaysByIdIdentityPhoto"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/stays/{id}/invoice.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Folio of the stay: invoice / receipt (PDF) */
+        get: operations["getStayStaysByIdInvoicePdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/stays/{id}/moves": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Room moves of a stay */
+        get: operations["getStayStaysByIdMoves"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/stays/{id}/registration-card.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Registration card (PDF) with the signature */
+        get: operations["getStayStaysByIdRegistrationCardPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/stays/{id}/signature": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Signature of the registration card */
+        get: operations["getStayStaysByIdSignature"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stay/stays/{id}/unit-options": {
         parameters: {
             query?: never;
@@ -38210,6 +39068,23 @@ export interface paths {
         put?: never;
         /** Charge to Room: an additional charge on the stay folio */
         post: operations["postStayStaysByIdCharge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/stays/{id}:charge-order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Charge a POS order to the room of an in-house guest */
+        post: operations["postStayStaysByIdChargeOrder"];
         delete?: never;
         options?: never;
         head?: never;
@@ -38284,6 +39159,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stay/stays/{id}:keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record the keys handed back */
+        post: operations["postStayStaysByIdKeys"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stay/stays/{id}:late-checkout": {
         parameters: {
             query?: never;
@@ -38295,6 +39187,23 @@ export interface paths {
         put?: never;
         /** Approve a late check-out (bungalow kept; fee at check-out) */
         post: operations["postStayStaysByIdLateCheckout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/stays/{id}:move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Room move of an in-house guest (one folio; the old bungalow Dirty) */
+        post: operations["postStayStaysByIdMove"];
         delete?: never;
         options?: never;
         head?: never;
@@ -38352,6 +39261,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stay/stays/{id}:upgrade": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upgrade before check-in: free (price kept) or paid (repriced) */
+        post: operations["postStayStaysByIdUpgrade"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/stays/{id}:void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Void a reservation keyed in by mistake (supervisor, reason, no fee) */
+        post: operations["postStayStaysByIdVoid"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stay/stays:quote": {
         parameters: {
             query?: never;
@@ -38363,6 +39306,23 @@ export interface paths {
         put?: never;
         /** Price summary of a booking (nothing is kept) */
         post: operations["postStayStaysQuote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stay/stays:quote-cart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Price summary of a cart / group (nothing is kept) */
+        post: operations["postStayStaysQuoteCart"];
         delete?: never;
         options?: never;
         head?: never;
@@ -39339,6 +40299,11 @@ export interface components {
             bookingSources?: ("website" | "member_app" | "guest_app" | "front_desk" | "phone" | "walk_in" | "corporate")[] | null;
             /** @description Room Types (empty = all) */
             bungalowTypeIds?: string[] | null;
+            /**
+             * Format: uuid
+             * @description CRM Campaign (promo code tracked to the reservation)
+             */
+            campaignId?: string | null;
             /** @description Code */
             code: string;
             /** @description Corporate Accounts (empty = every corporate) */
@@ -39444,6 +40409,11 @@ export interface components {
             bookingSources?: ("website" | "member_app" | "guest_app" | "front_desk" | "phone" | "walk_in" | "corporate")[] | null;
             /** @description Room Types (empty = all) */
             bungalowTypeIds?: string[] | null;
+            /**
+             * Format: uuid
+             * @description CRM Campaign (promo code tracked to the reservation)
+             */
+            campaignId?: string | null;
             /** @description Code */
             code?: string;
             /** @description Corporate Accounts (empty = every corporate) */
@@ -39746,6 +40716,94 @@ export interface components {
             weekdayPrice?: string;
             /** @description Weekend Price (default: weekday) */
             weekendPrice?: string | null;
+        };
+        AccommodationRateRestriction: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Channels (empty = all) */
+            bookingSources?: ("website" | "member_app" | "guest_app" | "front_desk" | "phone" | "walk_in" | "corporate")[] | null;
+            /**
+             * Format: uuid
+             * @description Room Type (empty = every type)
+             */
+            bungalowTypeId?: string | null;
+            /** @description Stop sale (closed) */
+            closed?: boolean | null;
+            /** @description Closed to arrival */
+            closedToArrival?: boolean | null;
+            /** @description Closed to departure */
+            closedToDeparture?: boolean | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: date
+             * @description To (night)
+             */
+            endDate: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: int64
+             * @description Minimum nights
+             */
+            minNights?: number | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Reason */
+            reason?: string | null;
+            /**
+             * Format: date
+             * @description From (night)
+             */
+            startDate: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AccommodationRateRestrictionInput: {
+            /** @description Channels (empty = all) */
+            bookingSources?: ("website" | "member_app" | "guest_app" | "front_desk" | "phone" | "walk_in" | "corporate")[] | null;
+            /**
+             * Format: uuid
+             * @description Room Type (empty = every type)
+             */
+            bungalowTypeId?: string | null;
+            /** @description Stop sale (closed) */
+            closed?: boolean | null;
+            /** @description Closed to arrival */
+            closedToArrival?: boolean | null;
+            /** @description Closed to departure */
+            closedToDeparture?: boolean | null;
+            /** @description Code */
+            code?: string;
+            /**
+             * Format: date
+             * @description To (night)
+             */
+            endDate?: string;
+            /**
+             * Format: int64
+             * @description Minimum nights
+             */
+            minNights?: number | null;
+            /** @description Reason */
+            reason?: string | null;
+            /**
+             * Format: date
+             * @description From (night)
+             */
+            startDate?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
         };
         AccommodationSeason: {
             /** @description Base Rate Adjustment % (types without a season price) */
@@ -40909,6 +41967,14 @@ export interface components {
             overdue: string;
             total: string;
         };
+        Alert: {
+            /** @enum {string} */
+            kind: "unpaid_arrival" | "ooo_reserved" | "late_departure" | "awaiting_payment";
+            message: string;
+            /** Format: uuid */
+            stayId?: string | null;
+            stayNo?: string | null;
+        };
         Allocation: {
             amount: string;
             /** Format: date-time */
@@ -40936,6 +42002,13 @@ export interface components {
             amount: string;
             code: string;
             name: string;
+        };
+        Amenity: {
+            /** @description bathroom, entertainment, internet, kitchen, general */
+            group: string;
+            icon: string;
+            label: string;
+            labelEn?: string;
         };
         AnalyticsRefresh: {
             asOf: string;
@@ -41871,6 +42944,16 @@ export interface components {
             /** @enum {string} */
             status: "accepted" | "duplicate" | "rejected";
         };
+        AuditCheck: {
+            count: number;
+            detail?: string | null;
+            items: components["schemas"]["AuditItem"][];
+            /** @enum {string} */
+            key: "no_shows" | "room_postings" | "overdue_departures" | "folio_balance" | "payments";
+            label: string;
+            /** @enum {string} */
+            severity: "info" | "warning";
+        };
         AuditFinding: {
             check: string;
             count: number;
@@ -41878,6 +42961,19 @@ export interface components {
             message: string;
             /** @enum {string} */
             severity: "blocking" | "warning" | "info";
+        };
+        AuditItem: {
+            detail: string;
+            guest: string;
+            /** Format: uuid */
+            stayId: string;
+            stayNo: string;
+            unit: string;
+        };
+        AuditRunInput: {
+            /** @description Business date YYYY-MM-DD; default today */
+            date?: string;
+            notes?: string;
         };
         Availability: {
             /** Format: date-time */
@@ -44334,6 +45430,14 @@ export interface components {
             /** @enum {string} */
             status: "unused" | "consumed" | "expired" | "cancelled";
         };
+        BookingContact: {
+            address: string;
+            email: string;
+            mapUrl: string;
+            name: string;
+            phone: string;
+            whatsApp: string;
+        };
         BookingFlight: {
             /** @description Hole in progress on the caddy tablet (0 before tee-off) */
             currentHole: number;
@@ -44405,6 +45509,17 @@ export interface components {
             caddy: components["schemas"]["CaddyPolicy"];
             players: components["schemas"]["PlayerJourney"][];
         };
+        BookingLookup: {
+            token: string;
+        };
+        BookingLookupInput: {
+            /** @description Reservation code (GRP-…, RSV-… or STY-…) */
+            code: string;
+            /** @description Phone or e-mail of the booker */
+            contact: string;
+            /** Format: uuid */
+            propertyId: string;
+        };
         BookingPayment: {
             /** @description Default: the down payment of the schedule, else the total */
             amount?: string;
@@ -44463,6 +45578,46 @@ export interface components {
              */
             teeTimeId?: string | null;
         };
+        BookingStay: {
+            addons: components["schemas"]["StayAddon"][];
+            adults: number;
+            /** Format: date-time */
+            arrival: string;
+            bookingStatus: string;
+            /** @description The guest may cancel this bungalow online (rate plan allows it) */
+            canCancel: boolean;
+            /** @description Fee if cancelled now */
+            cancelFee: string;
+            cancelFeePercent: string;
+            children: number;
+            /** Format: date-time */
+            departure: string;
+            depositRequired: string;
+            freeCancelHours: number;
+            /** Format: date-time */
+            freeCancelUntil?: string | null;
+            /** Format: uuid */
+            id: string;
+            includesBreakfast: boolean;
+            nights: number;
+            nonRefundable: boolean;
+            occupantName?: string | null;
+            paid: string;
+            paymentStatus: string;
+            ratePlan: string;
+            ratePlanName: string;
+            reservationCode: string;
+            stayNo: string;
+            taxIncluded: boolean;
+            /** @description My Stay of this bungalow */
+            token?: string | null;
+            total: string;
+            /** Format: uuid */
+            typeId?: string | null;
+            typeName: string;
+            /** @description The bungalow, once assigned */
+            unitName?: string | null;
+        };
         BookingSummary: {
             bookingType: string;
             channel: string;
@@ -44504,6 +45659,40 @@ export interface components {
              */
             teeOffAt?: string | null;
             total?: string | null;
+        };
+        BookingView: {
+            balance: string;
+            bookerEmail?: string | null;
+            bookerName: string;
+            bookerPhone?: string | null;
+            /** @description Lanjutkan Pembayaran */
+            canPay: boolean;
+            checkInTime: string;
+            checkOutTime: string;
+            childPolicy: string;
+            code: string;
+            contact: components["schemas"]["BookingContact"];
+            /** @description Deposit still to pay now */
+            depositDue: string;
+            groupNo?: string | null;
+            /** Format: date-time */
+            holdExpiresAt?: string | null;
+            /** @description Time left to pay (server clock) */
+            holdSeconds: number;
+            houseRules: string;
+            houseRulesEn: string;
+            methods: string[];
+            paid: string;
+            payment?: components["schemas"]["StayBookingPayment"] | null;
+            /** Format: uuid */
+            propertyId: string;
+            /** @enum {string} */
+            status: "awaiting_payment" | "confirmed" | "in_house" | "checked_out" | "cancelled" | "expired" | "mixed";
+            stays: components["schemas"]["BookingStay"][];
+            terms: string;
+            termsEn: string;
+            token: string;
+            total: string;
         };
         Bookings: {
             countByBusinessLine: {
@@ -44690,6 +45879,8 @@ export interface components {
              * @description Bookable Resource
              */
             resourceId?: string | null;
+            /** @description Smoking allowed */
+            smoking?: boolean | null;
             /**
              * @description Status
              * @enum {string|null}
@@ -44732,6 +45923,8 @@ export interface components {
              * @enum {string|null}
              */
             readiness?: "ready" | "not_ready" | null;
+            /** @description Smoking allowed */
+            smoking?: boolean | null;
             /**
              * @description Status
              * @enum {string|null}
@@ -44754,6 +45947,8 @@ export interface components {
             view?: "golf" | "lake" | "pool" | "garden" | "other" | null;
         };
         BungalowType: {
+            /** @description Amenities by group (bathroom, entertainment, internet, kitchen, general) */
+            amenities?: Record<string, never>[] | null;
             /** Format: date-time */
             archivedAt?: string | null;
             /** @description Base Rate per Night */
@@ -44771,8 +45966,14 @@ export interface components {
             createdAt: string;
             /** @description Description */
             description?: string | null;
+            /** @description Description (English) */
+            descriptionEn?: string | null;
             /** @description Facilities */
             facilities?: string[] | null;
+            /** @description FAQ */
+            faq?: Record<string, never>[] | null;
+            /** @description House Rules of the type */
+            houseRules?: string | null;
             /** Format: uuid */
             id: string;
             /**
@@ -44787,6 +45988,10 @@ export interface components {
             maxChildren?: number | null;
             /** @description Name */
             name: string;
+            /** @description Name (English) */
+            nameEn?: string | null;
+            /** @description Bookable on the Website */
+            onWebsite?: boolean | null;
             /** @description Photos (image URLs) */
             photos?: string[] | null;
             /** @description Pricing Item (default: code) */
@@ -44795,6 +46000,8 @@ export interface components {
             propertyId?: string;
             /** @description Room Size (m²) */
             sizeSqm?: string | null;
+            /** @description Website Page (slug, e.g. eagle) */
+            slug?: string | null;
             /**
              * Format: int64
              * @description Sort Order
@@ -44813,6 +46020,8 @@ export interface components {
             weekendRate?: string | null;
         };
         BungalowTypeInput: {
+            /** @description Amenities by group (bathroom, entertainment, internet, kitchen, general) */
+            amenities?: Record<string, never>[] | null;
             /** @description Base Rate per Night */
             baseRate?: string | null;
             /** @description Bed Configuration */
@@ -44826,8 +46035,14 @@ export interface components {
             code?: string;
             /** @description Description */
             description?: string | null;
+            /** @description Description (English) */
+            descriptionEn?: string | null;
             /** @description Facilities */
             facilities?: string[] | null;
+            /** @description FAQ */
+            faq?: Record<string, never>[] | null;
+            /** @description House Rules of the type */
+            houseRules?: string | null;
             /**
              * Format: int64
              * @description Maximum Adults
@@ -44840,12 +46055,18 @@ export interface components {
             maxChildren?: number | null;
             /** @description Name */
             name?: string;
+            /** @description Name (English) */
+            nameEn?: string | null;
+            /** @description Bookable on the Website */
+            onWebsite?: boolean | null;
             /** @description Photos (image URLs) */
             photos?: string[] | null;
             /** @description Pricing Item (default: code) */
             priceItem?: string | null;
             /** @description Room Size (m²) */
             sizeSqm?: string | null;
+            /** @description Website Page (slug, e.g. eagle) */
+            slug?: string | null;
             /**
              * Format: int64
              * @description Sort Order
@@ -45852,6 +47073,70 @@ export interface components {
             inspections: components["schemas"]["Inspection"][];
             maintenance: components["schemas"]["Maintenance"][];
         };
+        CartInput: {
+            /** @description Check-in date YYYY-MM-DD */
+            arrivalDate: string;
+            /** @description Check-out date YYYY-MM-DD */
+            departureDate: string;
+            items: components["schemas"]["CartItem"][];
+            /** @description Stay promotion code (not a billing voucher) */
+            promoCode?: string;
+        };
+        CartItem: {
+            /** @description Add-ons of this bungalow (breakfast, extra bed, BBQ, transfer …) */
+            addons?: components["schemas"]["AddonInput"][];
+            adults?: number;
+            /** Format: uuid */
+            bungalowTypeId: string;
+            children?: number;
+            /** @description Guest staying in this bungalow when not the booker (rooming list) */
+            occupantName?: string;
+            /** @description Rate plan code (Room Only, Long Stay …); default: the default plan */
+            ratePlan?: string;
+            /** @description Stay package code instead of a rate plan */
+            stayPackage?: string;
+            /**
+             * Format: uuid
+             * @description Front desk: this bungalow
+             */
+            unitId?: string | null;
+        };
+        CartLine: {
+            addons: components["schemas"]["StayAddon"][];
+            addonsTotal: string;
+            adults: number;
+            cancelFeePercent: string;
+            children: number;
+            depositRequired: string;
+            discount: string;
+            /** @description Why this bungalow cannot be booked (sold out, capacity, minimum nights …) */
+            error?: string | null;
+            errorCode?: string | null;
+            freeCancelHours: number;
+            includesBreakfast: boolean;
+            index: number;
+            net: string;
+            nights: components["schemas"]["NightPrice"][];
+            nonRefundable: boolean;
+            occupantName?: string;
+            /** @enum {string} */
+            paymentPolicy: "deposit" | "full_prepayment" | "pay_at_hotel";
+            promotionName?: string | null;
+            ratePlan: string;
+            ratePlanName: string;
+            /** @description Room nights before the promotion (strike-through price) */
+            roomList: string;
+            /** @description Room nights with tax and service, after the promotion */
+            roomTotal: string;
+            service: string;
+            tax: string;
+            /** @description Prices include tax & service (nett) */
+            taxIncluded: boolean;
+            total: string;
+            /** Format: uuid */
+            typeId: string;
+            typeName: string;
+        };
         CartPolicy: {
             afterReturn: string;
             mandatory: boolean;
@@ -45872,6 +47157,29 @@ export interface components {
         CartProfileInput: {
             gpsDeviceId?: string;
             serviceThresholdHours?: string;
+        };
+        CartQuote: {
+            arrivalDate: string;
+            departureDate: string;
+            /** @description Paid online now (deposit or full payment of the rate plans) */
+            depositNow: string;
+            discount: string;
+            /** @description The bungalows are held this long while the guest pays */
+            holdMinutes: number;
+            items: components["schemas"]["CartLine"][];
+            nights: number;
+            /** @description Every bungalow can be booked */
+            ok: boolean;
+            /** @description Left to pay at the hotel */
+            payAtHotel: string;
+            promoCode?: string;
+            /** @description Why the promo code does not apply */
+            promoError?: string | null;
+            service: string;
+            /** @description Before tax and service */
+            subtotal: string;
+            tax: string;
+            total: string;
         };
         CartReplaceInput: {
             /**
@@ -46117,6 +47425,10 @@ export interface components {
              */
             folioId: string;
         };
+        ChargeOrderInput: {
+            /** Format: uuid */
+            orderId: string;
+        };
         ChargeTarget: {
             bagTag?: string | null;
             bookingCode: string;
@@ -46169,15 +47481,23 @@ export interface components {
             idNumber?: string;
             /** @enum {string} */
             idType?: "ktp" | "passport" | "sim" | "kitas" | "other";
+            keyNumbers?: string;
+            /** @description Keys / key cards handed over (they must come back at check-out) */
+            keysIssued?: number | null;
+            nationality?: string;
             notes?: string;
-            /** @description Check in although the bungalow is not Ready (manager decision, audited) */
+            /** @description Check in although the bungalow is not Ready (supervisor; reason required) */
             overrideStatus?: boolean;
+            /** @description Signature of the registration card: PNG data URL drawn on the tablet / phone */
+            signature?: string;
+            /** @description Why a fee is waived, a bungalow not Ready or an unpaid deposit is accepted */
+            supervisorReason?: string;
             /**
              * Format: uuid
              * @description Assign this bungalow at check-in
              */
             unitId?: string | null;
-            /** @description Early check-in without the early check-in fee */
+            /** @description Early check-in without the early check-in fee (supervisor; reason required) */
             waiveEarlyFee?: boolean;
         };
         CheckInRequest: {
@@ -46245,8 +47565,13 @@ export interface components {
              * @description Actual departure / end; default now
              */
             at?: string | null;
+            /** @description Keys handed back; fewer than handed over stops the check-out */
+            keysReturned?: number | null;
             notes?: string;
-            /** @description No late check-out fee (manager decision, audited) */
+            /** @description Check out although keys are missing (supervisor; reason required) */
+            overrideKeys?: boolean;
+            supervisorReason?: string;
+            /** @description No late check-out fee (supervisor; reason required) */
             waiveLateFee?: boolean;
         };
         CheckOutRequest: {
@@ -46510,6 +47835,9 @@ export interface components {
             caddyId: string;
             /** @enum {string} */
             shift?: "morning" | "afternoon" | "full_day";
+        };
+        CloseIncidentInput: {
+            actionTaken: string;
         };
         CloseShiftInput: {
             countedCash: string;
@@ -48257,6 +49585,21 @@ export interface components {
             validTo?: string | null;
             /** @description Weekdays (empty = every day) */
             weekdays?: (1 | 2 | 3 | 4 | 5 | 6 | 7)[] | null;
+        };
+        CommercialPublicRate: {
+            currency: string;
+            dayType?: string | null;
+            itemRef?: string | null;
+            name: string;
+            package?: string | null;
+            packageQuantity: number;
+            price: string;
+            pricingMode: string;
+            ratePlan?: string | null;
+            segment?: string | null;
+            serviceType: string;
+            timeBand?: string | null;
+            unit: string;
         };
         CommissionGroup: {
             commission: string;
@@ -51253,6 +52596,23 @@ export interface components {
             /** @enum {string} */
             status: "held" | "applied" | "refunded";
         };
+        DepositRow: {
+            amount: string;
+            applied: string;
+            /** Format: date-time */
+            arrival: string;
+            company?: string | null;
+            /** Format: date-time */
+            departed?: string | null;
+            guest: string;
+            /** @enum {string} */
+            kind: "deposit" | "city_ledger";
+            number: string;
+            /** Format: date-time */
+            paidAt?: string | null;
+            status: string;
+            stayNo: string;
+        };
         DepreciationRunInput: {
             /** @description YYYY-MM */
             period: string;
@@ -51555,6 +52915,19 @@ export interface components {
             /** @enum {string} */
             matchedOn: "phone" | "email";
             name: string;
+        };
+        DutyAttendant: {
+            /** Format: uuid */
+            employeeId: string;
+            /** Format: date-time */
+            from?: string | null;
+            name: string;
+            openTasks: number;
+            shift?: string | null;
+            /** Format: date-time */
+            to?: string | null;
+            /** Format: uuid */
+            userId?: string | null;
         };
         DutyStaff: {
             /** Format: uuid */
@@ -52066,7 +53439,7 @@ export interface components {
             /** @description Issuing Body */
             issuer?: string | null;
             /** @description Mandatory For (workforce roles) */
-            mandatoryFor?: ("lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "other")[] | null;
+            mandatoryFor?: ("lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "housekeeping" | "front_office" | "other")[] | null;
             /** @description Name */
             name: string;
             /** @description Reminders (days before expiry) */
@@ -52092,7 +53465,7 @@ export interface components {
             /** @description Issuing Body */
             issuer?: string | null;
             /** @description Mandatory For (workforce roles) */
-            mandatoryFor?: ("lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "other")[] | null;
+            mandatoryFor?: ("lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "housekeeping" | "front_office" | "other")[] | null;
             /** @description Name */
             name?: string;
             /** @description Reminders (days before expiry) */
@@ -52545,7 +53918,7 @@ export interface components {
              * @description Workforce Role
              * @enum {string|null}
              */
-            workforceRole?: "lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "other" | null;
+            workforceRole?: "lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "housekeeping" | "front_office" | "other" | null;
         };
         EmployeePositionInput: {
             /** @description Code */
@@ -52587,7 +53960,7 @@ export interface components {
              * @description Workforce Role
              * @enum {string|null}
              */
-            workforceRole?: "lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "other" | null;
+            workforceRole?: "lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "housekeeping" | "front_office" | "other" | null;
         };
         EmployeeProfile: {
             /** @description Address */
@@ -52740,8 +54113,8 @@ export interface components {
             terminationType?: "resigned" | "terminated" | "contract_ended" | "retired" | "deceased" | null;
             /** Format: date-time */
             updatedAt: string;
-            /** @description Front Desk Areas (golf, sportclub) */
-            workAreas?: ("golf" | "sportclub")[] | null;
+            /** @description Front Desk Areas (golf, sportclub, stay) */
+            workAreas?: ("golf" | "sportclub" | "stay")[] | null;
             /**
              * @description Worker Category
              * @enum {string|null}
@@ -52852,8 +54225,8 @@ export interface components {
              * @description Supervisor
              */
             supervisorId?: string | null;
-            /** @description Front Desk Areas (golf, sportclub) */
-            workAreas?: ("golf" | "sportclub")[] | null;
+            /** @description Front Desk Areas (golf, sportclub, stay) */
+            workAreas?: ("golf" | "sportclub" | "stay")[] | null;
             /**
              * @description Worker Category
              * @enum {string|null}
@@ -54408,6 +55781,12 @@ export interface components {
         ExtrasInput: {
             items: components["schemas"]["ExtraItem"][];
         };
+        FAQ: {
+            a: string;
+            aEn?: string;
+            q: string;
+            qEn?: string;
+        };
         Facility: {
             /** Format: date-time */
             archivedAt?: string | null;
@@ -54906,6 +56285,35 @@ export interface components {
             status: string;
             year: number;
         };
+        FlashReport: {
+            addonRevenue: string;
+            adr: string;
+            arrivals: number;
+            available: number;
+            /** @description Bookings made today per channel (no OTA) */
+            bySource: components["schemas"]["StayBreakdown"][];
+            cancellations: number;
+            date: string;
+            departures: number;
+            /** @description Online holds that ran out unpaid */
+            expired: number;
+            /** @description POS orders charged to the rooms */
+            fnbChargeToRoom: string;
+            /** @description The night audit closed the day: the figures are those of the close */
+            frozen: boolean;
+            inHouse: number;
+            inHouseGuests: number;
+            mtd: components["schemas"]["NightStat"];
+            noShows: number;
+            occupancy: string;
+            otherRevenue: string;
+            outOfOrder: number;
+            revpar: string;
+            /** @description Before tax and service */
+            roomRevenue: string;
+            sold: number;
+            units: number;
+        };
         FlightPause: {
             /** @description Time on breaks (counted in the play time) */
             breakSeconds: number;
@@ -55150,6 +56558,15 @@ export interface components {
             rooms: {
                 [key: string]: number;
             };
+        };
+        FrontOfficeAudit: {
+            businessDate: string;
+            checklist: components["schemas"]["AuditCheck"][];
+            closed: boolean;
+            /** Format: date-time */
+            closedAt?: string | null;
+            flash: components["schemas"]["FlashReport"];
+            notes?: string | null;
         };
         GLLedgerLine: {
             /** @description Running balance (debit − credit) */
@@ -55453,6 +56870,81 @@ export interface components {
             start: string;
             /** @enum {string} */
             status: "available" | "booked" | "blocked" | "past";
+        };
+        Group: {
+            /** Format: date-time */
+            arrival?: string | null;
+            bookingSource?: string | null;
+            bungalows: number;
+            channel: string;
+            contactEmail?: string | null;
+            contactName?: string | null;
+            contactPhone?: string | null;
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            customerFolioId?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            /** Format: date-time */
+            departure?: string | null;
+            /** @enum {string} */
+            folioMode: "combined" | "per_stay";
+            groupNo: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            notes?: string | null;
+            paid: string;
+            publicToken?: string | null;
+            status: string;
+            total: string;
+        };
+        GroupBookingInput: {
+            /** @description Check-in date YYYY-MM-DD */
+            arrivalDate: string;
+            /** @enum {string} */
+            bookingSource?: "front_desk" | "phone" | "walk_in" | "corporate" | "website" | "member_app";
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            /** @description Check-out date YYYY-MM-DD */
+            departureDate: string;
+            expectedArrival?: string;
+            /** @enum {string} */
+            folioMode?: "combined" | "per_stay";
+            guest?: components["schemas"]["StayGuestInput"] | null;
+            items: components["schemas"]["CartItem"][];
+            /** @description Group name (default: the booker) */
+            name?: string;
+            notes?: string;
+            overrideRestrictions?: boolean;
+            payment?: components["schemas"]["PaymentInput"] | null;
+            /** @description Stay promotion code (not a billing voucher) */
+            promoCode?: string;
+            specialRequests?: string;
+            supervisorReason?: string;
+            vip?: boolean;
+        };
+        GroupDetail: {
+            group: components["schemas"]["Group"];
+            stays: components["schemas"]["Stay"][];
+        };
+        GroupResult: {
+            done: string[];
+            /** @description Bungalow: reason */
+            failed: string[];
+            group: components["schemas"]["Group"];
+        };
+        GroupSettleInput: {
+            /** @description cash, card, bank_transfer, qris, member_account (city ledger: charge-to-account) */
+            methodType: string;
+            /** @enum {string} */
+            purpose?: "deposit" | "settlement";
+            reference?: string;
         };
         GuaranteedPaxInput: {
             pax: number;
@@ -56222,6 +57714,25 @@ export interface components {
         HandoverInput: {
             deviceId: string;
         };
+        HandoverNote: {
+            authorName?: string | null;
+            body: string;
+            /** Format: date-time */
+            businessDate: string;
+            /** @enum {string} */
+            category: "vip" | "complaint" | "key" | "lost_found" | "payment" | "general";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            doneAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "open" | "done";
+            /** Format: uuid */
+            stayId?: string | null;
+            stayNo?: string | null;
+        };
         HardwareCommandSpec: {
             command: string;
             description: string;
@@ -56550,6 +58061,21 @@ export interface components {
             message: string;
             /** @description 1-based line (header = 1) */
             row: number;
+        };
+        InHouseGuest: {
+            balance: string;
+            bungalow: string;
+            companyPays: boolean;
+            /** Format: date-time */
+            departure: string;
+            /** Format: uuid */
+            folioId: string;
+            guest: string;
+            /** @description What can still be charged (Stay Policies roomChargeLimit); null = no limit */
+            limitLeft?: string | null;
+            /** Format: uuid */
+            stayId: string;
+            stayNo: string;
         };
         InboundInput: {
             /** @description YYYY-MM-DD */
@@ -59033,6 +60559,9 @@ export interface components {
             remove?: string[];
             targets?: components["schemas"]["KPITargetLine"][];
             title?: string | null;
+        };
+        KeysInput: {
+            keysReturned: number;
         };
         Kiosk: {
             entries: components["schemas"]["PublicEntry"][];
@@ -61655,6 +63184,10 @@ export interface components {
             /** @description Times the caddy accompanied the customer */
             rounds: number;
         };
+        MemberCancelInput: {
+            reason?: string;
+            stayIds?: string[];
+        };
         MemberEvent: {
             capacity?: number | null;
             category: string;
@@ -61756,6 +63289,10 @@ export interface components {
             /** Format: date-time */
             readAt?: string | null;
             title: string;
+        };
+        MemberPayInput: {
+            /** @enum {string} */
+            method: "qris" | "virtual_account" | "card";
         };
         MemberProfile: {
             account?: components["schemas"]["Account"] | null;
@@ -62920,6 +64457,8 @@ export interface components {
             adults?: number;
             /** @description Bungalow: YYYY-MM-DD (check-in time from Stay Policies) */
             arrivalDate?: string;
+            /** @enum {string} */
+            bookerTitle?: "mr" | "mrs" | "ms";
             /**
              * @description Default: from the channel
              * @enum {string}
@@ -62954,15 +64493,29 @@ export interface components {
             eventSchedule?: Record<string, never>[];
             /** @description Expected arrival time HH:MM */
             expectedArrival?: string;
+            /**
+             * Format: uuid
+             * @description Add the bungalow to a group reservation (rooming list)
+             */
+            groupId?: string | null;
             guest?: components["schemas"]["StayGuestInput"] | null;
             /** @enum {string} */
             kind: "bungalow" | "vip_suite" | "meeting_room";
             /** @enum {string} */
             layout?: "round_table" | "classroom" | "u_shape" | "theater" | "boardroom" | "cocktail";
+            /** @description Discount on the room price (supervisor; reason required) */
+            manualDiscount?: string;
+            /** @description Opt-in to news and offers (UU PDP), never pre-ticked */
+            marketingConsent?: boolean;
             /** @description Pay the deposit / total from my member account; otherwise pay the folio online */
             memberCharge?: boolean;
+            nationality?: string;
             /** @description Internal notes */
             notes?: string;
+            /** @description Guest staying in the bungalow when not the booker */
+            occupantName?: string;
+            /** @description Book although a restriction closes the dates (supervisor; reason required) */
+            overrideRestrictions?: boolean;
             /** @description Meeting package (HALF_DAY, FULL_DAY, ONE_DAY) */
             packageCode?: string;
             pax?: number;
@@ -62981,6 +64534,8 @@ export interface components {
             start?: string | null;
             /** @description Accommodation stay package code (room + inclusions) */
             stayPackage?: string;
+            /** @description Why a restriction is passed or a manual discount given (audited) */
+            supervisorReason?: string;
             /**
              * Format: uuid
              * @description Bungalow, VIP suite or meeting room
@@ -68420,6 +69975,16 @@ export interface components {
             usedCount: number;
             version: number;
         };
+        PromotionUse: {
+            campaign?: string | null;
+            code: string;
+            discount: string;
+            name: string;
+            nights: number;
+            promoCode?: string | null;
+            reservations: number;
+            revenue: string;
+        };
         PromotionView: {
             bundlePrice?: string | null;
             businessLines: string[];
@@ -68684,6 +70249,13 @@ export interface components {
             /** @description Other players (the contact plays as player 1) */
             players?: components["schemas"]["PublicPlayer"][];
         };
+        PublicCancelInput: {
+            /** Format: uuid */
+            propertyId: string;
+            reason?: string;
+            /** @description Bungalows to cancel; empty = every bungalow that can be cancelled */
+            stayIds?: string[];
+        };
         PublicCheck: {
             code: string;
             /** Format: uuid */
@@ -68748,7 +70320,7 @@ export interface components {
             lines?: components["schemas"]["CourtLine"][];
             notes?: string;
             /** @enum {string} */
-            payMethod?: "qris" | "virtual_account" | "card";
+            payMethod?: "qris" | "virtual_account" | "ewallet" | "card";
             /** Format: uuid */
             propertyId: string;
             /** Format: date-time */
@@ -69055,22 +70627,119 @@ export interface components {
             time: string;
         };
         PublicRate: {
-            currency: string;
-            dayType?: string | null;
-            itemRef?: string | null;
+            averagePerNight: string;
+            cancelFeePercent: string;
+            code: string;
+            depositPercent: string;
+            description?: string | null;
+            discount: string;
+            /** @enum {string} */
+            eligibility: "everyone" | "member" | "corporate";
+            freeCancelHours: number;
+            includesBreakfast: boolean;
+            inclusions: components["schemas"]["AddonLine"][];
+            /** @enum {string} */
+            kind: "rate_plan" | "package";
+            /** @description Before the promotion (strike-through) */
+            listTotal: string;
+            maxNights?: number | null;
+            minNights: number;
             name: string;
-            package?: string | null;
-            packageQuantity: number;
-            price: string;
-            pricingMode: string;
-            ratePlan?: string | null;
-            segment?: string | null;
-            serviceType: string;
-            timeBand?: string | null;
-            unit: string;
+            /** @description Price per night (weekend / season nights may differ) */
+            nights: components["schemas"]["NightPrice"][];
+            noShowFeePercent: string;
+            nonRefundable: boolean;
+            /** @enum {string} */
+            paymentPolicy: "deposit" | "full_prepayment" | "pay_at_hotel";
+            promotionName?: string | null;
+            savePercent: number;
+            /** @description Prices include tax & service (nett); else tax & service are added */
+            taxIncluded: boolean;
+            /** @description The whole stay with tax and service, after the promotion */
+            total: string;
         };
         PublicRejectInput: {
             reason: string;
+        };
+        PublicRoomType: {
+            amenities: components["schemas"]["Amenity"][];
+            bedConfiguration?: string | null;
+            bedrooms: number;
+            code: string;
+            description?: string | null;
+            descriptionEn?: string | null;
+            facilities: string[];
+            faq: components["schemas"]["FAQ"][];
+            houseRules?: string | null;
+            /** Format: uuid */
+            id: string;
+            maxAdults: number;
+            maxChildren: number;
+            name: string;
+            nameEn?: string | null;
+            photos: string[];
+            sizeSqm?: string | null;
+            slug: string;
+            sortOrder: number;
+            units: number;
+            view?: string | null;
+            /** @description Views of the bungalows of the type (golf, lake, pool …): depends on availability when several */
+            views: string[];
+        };
+        PublicSearch: {
+            adults: number;
+            arrivalDate: string;
+            children: number;
+            departureDate: string;
+            holdMinutes: number;
+            /** @description Latest check-in (booking window) */
+            maxDate: string;
+            methods: string[];
+            /** @description Earliest check-in (today at the club) */
+            minDate: string;
+            nights: number;
+            promoCode?: string;
+            /** @description Why the promo code does not apply (expired, room type, minimum nights …) */
+            promoError?: string | null;
+            types: components["schemas"]["PublicSearchType"][];
+        };
+        PublicSearchType: {
+            amenities: components["schemas"]["Amenity"][];
+            /** @description Bungalows free for every night of the stay */
+            available: number;
+            bedConfiguration?: string | null;
+            bedrooms: number;
+            capacityNote?: string | null;
+            /** @description A restriction closes the dates for this channel */
+            closedReason?: string | null;
+            code: string;
+            description?: string | null;
+            descriptionEn?: string | null;
+            facilities: string[];
+            faq: components["schemas"]["FAQ"][];
+            fitsGuests: boolean;
+            /** @description Lowest average price per night */
+            fromPerNight?: string | null;
+            full: boolean;
+            houseRules?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Sisa ≤ 2 bungalow */
+            lowAvailability: boolean;
+            maxAdults: number;
+            maxChildren: number;
+            name: string;
+            nameEn?: string | null;
+            packages: components["schemas"]["PublicRate"][];
+            photos: string[];
+            rates: components["schemas"]["PublicRate"][];
+            sizeSqm?: string | null;
+            slug: string;
+            sortOrder: number;
+            units: number;
+            view?: string | null;
+            /** @description Views of the bungalows of the type (golf, lake, pool …): depends on availability when several */
+            views: string[];
         };
         PublicSportClub: {
             classPrograms: components["schemas"]["PublicProgram"][];
@@ -69094,6 +70763,8 @@ export interface components {
             adults?: number;
             /** @description Bungalow: YYYY-MM-DD (check-in time from Stay Policies) */
             arrivalDate?: string;
+            /** @enum {string} */
+            bookerTitle?: "mr" | "mrs" | "ms";
             /**
              * @description Default: from the channel
              * @enum {string}
@@ -69128,13 +70799,27 @@ export interface components {
             eventSchedule?: Record<string, never>[];
             /** @description Expected arrival time HH:MM */
             expectedArrival?: string;
+            /**
+             * Format: uuid
+             * @description Add the bungalow to a group reservation (rooming list)
+             */
+            groupId?: string | null;
             guest: components["schemas"]["StayGuestInput"] | null;
             /** @enum {string} */
             kind: "bungalow" | "vip_suite" | "meeting_room";
             /** @enum {string} */
             layout?: "round_table" | "classroom" | "u_shape" | "theater" | "boardroom" | "cocktail";
+            /** @description Discount on the room price (supervisor; reason required) */
+            manualDiscount?: string;
+            /** @description Opt-in to news and offers (UU PDP), never pre-ticked */
+            marketingConsent?: boolean;
+            nationality?: string;
             /** @description Internal notes */
             notes?: string;
+            /** @description Guest staying in the bungalow when not the booker */
+            occupantName?: string;
+            /** @description Book although a restriction closes the dates (supervisor; reason required) */
+            overrideRestrictions?: boolean;
             /** @description Meeting package (HALF_DAY, FULL_DAY, ONE_DAY) */
             packageCode?: string;
             pax?: number;
@@ -69160,6 +70845,8 @@ export interface components {
             start?: string | null;
             /** @description Accommodation stay package code (room + inclusions) */
             stayPackage?: string;
+            /** @description Why a restriction is passed or a manual discount given (audited) */
+            supervisorReason?: string;
             /**
              * Format: uuid
              * @description Bungalow, VIP suite or meeting room
@@ -69175,11 +70862,35 @@ export interface components {
         };
         PublicStayLookup: {
             /** @description E-mail or phone of the booking */
-            contact: string;
+            contact?: string;
             /** Format: uuid */
             propertyId: string;
             /** @description Stay or reservation number */
-            reference: string;
+            reference?: string;
+            /**
+             * Format: uuid
+             * @description With a group link: which bungalow
+             */
+            stayId?: string | null;
+            /** @description Link of the booking or of one bungalow instead of reference + contact */
+            token?: string;
+        };
+        PublicStayPage: {
+            /** @description Add-ons bookable with the stay (FR-H22) */
+            addons: components["schemas"]["GuestAddon"][];
+            checkInTime: string;
+            checkOutTime: string;
+            childPolicy: string;
+            contact: components["schemas"]["BookingContact"];
+            holdMinutes: number;
+            houseRules: string;
+            houseRulesEn: string;
+            maxDate: string;
+            methods: string[];
+            minDate: string;
+            terms: string;
+            termsEn: string;
+            types: components["schemas"]["PublicRoomType"][];
         };
         PublicStayRequest: {
             /**
@@ -69188,15 +70899,22 @@ export interface components {
              */
             addonId?: string | null;
             /** @description E-mail or phone of the booking */
-            contact: string;
+            contact?: string;
             description?: string;
             /** Format: uuid */
             propertyId: string;
             quantity?: number;
             /** @description Stay or reservation number */
-            reference: string;
+            reference?: string;
             /** @enum {string} */
             requestType: "extra_towel" | "extra_bed" | "room_cleaning" | "maintenance" | "laundry" | "transportation" | "food_beverage" | "other";
+            /**
+             * Format: uuid
+             * @description With a group link: which bungalow
+             */
+            stayId?: string | null;
+            /** @description Link of the booking or of one bungalow instead of reference + contact */
+            token?: string;
         };
         PublicStayResult: {
             checkout?: components["schemas"]["Checkout"] | null;
@@ -69330,6 +71048,17 @@ export interface components {
             maxAdults?: number | null;
             name: string;
             sizeSqm?: string | null;
+        };
+        PublicWaitlistInput: {
+            adults?: number;
+            arrivalDate: string;
+            /** Format: uuid */
+            bungalowTypeId: string;
+            children?: number;
+            departureDate: string;
+            guest: components["schemas"]["PublicGuest"];
+            /** Format: uuid */
+            propertyId: string;
         };
         PurchaseGoodsReceipt: {
             /** @enum {string|null} */
@@ -70234,6 +71963,8 @@ export interface components {
             tax: string;
             taxIncluded: boolean;
             total: string;
+            /** @description The code is a gift / value voucher: its balance pays the booking at checkout */
+            voucher: boolean;
         };
         QuoteInput: {
             /** Format: uuid */
@@ -70318,6 +72049,8 @@ export interface components {
         RackSegment: {
             /** Format: date-time */
             end: string;
+            /** @description Group reservation of the stay */
+            groupNo?: string | null;
             guest?: string | null;
             /** Format: uuid */
             id: string;
@@ -70529,6 +72262,23 @@ export interface components {
         RateCard: {
             packages: components["schemas"]["PackageRow"][];
             rates: components["schemas"]["SportclubRateRow"][];
+        };
+        RateCardRow: {
+            includesBreakfast: boolean;
+            minNights: number;
+            ratePlan: string;
+            ratePlanName: string;
+            slug: string;
+            sortOrder: number;
+            taxIncluded: boolean;
+            /** Format: uuid */
+            typeId: string;
+            typeName: string;
+            typeNameEn?: string | null;
+            /** @description Price per night on a weekday night */
+            weekday: string;
+            /** @description Price per night on a weekend night (Stay Policies weekend nights) */
+            weekend: string;
         };
         RatePlan: {
             /** Format: date-time */
@@ -72344,6 +74094,23 @@ export interface components {
         Response: {
             results: components["schemas"]["ItemResult"][];
         };
+        Restriction: {
+            bookingSources: string[];
+            /** Format: uuid */
+            bungalowTypeId?: string | null;
+            closed: boolean;
+            closedToArrival: boolean;
+            closedToDeparture: boolean;
+            code: string;
+            /** Format: date-time */
+            endDate: string;
+            /** Format: uuid */
+            id: string;
+            minNights?: number | null;
+            reason?: string | null;
+            /** Format: date-time */
+            startDate: string;
+        };
         Result: {
             /** Format: date-time */
             generatedAt: string;
@@ -72711,6 +74478,18 @@ export interface components {
              */
             meetingRoomId?: string;
         };
+        RoomMove: {
+            charge: string;
+            createdBy?: string | null;
+            from: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            movedAt: string;
+            reason: string;
+            to: string;
+            upgrade: boolean;
+        };
         RoomQuote: {
             cancelFeePercent: string;
             depositPercent?: string | null;
@@ -72750,6 +74529,8 @@ export interface components {
             dates: string[];
             days: number;
             from: string;
+            /** @description Restrictions of the period (stop sale, closed to arrival / departure, minimum nights; FR-H66) */
+            restrictions: components["schemas"]["Restriction"][];
             units: components["schemas"]["RackUnit"][];
             /** @description Stays booked by type without a bungalow in the period */
             unplaced: components["schemas"]["RackSegment"][];
@@ -74648,6 +76429,18 @@ export interface components {
             status: "invoiced" | "settled";
             visitIds: string[];
         };
+        SettlementRow: {
+            amount: string;
+            /** Format: date-time */
+            created: string;
+            gateway?: string | null;
+            method: string;
+            number: string;
+            /** Format: date-time */
+            paidAt?: string | null;
+            status: string;
+            stayNo: string;
+        };
         SheetFlight: {
             bookingCode?: string | null;
             /** Format: uuid */
@@ -75124,7 +76917,7 @@ export interface components {
              * @description Workforce Role (certification check)
              * @enum {string|null}
              */
-            workforceRole?: "lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "other" | null;
+            workforceRole?: "lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "housekeeping" | "front_office" | "other" | null;
         };
         ShiftTemplateInput: {
             /**
@@ -75158,7 +76951,7 @@ export interface components {
              * @description Workforce Role (certification check)
              * @enum {string|null}
              */
-            workforceRole?: "lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "other" | null;
+            workforceRole?: "lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "housekeeping" | "front_office" | "other" | null;
         };
         SignUp: {
             /** @description Only on demo / sandbox instances (e-mail and WhatsApp on hold) */
@@ -75827,6 +77620,11 @@ export interface components {
             billingArrangement?: string | null;
             /** @enum {string|null} */
             bookingSource?: "website" | "member_app" | "guest_app" | "front_desk" | "phone" | "walk_in" | "corporate" | null;
+            /**
+             * @description Status of §12.3 for every screen
+             * @enum {string}
+             */
+            bookingStatus: "requested" | "awaiting_payment" | "confirmed" | "in_house" | "checked_out" | "cancelled" | "no_show" | "expired" | "void";
             cancelReason?: string | null;
             /** Format: date-time */
             cancelledAt?: string | null;
@@ -75853,21 +77651,36 @@ export interface components {
             expectedArrival?: string | null;
             /** Format: uuid */
             folioId?: string | null;
+            /** Format: uuid */
+            groupId?: string | null;
+            groupNo?: string | null;
             guestEmail?: string | null;
             guestName?: string | null;
             guestPhone?: string | null;
+            hasIdPhoto: boolean;
+            /**
+             * Format: date-time
+             * @description Awaiting payment: the bungalow is held until then
+             */
+            holdExpiresAt?: string | null;
             /** Format: uuid */
             id: string;
             idNumberMasked?: string | null;
             idType?: string | null;
+            keyNumbers?: string | null;
+            keysIssued: number;
+            keysReturned: number;
             /** @enum {string} */
             kind: "bungalow" | "vip_suite" | "meeting_room";
             /** Format: date-time */
             lateCheckOutUntil?: string | null;
             layout?: string | null;
+            nationality?: string | null;
             nights: number;
             noShowFee?: string | null;
             notes?: string | null;
+            /** @description Guest staying in the bungalow when not the booker */
+            occupantName?: string | null;
             /**
              * Format: uuid
              * @description Commercial package booking this stay fulfils (PRD P3 FR-PKG-04)
@@ -75877,11 +77690,18 @@ export interface components {
             paid: string;
             pax?: number | null;
             /** @enum {string} */
-            paymentStatus: "unpaid" | "pending" | "paid" | "partially_paid" | "refund_pending" | "refunded" | "failed";
+            paymentStatus: "unpaid" | "pending" | "paid" | "partially_paid" | "overpaid" | "refund_pending" | "refunded" | "failed";
             promotionCode?: string | null;
             /** Format: uuid */
             propertyId: string;
+            /** @description My Stay / e-voucher link of the guest */
+            publicToken?: string | null;
             ratePlan?: string | null;
+            /**
+             * Format: date-time
+             * @description Registration card signed
+             */
+            registeredAt?: string | null;
             reservationCode: string;
             /** Format: uuid */
             reservationId: string;
@@ -75899,6 +77719,8 @@ export interface components {
             stayNo: string;
             /** Format: uuid */
             stayPackageId?: string | null;
+            /** @description Room price includes tax & service (nett) — one label on every screen (FR-H80) */
+            taxIncluded?: boolean | null;
             /** @description Folio charges plus the room nights not posted yet */
             totalDue: string;
             typeName?: string | null;
@@ -75912,6 +77734,7 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
             vip: boolean;
+            voidReason?: string | null;
         };
         StayAddon: {
             /** Format: uuid */
@@ -75955,6 +77778,20 @@ export interface components {
             /** @description YYYY-MM-DD (from the check-in time); or start */
             startDate?: string;
         };
+        StayBookingPayment: {
+            amount: string;
+            /**
+             * Format: date-time
+             * @description Server time the payment must be completed by
+             */
+            expiresAt?: string | null;
+            method: string;
+            numbers: string[];
+            qrString?: string | null;
+            /** @description Mock gateway: pay on the website payment page */
+            sandbox: boolean;
+            vaNumber?: string | null;
+        };
         StayBreakdown: {
             count: number;
             key: string;
@@ -75966,8 +77803,12 @@ export interface components {
             waiveFee?: boolean;
         };
         StayCatalog: {
+            /** @description Add-ons bookable with a bungalow (docs/requirement-booking-hotel-mgcc.md FR-H87) */
+            addons: components["schemas"]["GuestAddon"][];
             bungalowTypes: components["schemas"]["CatalogBungalowType"][];
             meetingRooms: components["schemas"]["CatalogMeetingRoom"][];
+            /** Format: uuid */
+            propertyId: string;
             ratePlans: components["schemas"]["CatalogRatePlan"][];
         };
         StayChargeInput: {
@@ -75988,7 +77829,10 @@ export interface components {
         };
         StayDashboard: {
             adr: string;
+            /** @description Unpaid stays close to arrival, Out of Order bungalows with a reservation, guests past their check-out */
+            alerts: components["schemas"]["Alert"][];
             arrivals: components["schemas"]["Stay"][];
+            /** @description Active bungalows − out of order − sold tonight (FR-H04) */
             availableBungalows: number;
             /** @description Reservations cancelled today */
             cancelled: number;
@@ -75998,11 +77842,15 @@ export interface components {
             expectedCheckOuts: number;
             housekeepingTasks: components["schemas"]["HKTask"][];
             inHouseGuests: number;
+            /** @description Bungalows whose guest has checked in */
+            inHouseNow: number;
             maintenanceIssues: components["schemas"]["WorkOrder"][];
             night: components["schemas"]["NightStat"];
             noShows: number;
             occupancy: string;
+            /** @description In-house now (kept for older clients) */
             occupiedBungalows: number;
+            outOfOrder: number;
             pendingPayment: components["schemas"]["Stay"][];
             pendingPreparation: components["schemas"]["Stay"][];
             requests: components["schemas"]["GuestRequest"][];
@@ -76013,6 +77861,8 @@ export interface components {
             roomStatus: {
                 [key: string]: number;
             };
+            /** @description Room nights sold tonight, checked in or not */
+            soldTonight: number;
             todaysArrivals: number;
             todaysDepartures: number;
             vip: components["schemas"]["Stay"][];
@@ -76023,15 +77873,19 @@ export interface components {
             addons: components["schemas"]["StayAddon"][];
             amenities: string[];
             bedConfiguration?: string | null;
+            /** @description Link of the whole booking (group or bungalow): status, e-voucher, payment, cancellation */
+            bookingToken?: string | null;
             canRequest: boolean;
             checkInTime: string;
             checkOutTime: string;
+            contact: components["schemas"]["BookingContact"];
             description?: string | null;
             folio: components["schemas"]["FolioItem"][];
             folioBalance: string;
             folioPaid: string;
             folioTotal: string;
             houseRules: string;
+            houseRulesEn: string;
             orderableAddons: components["schemas"]["GuestAddon"][];
             photos: string[];
             propertyInfo: string;
@@ -76048,6 +77902,13 @@ export interface components {
             name: string;
             phone?: string;
         };
+        StayHandoverInput: {
+            body: string;
+            /** @enum {string} */
+            category?: "vip" | "complaint" | "key" | "lost_found" | "payment" | "general";
+            /** Format: uuid */
+            stayId?: string | null;
+        };
         StayHistoryEntry: {
             action: string;
             actor?: string | null;
@@ -76061,11 +77922,52 @@ export interface components {
             /** @description Module that recorded the change */
             source: string;
         };
+        StayIncident: {
+            actionTaken?: string | null;
+            bungalowCode?: string | null;
+            /** Format: uuid */
+            bungalowId?: string | null;
+            /** @enum {string} */
+            category: "damage" | "complaint" | "lost_item" | "safety" | "noise" | "other";
+            /** Format: date-time */
+            closedAt?: string | null;
+            damageAmount?: string | null;
+            description: string;
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: date-time */
+            occurredAt: string;
+            reportedBy?: string | null;
+            /** @enum {string} */
+            severity: "low" | "medium" | "high";
+            /** @enum {string} */
+            status: "open" | "closed";
+            /** Format: uuid */
+            stayId?: string | null;
+            stayNo?: string | null;
+        };
+        StayIncidentInput: {
+            /** Format: uuid */
+            bungalowId?: string | null;
+            /** @enum {string} */
+            category: "damage" | "complaint" | "lost_item" | "safety" | "noise" | "other";
+            /** @description Damage: charge the amount to the folio of the stay */
+            chargeGuest?: boolean;
+            damageAmount?: string;
+            description: string;
+            /** @enum {string} */
+            severity?: "low" | "medium" | "high";
+            /** Format: uuid */
+            stayId?: string | null;
+        };
         StayInput: {
             addons?: components["schemas"]["AddonInput"][];
             adults?: number;
             /** @description Bungalow: YYYY-MM-DD (check-in time from Stay Policies) */
             arrivalDate?: string;
+            /** @enum {string} */
+            bookerTitle?: "mr" | "mrs" | "ms";
             /**
              * @description Default: from the channel
              * @enum {string}
@@ -76100,13 +78002,27 @@ export interface components {
             eventSchedule?: Record<string, never>[];
             /** @description Expected arrival time HH:MM */
             expectedArrival?: string;
+            /**
+             * Format: uuid
+             * @description Add the bungalow to a group reservation (rooming list)
+             */
+            groupId?: string | null;
             guest?: components["schemas"]["StayGuestInput"] | null;
             /** @enum {string} */
             kind: "bungalow" | "vip_suite" | "meeting_room";
             /** @enum {string} */
             layout?: "round_table" | "classroom" | "u_shape" | "theater" | "boardroom" | "cocktail";
+            /** @description Discount on the room price (supervisor; reason required) */
+            manualDiscount?: string;
+            /** @description Opt-in to news and offers (UU PDP), never pre-ticked */
+            marketingConsent?: boolean;
+            nationality?: string;
             /** @description Internal notes */
             notes?: string;
+            /** @description Guest staying in the bungalow when not the booker */
+            occupantName?: string;
+            /** @description Book although a restriction closes the dates (supervisor; reason required) */
+            overrideRestrictions?: boolean;
             /** @description Meeting package (HALF_DAY, FULL_DAY, ONE_DAY) */
             packageCode?: string;
             pax?: number;
@@ -76125,6 +78041,8 @@ export interface components {
             start?: string | null;
             /** @description Accommodation stay package code (room + inclusions) */
             stayPackage?: string;
+            /** @description Why a restriction is passed or a manual discount given (audited) */
+            supervisorReason?: string;
             /**
              * Format: uuid
              * @description Bungalow, VIP suite or meeting room
@@ -76136,6 +78054,83 @@ export interface components {
              * @description Waitlist entry converted by this booking
              */
             waitlistId?: string | null;
+        };
+        StayMemberBookingInput: {
+            /** @description Check-in date YYYY-MM-DD */
+            arrivalDate: string;
+            /** @description Check-out date YYYY-MM-DD */
+            departureDate: string;
+            expectedArrival?: string;
+            items: components["schemas"]["CartItem"][];
+            /**
+             * @description member_charge: the deposit goes to the member account (credit limit)
+             * @enum {string}
+             */
+            payMethod?: "qris" | "virtual_account" | "card" | "member_charge";
+            /** @description Stay promotion code (not a billing voucher) */
+            promoCode?: string;
+            specialRequests?: string;
+        };
+        StayMoveInput: {
+            /** @description Upgrade: charge the price difference of the nights left */
+            chargeDifference?: boolean;
+            reason: string;
+            /** Format: uuid */
+            unitId: string;
+            /** @description The guest asked for a better room type */
+            upgrade?: boolean;
+        };
+        StayProfitCenter: {
+            from: string;
+            /** @description Costs of the Bungalow profit center in the general ledger */
+            ledgerCost: string;
+            to: string;
+            total: components["schemas"]["TypeCenter"];
+            types: components["schemas"]["TypeCenter"][];
+        };
+        StayPublicBookingInput: {
+            /** @description Terms & Conditions and the cancellation policy accepted (required) */
+            acceptTerms: boolean;
+            /** @description Check-in date YYYY-MM-DD */
+            arrivalDate: string;
+            /** @enum {string} */
+            bookerTitle?: "mr" | "mrs" | "ms";
+            /** @description Check-out date YYYY-MM-DD */
+            departureDate: string;
+            /** @description HH:MM */
+            expectedArrival?: string;
+            guest: components["schemas"]["PublicGuest"];
+            items: components["schemas"]["CartItem"][];
+            marketingConsent?: boolean;
+            nationality?: string;
+            /**
+             * @description Online method of the deposit; not needed when every rate is paid at the hotel
+             * @enum {string}
+             */
+            payMethod?: "qris" | "virtual_account" | "card";
+            /** @description Stay promotion code (not a billing voucher) */
+            promoCode?: string;
+            /** Format: uuid */
+            propertyId: string;
+            /** @description Up to 255 characters, subject to availability */
+            specialRequests?: string;
+        };
+        StayPublicPayInput: {
+            /** @enum {string} */
+            method: "qris" | "virtual_account" | "card";
+            /** Format: uuid */
+            propertyId: string;
+        };
+        StayPublicQuoteInput: {
+            /** @description Check-in date YYYY-MM-DD */
+            arrivalDate: string;
+            /** @description Check-out date YYYY-MM-DD */
+            departureDate: string;
+            items: components["schemas"]["CartItem"][];
+            /** @description Stay promotion code (not a billing voucher) */
+            promoCode?: string;
+            /** Format: uuid */
+            propertyId: string;
         };
         StayQuote: {
             depositRequired: string;
@@ -77469,6 +79464,15 @@ export interface components {
             dpp: string;
             ppn: string;
         };
+        TaxRow: {
+            /** @description room, addon, fnb, other */
+            component: string;
+            date: string;
+            net: string;
+            service: string;
+            tax: string;
+            total: string;
+        };
         TaxServiceRule: {
             /**
              * @description Calculation Basis
@@ -78492,6 +80496,10 @@ export interface components {
             participants: components["schemas"]["EventParticipantStats"];
             schedule: components["schemas"]["RundownItem"][];
             venues: components["schemas"]["VenueHold"][];
+        };
+        TokenInput: {
+            /** Format: uuid */
+            propertyId: string;
         };
         TopCustomer: {
             bookings: number;
@@ -80473,6 +82481,27 @@ export interface components {
             typeName: string;
             units: number;
         };
+        TypeCenter: {
+            addonRevenue: string;
+            adr: string;
+            alos: string;
+            /** @description Room nights available */
+            available: number;
+            fnbChargeToRoom: string;
+            /** @description Work order costs of the bungalows of the type */
+            maintenance: string;
+            margin: string;
+            occupancy: string;
+            revpar: string;
+            roomRevenue: string;
+            /** @description Bungalow costs of the ledger (housekeeping staff, amenities …) shared by room nights sold */
+            sharedCost: string;
+            sold: number;
+            /** Format: uuid */
+            typeId: string;
+            typeName: string;
+            units: number;
+        };
         UOM: {
             /** Format: date-time */
             archivedAt?: string | null;
@@ -80637,6 +82666,13 @@ export interface components {
             /** @enum {string} */
             gender?: "male" | "female";
             name?: string;
+        };
+        UpgradeInput: {
+            /** @description Paid upgrade: the stay is repriced at the new room type; else a free upgrade keeps the price */
+            paid?: boolean;
+            reason: string;
+            /** Format: uuid */
+            unitId: string;
         };
         User: {
             assignments: components["schemas"]["UserAssignment"][];
@@ -169332,7 +171368,7 @@ export interface operations {
                 cursor?: string;
                 /** @description Page size (max 500). */
                 limit?: number;
-                role?: "lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "other";
+                role?: "lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "housekeeping" | "front_office" | "other";
                 /** @description YYYY-MM-DD (default today) */
                 date?: string;
             };
@@ -172522,7 +174558,7 @@ export interface operations {
             query?: {
                 /** @description YYYY-MM-DD (default today) */
                 date?: string;
-                role?: "lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "other";
+                role?: "lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "housekeeping" | "front_office" | "other";
             };
             header: {
                 /** @description Active property chosen in the property switcher. */
@@ -205875,6 +207911,264 @@ export interface operations {
             };
         };
     };
+    postMemberStayBookings: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StayMemberBookingInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberStayBookingsByToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberStayBookingsByTokenAbandon: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberStayBookingsByTokenCancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberCancelInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberStayBookingsByTokenPay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberPayInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getMemberStayCatalog: {
         parameters: {
             query?: never;
@@ -205891,6 +208185,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StayCatalog"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberStaySearch: {
+        parameters: {
+            query: {
+                checkin: string;
+                checkout: string;
+                adults?: number;
+                children?: number;
+                promo?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicSearch"];
                 };
             };
             /** @description Not authenticated */
@@ -206153,6 +208500,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StayQuote"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberStaysQuoteCart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CartInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CartQuote"];
                 };
             };
             /** @description Not authenticated */
@@ -226345,7 +228743,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        items: components["schemas"]["PublicRate"][];
+                        items: components["schemas"]["CommercialPublicRate"][];
                         nextCursor?: string;
                     };
                 };
@@ -226627,6 +229025,39 @@ export interface operations {
             };
         };
     };
+    getPublicSportClubTicketsByTokenQrPng: {
+        parameters: {
+            query: {
+                propertyId: string;
+            };
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": string;
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getPublicStay: {
         parameters: {
             query: {
@@ -226645,6 +229076,421 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicStay"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicStayBookings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StayPublicBookingInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingView"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicStayBookingsByToken: {
+        parameters: {
+            query: {
+                propertyId: string;
+            };
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingView"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicStayBookingsByTokenCalendarIcs: {
+        parameters: {
+            query: {
+                propertyId: string;
+                /** @description id | en */
+                lang?: string;
+            };
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/calendar": string;
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicStayBookingsByTokenEVoucherPdf: {
+        parameters: {
+            query: {
+                propertyId: string;
+                /** @description id | en */
+                lang?: string;
+            };
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicStayBookingsByTokenAbandon: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TokenInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingView"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicStayBookingsByTokenCancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicCancelInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingView"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicStayBookingsByTokenPay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StayPublicPayInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingView"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicStayBookingsLookup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookingLookupInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingLookup"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicStayWaitlist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicWaitlistInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WaitlistEntry"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicStayRateCard: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                propertyId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RateCardRow"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicStaySearch: {
+        parameters: {
+            query: {
+                propertyId: string;
+                /** @description YYYY-MM-DD */
+                checkin: string;
+                /** @description YYYY-MM-DD */
+                checkout: string;
+                adults?: number;
+                children?: number;
+                promo?: string;
+                typeId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicSearch"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicStayTypes: {
+        parameters: {
+            query: {
+                propertyId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicStayPage"];
                 };
             };
             /** @description Problem Details (RFC 9457) */
@@ -226678,6 +229524,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicStayResult"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicStaysQuote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StayPublicQuoteInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CartQuote"];
                 };
             };
             /** @description Problem Details (RFC 9457) */
@@ -238264,6 +241143,58 @@ export interface operations {
             };
         };
     };
+    getStayFlash: {
+        parameters: {
+            query?: {
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlashReport"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getStayFrontOffice: {
         parameters: {
             query?: {
@@ -238285,6 +241216,341 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FrontOffice"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayGroups: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Group"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postStayGroups: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupBookingInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayGroupsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postStayGroupsByIdCheckIn: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckInInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postStayGroupsByIdCheckOut: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckOutInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postStayGroupsByIdSettle: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupSettleInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupResult"];
                 };
             };
             /** @description Not authenticated */
@@ -238824,6 +242090,171 @@ export interface operations {
             };
         };
     };
+    getStayHandoverNotes: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                days?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["HandoverNote"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postStayHandoverNotes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StayHandoverInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HandoverNote"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postStayHandoverNotesByIdDone: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HandoverNote"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getStayHousekeeping: {
         parameters: {
             query?: {
@@ -239207,6 +242638,65 @@ export interface operations {
             };
         };
     };
+    getStayHousekeepingOnDuty: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DutyAttendant"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postStayHousekeepingPlanDay: {
         parameters: {
             query?: {
@@ -239238,6 +242728,234 @@ export interface operations {
                         items: components["schemas"]["HKTask"][];
                         nextCursor?: string;
                     };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayInHouse: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InHouseGuest"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayIncidents: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                status?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["StayIncident"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postStayIncidents: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StayIncidentInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StayIncident"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postStayIncidentsByIdClose: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CloseIncidentInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StayIncident"];
                 };
             };
             /** @description Not authenticated */
@@ -239634,6 +243352,112 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayNightAudit: {
+        parameters: {
+            query?: {
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FrontOfficeAudit"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postStayNightAudit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuditRunInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FrontOfficeAudit"];
                 };
             };
             /** @description Not authenticated */
@@ -240403,6 +244227,116 @@ export interface operations {
             };
         };
     };
+    getStayPrintByKind: {
+        parameters: {
+            query?: {
+                /** @description id | en */
+                lang?: string;
+                /** @description YYYY-MM-DD */
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayProfitCenter: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StayProfitCenter"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getStayPromotions: {
         parameters: {
             query?: {
@@ -240710,6 +244644,65 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayRateCheck: {
+        parameters: {
+            query: {
+                checkin: string;
+                checkout: string;
+                adults?: number;
+                children?: number;
+                promo?: string;
+                /** @description website | member_app */
+                source?: string;
+                customerId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicSearch"];
                 };
             };
             /** @description Not authenticated */
@@ -241386,6 +245379,646 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayRateRestrictions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[bungalowTypeId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AccommodationRateRestriction"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postStayRateRestrictions: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccommodationRateRestrictionInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccommodationRateRestriction"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayRateRestrictionsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccommodationRateRestriction"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteStayRateRestrictionsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchStayRateRestrictionsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccommodationRateRestrictionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccommodationRateRestriction"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayRateRestrictionsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[bungalowTypeId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayReportsDeposits: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from?: string;
+                to?: string;
+                format?: "json" | "csv";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DepositRow"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayReportsPromotions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PromotionUse"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayReportsReservations: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from?: string;
+                to?: string;
+                format?: "json" | "csv";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Stay"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayReportsSettlement: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from?: string;
+                to?: string;
+                format?: "json" | "csv";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SettlementRow"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayReportsTax: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from?: string;
+                to?: string;
+                format?: "json" | "csv";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TaxRow"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -243194,6 +247827,336 @@ export interface operations {
             };
         };
     };
+    getStayStaysByIdIdentityPhoto: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postStayStaysByIdIdentityPhoto: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Stay"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayStaysByIdInvoicePdf: {
+        parameters: {
+            query?: {
+                /** @description id | en */
+                lang?: string;
+                /** @description YYYY-MM-DD */
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayStaysByIdMoves: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RoomMove"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayStaysByIdRegistrationCardPdf: {
+        parameters: {
+            query?: {
+                /** @description id | en */
+                lang?: string;
+                /** @description YYYY-MM-DD */
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getStayStaysByIdSignature: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getStayStaysByIdUnitOptions: {
         parameters: {
             query?: {
@@ -243381,6 +248344,62 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["StayChargeInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StayResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postStayStaysByIdChargeOrder: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChargeOrderInput"];
             };
         };
         responses: {
@@ -243642,6 +248661,62 @@ export interface operations {
             };
         };
     };
+    postStayStaysByIdKeys: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KeysInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StayResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postStayStaysByIdLateCheckout: {
         parameters: {
             query?: never;
@@ -243657,6 +248732,62 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["LateCheckoutInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StayResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postStayStaysByIdMove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StayMoveInput"];
             };
         };
         responses: {
@@ -243866,6 +248997,118 @@ export interface operations {
             };
         };
     };
+    postStayStaysByIdUpgrade: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpgradeInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StayResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postStayStaysByIdVoid: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StayReasonInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StayResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postStayStaysQuote: {
         parameters: {
             query?: never;
@@ -243889,6 +249132,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StayResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postStayStaysQuoteCart: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupBookingInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CartQuote"];
                 };
             };
             /** @description Not authenticated */

@@ -49,5 +49,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const languages = Object.fromEntries(LANGS.map((l) => [l, `${origin}/${l}/book/sport-club/${slug}`]));
     for (const l of LANGS) out.push({ url: languages[l], changeFrequency: 'daily', priority: 0.6, alternates: { languages } });
   }
+  // a page per bungalow type (docs/requirement-booking-hotel-mgcc.md §11 SEO)
+  const stay = property ? await pub<{ types: { slug: string }[] }>(`/api/v1/public/stay/types?propertyId=${property.id}`) : null;
+  for (const t of stay?.types ?? []) {
+    const languages = Object.fromEntries(LANGS.map((l) => [l, `${origin}/${l}/bungalow/${t.slug}`]));
+    for (const l of LANGS) out.push({ url: languages[l], changeFrequency: 'weekly', priority: 0.6, alternates: { languages } });
+  }
   return out;
 }

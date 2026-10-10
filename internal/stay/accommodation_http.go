@@ -24,14 +24,18 @@ type DateInput struct {
 
 // reservationTabs filter the accommodation reservations (§4 menu).
 var reservationTabs = map[string]string{
-	"all":             `true`,
-	"confirmed":       `x.status = 'reserved' AND x.reservation_status = 'confirmed'`,
-	"pending_payment": `x.status IN ('reserved', 'requested') AND x.payment_status IN ('unpaid', 'pending', 'partially_paid', 'failed')`,
-	"checked_in":      `x.status = 'checked_in'`,
-	"checked_out":     `x.status = 'checked_out'`,
-	"cancelled":       `x.status = 'cancelled'`,
-	"no_show":         `x.status = 'no_show'`,
-	"requested":       `x.status = 'requested'`,
+	"all":              `true`,
+	"confirmed":        `x.booking_status = 'confirmed'`,
+	"awaiting_payment": `x.booking_status = 'awaiting_payment'`,
+	"pending_payment":  `x.booking_status IN ('awaiting_payment', 'confirmed', 'requested') AND x.payment_status IN ('unpaid', 'pending', 'partially_paid', 'failed')`,
+	"expired":          `x.booking_status = 'expired'`,
+	"void":             `x.status = 'void'`,
+	"balance":          `x.status NOT IN ('expired', 'void') AND x.total_due::numeric - x.paid::numeric <> 0`,
+	"checked_in":       `x.status = 'checked_in'`,
+	"checked_out":      `x.status = 'checked_out'`,
+	"cancelled":        `x.status = 'cancelled'`,
+	"no_show":          `x.status = 'no_show'`,
+	"requested":        `x.status = 'requested'`,
 }
 
 // registerAccommodation adds the Accommodation routes (bungalow management

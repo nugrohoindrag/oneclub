@@ -6,6 +6,7 @@ import {
 } from '@oneclub/shell';
 import { moneyShort } from '../p1/common';
 import { label, money, sourceLabel, todayISO } from './shared';
+import { StayFinanceReports } from './mgcc';
 import './accommodation.css';
 
 // Accommodation reports & hotel KPI (requirements §32):
@@ -85,6 +86,7 @@ export function AccommodationReportsPage() {
           <BreakdownList rows={[{ label: 'Average time to complete', value: x.requestMinutes != null ? `${x.requestMinutes} min` : '—' }]} />
         </DashCard>
       </DashGrid>
+      <StayFinanceReports from={from} to={to} />
     </div>
   );
 }

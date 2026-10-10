@@ -28,6 +28,9 @@ type POS interface {
 	// on-course orders); CancelOrder cancels one the kitchen has not started.
 	FolioOrders(ctx context.Context, q dbtx.Querier, folios []uuid.UUID) ([]Order, error)
 	CancelOrder(ctx context.Context, tx pgx.Tx, oid uuid.UUID, reason string) (Order, error)
+	// ChargeToRoom posts an order to the folio of an in-house bungalow guest,
+	// every item carrying the guest and the bungalow.
+	ChargeToRoom(ctx context.Context, tx pgx.Tx, oid, folioID uuid.UUID, guest, unit string) (Order, error)
 }
 
 // Vouchers redeems vouchers, prepaid balances and quotas (contract C3).

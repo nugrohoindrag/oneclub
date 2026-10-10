@@ -23,6 +23,7 @@ import (
 	"oneclub/internal/platform/audit"
 	"oneclub/internal/platform/calendar"
 	"oneclub/internal/platform/handle"
+	"oneclub/internal/platform/notify"
 	"oneclub/internal/platform/numbering"
 )
 
@@ -152,6 +153,12 @@ func (m *Module) createHKTask(ctx context.Context, tx pgx.Tx, property uuid.UUID
 	if !ok {
 		return HKTask{}, errs.NotFound("bungalow")
 	}
+	if in.AssignedTo == "" && in.AssigneeUserID == nil {
+		// the room attendant on duty today with the fewest open tasks (roster, FR-H84)
+		if a := m.autoAssignee(ctx, tx, property, day); a != nil {
+			in.AssignedTo, in.AssigneeUserID = a.Name, a.UserID
+		}
+	}
 	cl := in.Checklist
 	if len(cl) == 0 {
 		cl = defaultChecklist(in.TaskType)
@@ -176,8 +183,13 @@ func (m *Module) createHKTask(ctx context.Context, tx pgx.Tx, property uuid.UUID
 		EntityLabel: no + " · " + t.BungalowCode, PropertyID: &property, After: t}); err != nil {
 		return t, err
 	}
-	return t, m.notifyStaff(ctx, tx, property, "stay.housekeeping.work", "stay.ops_housekeeping", map[string]any{"title": "Housekeeping " + t.BungalowCode,
-		"body": label(t.TaskType) + " · " + t.Priority, "taskNo": no}, "/ops/housekeeping")
+	data := map[string]any{"title": "Housekeeping " + t.BungalowCode, "body": label(t.TaskType) + " · " + t.Priority, "taskNo": no}
+	if in.AssigneeUserID != nil && m.Notify != nil {
+		// the attendant on duty gets the task, not every housekeeping user
+		return t, m.Notify.Send(ctx, tx, notify.Message{Event: "stay.ops_housekeeping", Category: "general", UserIDs: []uuid.UUID{*in.AssigneeUserID},
+			PropertyID: &property, Link: "/ops/housekeeping", Data: data, Channels: []string{notify.ChannelInApp}})
+	}
+	return t, m.notifyStaff(ctx, tx, property, "stay.housekeeping.work", "stay.ops_housekeeping", data, "/ops/housekeeping")
 }
 
 func (m *Module) lockHK(ctx context.Context, tx pgx.Tx, tid uuid.UUID) (HKTask, error) {
